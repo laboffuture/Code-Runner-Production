@@ -32,6 +32,7 @@ export interface Problem {
   case_overview?: string;
   case_code?: string;
   case_explanation?: string;
+  compiler_comment?: string;
 
   // Additional metadata
   age_group?: '11-14' | '15-18';
@@ -50,6 +51,7 @@ export interface Problem {
 export interface Session {
   session_id: number;
   level_id: number;
+  level_number?: number;
   session_number: number;
   title: string;
   description: string;
@@ -94,7 +96,7 @@ export interface ExecutionFile {
 export interface ExecutionResult {
   stdout: string;
   stderr: string;
-  status: 'Success' | 'Error' | 'Timeout' | 'Running' | 'Submitting' | '';
+  status: 'Success' | 'Error' | 'Timeout' | 'Running' | 'Submitting' | 'Queued...' | 'Grading...' | '';
   executionTime: number | null;
   exitCode?: number;
 

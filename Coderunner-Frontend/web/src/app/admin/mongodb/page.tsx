@@ -404,7 +404,7 @@ export default function MongoDBPage() {
                     outerRadius={100}
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, percent }) => percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''}
+                    label={({ name, percent = 0 }) => percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''}
                     labelLine={true}
                   >
                     {[

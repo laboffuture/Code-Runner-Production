@@ -133,13 +133,13 @@ export default function ConsolePanel({
     if (result) {
       return (
         <div className="font-mono text-sm">
-          {result.status === 'error' ? (
+          {result.status === 'Error' ? (
             <div className="text-red-600 dark:text-red-400 whitespace-pre-wrap">{result.stderr || result.stdout}</div>
           ) : (
             <div className="text-emerald-700 dark:text-emerald-400 whitespace-pre-wrap">{result.stdout}</div>
           )}
 
-          {result.stderr && result.status !== 'error' && (
+          {result.stderr && result.status !== 'Error' && (
             <div className="text-amber-600 dark:text-amber-400 mt-2 whitespace-pre-wrap">{result.stderr}</div>
           )}
 

@@ -14,7 +14,7 @@ export default function DockerMetricsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [poolStatusData, setPoolStatusData] = useState<Array<{ time: string; ready: number; busy: number }>>([]);
-  const [acquisitionTimeData, setAcquisitionTimeData] = useState<Array<{ time: string; time: number }>>([]);
+  const [acquisitionTimeData, setAcquisitionTimeData] = useState<Array<{ time: string; value: number }>>([]);
   const [lifecycleData, setLifecycleData] = useState<Array<{ time: string; created: number; destroyed: number; reused: number }>>([]);
   const [resourceUsageData, setResourceUsageData] = useState<Array<{ time: string; cpu: number; memory: number }>>([]);
   const [containerDetails, setContainerDetails] = useState<Array<{ id: string; status: string; age: string; jobs: number; memory: string }>>([]);
@@ -230,7 +230,7 @@ export default function DockerMetricsPage() {
                     contentStyle={{ backgroundColor: '#fff', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '12px' }}
                     labelStyle={{ fontWeight: 'bold', color: '#111827' }}
                   />
-                  <Line type="monotone" dataKey="time" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

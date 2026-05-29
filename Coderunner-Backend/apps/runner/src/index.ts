@@ -121,11 +121,11 @@ async function startRunner() {
 
     // Initialize Redis connection for publishing pool stats to API
     try {
-      const redisConfig = buildRedisConnection();
+      const redisConfig = buildRedisConnection() as { host?: string; port?: number; password?: string };
       statsRedis = new Redis({
         host: redisConfig.host,
         port: redisConfig.port,
-        password: redisConfig.password as string | undefined,
+        password: redisConfig.password,
         maxRetriesPerRequest: null,
         lazyConnect: true,
       });

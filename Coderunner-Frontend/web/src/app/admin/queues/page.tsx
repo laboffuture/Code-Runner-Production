@@ -51,7 +51,7 @@ export default function QueuesPage() {
     setLoading(true);
     try {
       const data = await api.admin.queueMetrics(timeRange, queueType);
-      setMetrics(data);
+      setMetrics(data as any);
     } catch (error) {
       console.error('Failed to fetch queue metrics:', error);
     } finally {
@@ -257,7 +257,7 @@ export default function QueuesPage() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"

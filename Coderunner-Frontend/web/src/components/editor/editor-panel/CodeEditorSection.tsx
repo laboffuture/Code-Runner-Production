@@ -64,7 +64,7 @@ export default function CodeEditorSection({
         <CodeEditor
           language="python"
           value={code}
-          onChange={onChange}
+          onChange={(value) => onChange(value ?? '')}
           isDark={isDark}
         />
       </div>

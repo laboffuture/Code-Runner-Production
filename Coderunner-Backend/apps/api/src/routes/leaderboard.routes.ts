@@ -87,7 +87,7 @@ router.get('/rank/:userId', async (req: Request, res: Response) => {
     // Find user progress
     const userProgress = await Models.UserProgress.findOne({ userId })
       .populate('userId', 'username')
-      .lean();
+      .lean() as any;
 
     if (!userProgress) {
       return res.status(404).json({
@@ -107,14 +107,14 @@ router.get('/rank/:userId', async (req: Request, res: Response) => {
     })
       .sort({ contestRating: 1 })
       .populate('userId', 'username')
-      .lean();
+      .lean() as any;
 
     const userBelow = await Models.UserProgress.findOne({
       contestRating: { $lt: userProgress.contestRating },
     })
       .sort({ contestRating: -1 })
       .populate('userId', 'username')
-      .lean();
+      .lean() as any;
 
     res.json({
       rank,

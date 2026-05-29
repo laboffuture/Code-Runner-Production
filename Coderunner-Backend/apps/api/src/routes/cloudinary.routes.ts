@@ -45,7 +45,7 @@ router.get('/stats', async (req: Request, res: Response) => {
       throw new Error(`Cloudinary API ${usageResponse.status}: ${errText}`);
     }
 
-    const u = await usageResponse.json();
+    const u: any = await usageResponse.json();
 
     // Cloudinary API returns: { plan, storage: { usage }, bandwidth: { usage }, 
     //   transformations: { usage }, credits: { usage, limit, used_percent } }
@@ -75,7 +75,7 @@ router.get('/stats', async (req: Request, res: Response) => {
         { headers: { 'Authorization': `Basic ${auth}` } }
       );
       if (imgRes.ok) {
-        const imgData = await imgRes.json();
+        const imgData: any = await imgRes.json();
         totalImages = imgData.total_count || imgData.resources?.length || 0;
         recentUploads = (imgData.resources || []).slice(0, 10).map((r: any) => ({
           public_id: r.public_id,
@@ -98,7 +98,7 @@ router.get('/stats', async (req: Request, res: Response) => {
         { headers: { 'Authorization': `Basic ${auth}` } }
       );
       if (vidRes.ok) {
-        const vidData = await vidRes.json();
+        const vidData: any = await vidRes.json();
         totalVideos = vidData.total_count || vidData.resources?.length || 0;
       }
     } catch (err) {

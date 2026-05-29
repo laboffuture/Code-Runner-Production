@@ -220,7 +220,8 @@ export class CodeSubmissionWorker {
       const alreadySolved =
         (userProgress.solvedProblemIds || []).includes(problemId) ||
         userProgress.recentActivity.some(
-          (activity) => activity.problemId === problemId && activity.status === 'ACCEPTED'
+          (activity: { problemId: number; status: string }) =>
+            activity.problemId === problemId && activity.status === 'ACCEPTED'
         );
 
       if (accepted) {
@@ -349,7 +350,7 @@ export class CodeSubmissionWorker {
       const todayStr = today.toISOString().split('T')[0];
 
       const existingDay = userProgress.submissionCalendar.find(
-        (day) => new Date(day.date).toISOString().split('T')[0] === todayStr
+        (day: { date: Date; count: number }) => new Date(day.date).toISOString().split('T')[0] === todayStr
       );
 
       if (existingDay) {
@@ -365,7 +366,7 @@ export class CodeSubmissionWorker {
       const oneYearAgo = new Date();
       oneYearAgo.setDate(oneYearAgo.getDate() - 365);
       userProgress.submissionCalendar = userProgress.submissionCalendar.filter(
-        (day) => new Date(day.date) >= oneYearAgo
+        (day: { date: Date; count: number }) => new Date(day.date) >= oneYearAgo
       );
 
       // Update solved calendar — count only DISTINCT first-time solves per day.

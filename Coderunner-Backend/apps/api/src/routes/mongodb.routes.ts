@@ -112,7 +112,7 @@ router.get('/stats', async (req: Request, res: Response) => {
     } catch { /* ignore */ }
 
     const connectionState = mongoose.connection.readyState;
-    const connectionStatus = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' }[connectionState] || 'unknown';
+    const connectionStatus = ({ 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' } as Record<number, string>)[connectionState] || 'unknown';
 
     res.json({
       connection: {
