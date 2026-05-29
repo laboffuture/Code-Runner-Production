@@ -54,7 +54,7 @@ export default function LevelDetailPage({ params }: LevelDetailPageProps) {
                 setLevelNumber(level_number);
 
                 // Use API client to fetch from backend API service
-                const data = await api.levels.getByAgeGroup(age_group as '11-14' | '15-18');
+                const data = await api.levels.getByAgeGroup(age_group as '11-14' | '15-18') as Level[];
                 const levelNum = parseInt(level_number, 10);
                 const level = data.find((l: Level) => l.level_number === levelNum);
                 

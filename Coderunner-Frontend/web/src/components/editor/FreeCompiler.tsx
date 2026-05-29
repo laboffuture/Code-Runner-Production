@@ -46,7 +46,7 @@ export function FreeCompiler() {
 
       try {
         // Submit code to queue-based API (returns jobId)
-        const submission = await api.execution.submit(code, customInput);
+        const submission = await api.execution.submit(code, customInput) as { jobId: string };
 
         // Poll for result
         setResult({ stdout: '', stderr: '', status: 'Queued...', executionTime: null });

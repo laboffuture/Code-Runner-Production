@@ -137,8 +137,7 @@ export function ProblemChart({ data }: ProblemChartProps) {
                     cy="50%"
                     outerRadius={80}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelStyle={{ fontSize: '12px', fontFamily: 'Rajdhani', fontWeight: 'bold' }}
+                    label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
                     {difficultyData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />

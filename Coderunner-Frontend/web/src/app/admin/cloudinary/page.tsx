@@ -422,7 +422,7 @@ export default function CloudinaryPage() {
                     outerRadius={100}
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent = 0 }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     labelLine={true}
                   >
                     {[{ color: '#3b82f6' }, { color: '#e5e7eb' }].map((entry, index) => (

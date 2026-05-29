@@ -73,7 +73,7 @@ export default function LevelPage({ params }: LevelPageProps) {
                     type: typeof data,
                     firstItem: Array.isArray(data) && data.length > 0 ? data[0] : null
                 });
-                setLevelsData(data);
+                setLevelsData(data as Level[]);
             } catch (error) {
                 console.error('Error loading levels:', error);
                 notFound();

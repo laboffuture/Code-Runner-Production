@@ -296,7 +296,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
     async function loadTestCases() {
       try {
         console.log('[CompilerUI] Fetching test cases for problem:', problem.problem_id);
-        const cases = await api.problems.getTestCases(problem.problem_id);
+        const cases = await api.problems.getTestCases(problem.problem_id) as TestCase[];
         console.log('[CompilerUI] Received test cases:', cases.length);
         setProblemTestCases(cases);
       } catch (error) {
@@ -332,9 +332,9 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
       const submission = await api.execution.submit(
         code,
         customInput,
-        images,
+        images as any,
         isFileHandlingSession ? userSessionId : undefined
-      );
+      ) as { jobId: string };
 
       setResult({ stdout: '', stderr: '', status: 'Queued...', executionTime: null });
       const resultData = await api.execution.waitForResult(submission.jobId);
@@ -378,7 +378,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
     playProjectTextSound();
 
     try {
-      const submission = await api.execution.submitForGrading(code, problem.problem_id, contestId);
+      const submission = await api.execution.submitForGrading(code, problem.problem_id, contestId) as { jobId: string };
 
       setResult({ stdout: '', stderr: '', status: 'Grading...', executionTime: null });
       const resultData = await api.execution.waitForResult(submission.jobId);
@@ -390,7 +390,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
         setEditorStatus(submissionSummary.status === 'Accepted' ? 'SUCCESS' : 'ERROR');
 
         if (submissionSummary.status === 'Accepted') {
-          progress.markProblemComplete(problem.problem_id);
+          progress.markProblemComplete(String(problem.problem_id));
           // Only mark the level complete when the Code Convergence ultimate challenge is accepted
           const isCodeConvergence = pathname?.includes('/code-convergence/');
           if (isCodeConvergence && problem.metadata?.unlocks_next_level && problem.age_group && problem.level_number) {
@@ -450,7 +450,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
 
     return (
       <div className="space-y-2">
-        {result.files.map((file, index) => (
+        {result.files.map((file: any, index: number) => (
           <div
             key={index}
             className="flex items-center justify-between p-3 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
@@ -576,7 +576,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
           <div className="w-full max-w-4xl">
             <PygameCanvas
-              pygameBundle={result.pygameBundle}
+              bundle={result.pygameBundle}
               onConsoleOutput={handleConsoleOutput}
             />
             {pygameConsoleOutput.length > 0 && (
