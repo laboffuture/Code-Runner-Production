@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import FloatingParticles from '@/components/ui/FloatingParticles';
 
 const CDN_SETTLEMENT_BG = 'https://res.cloudinary.com/dwqzqxeuk/image/upload/f_auto,q_auto/code-runner/ui/technological-exploration-settlement.jpg';
 
@@ -91,8 +92,6 @@ export default function LevelPage({ params }: LevelPageProps) {
                 animateHeroEntrance();
                 animateCardsEntrance();
                 addGlitchEffect();
-                // Initialize CSS-only floating particles
-                initFloatingParticles();
             }, 500);
 
             return () => {
@@ -101,68 +100,10 @@ export default function LevelPage({ params }: LevelPageProps) {
         }
     }, [isLoaded, loading]);
 
-    // Initialize floating particles
-    const initFloatingParticles = () => {
-        const container = document.getElementById('floating-particles');
-        if (!container) return;
-
-        const numParticles = 800;
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-
-        container.innerHTML = '';
-        const particles: any[] = [];
-
-        for (let i = 0; i < numParticles; i++) {
-            const particle = document.createElement('div');
-            particle.style.position = 'absolute';
-            particle.style.width = '1.5px';
-            particle.style.height = '1.5px';
-            particle.style.borderRadius = '50%';
-            particle.style.pointerEvents = 'none';
-
-            // Cyan/green colors for training theme
-            const cyanValue = Math.floor(Math.random() * 100) + 155;
-            const opacity = Math.random() * 0.5 + 0.2;
-            particle.style.backgroundColor = `rgba(0, ${cyanValue}, ${cyanValue}, ${opacity})`;
-
-            const x = Math.random() * windowWidth;
-            const y = Math.random() * windowHeight;
-            particle.style.left = x + 'px';
-            particle.style.top = y + 'px';
-
-            const particleObj = {
-                element: particle,
-                x: x,
-                y: y,
-                speed: Math.random() * 0.5 + 0.1,
-                angle: Math.random() * Math.PI * 2,
-                size: 1.5
-            };
-
-            particles.push(particleObj);
-            container.appendChild(particle);
-        }
-
-        // Animate particles
-        let time = 0;
-        const animateParticles = () => {
-            time += 0.01;
-            particles.forEach((particle) => {
-                particle.x += Math.cos(particle.angle) * particle.speed;
-                particle.y += Math.sin(particle.angle) * particle.speed;
-
-                if (particle.x < 0) particle.x = windowWidth;
-                if (particle.x > windowWidth) particle.x = 0;
-                if (particle.y < 0) particle.y = windowHeight;
-                if (particle.y > windowHeight) particle.y = 0;
-
-                particle.element.style.left = particle.x + 'px';
-                particle.element.style.top = particle.y + 'px';
-            });
-            requestAnimationFrame(animateParticles);
-        };
-        requestAnimationFrame(animateParticles);
+    // Cyan training-theme particle field (same look as before).
+    const cyanParticleColor = () => {
+        const c = Math.floor(Math.random() * 100) + 155;
+        return `rgba(0, ${c}, ${c}, ${Math.random() * 0.5 + 0.2})`;
     };
 
     if (loading) {
@@ -212,7 +153,7 @@ export default function LevelPage({ params }: LevelPageProps) {
             ></div>
 
             {/* Floating Particles Container - CSS animations only */}
-            <div id="floating-particles" className="fixed inset-0 pointer-events-none" style={{ zIndex: 2 }}></div>
+            <FloatingParticles size="1.5px" getColor={cyanParticleColor} />
 
             <Header />
 

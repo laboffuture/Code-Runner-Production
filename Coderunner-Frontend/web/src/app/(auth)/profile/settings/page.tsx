@@ -6,10 +6,11 @@ import { Label } from '@/components/ui/label';
 import { useGlobalAudio } from '@/contexts/AudioContext';
 import { useProgress } from '@/lib/utilities/progress';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import FloatingParticles from '@/components/ui/FloatingParticles';
 import {
   Settings,
   Volume2,
@@ -53,60 +54,6 @@ export default function SettingsPage() {
     router.push('/home');
   };
 
-  // Floating particles — same as profile page
-  useEffect(() => {
-    const timer = setTimeout(() => initFloatingParticles(), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const initFloatingParticles = () => {
-    const container = document.getElementById('settings-particles');
-    if (!container) return;
-
-    const hexToRgb = (hex: string) => {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result
-        ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
-        : { r: 46, g: 117, b: 178 };
-    };
-
-    const base = hexToRgb(theme.colors.primary);
-    const W = window.innerWidth;
-    const H = window.innerHeight;
-    container.innerHTML = '';
-    const particles: any[] = [];
-
-    for (let i = 0; i < 800; i++) {
-      const el = document.createElement('div');
-      el.style.cssText = 'position:absolute;width:2px;height:2px;border-radius:50%;pointer-events:none;';
-      const r = Math.floor(Math.random() * 30) + Math.max(0, base.r - 15);
-      const g = Math.floor(Math.random() * 40) + Math.max(0, base.g - 20);
-      const b = Math.floor(Math.random() * 50) + Math.max(0, base.b - 25);
-      el.style.backgroundColor = `rgba(${r},${g},${b},${Math.random() * 0.5 + 0.2})`;
-      const x = Math.random() * W;
-      const y = Math.random() * H;
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      const p = { element: el, x, y, speed: Math.random() * 0.5 + 0.1, angle: Math.random() * Math.PI * 2 };
-      particles.push(p);
-      container.appendChild(el);
-    }
-
-    const animate = () => {
-      particles.forEach((p) => {
-        p.x += Math.cos(p.angle) * p.speed;
-        p.y += Math.sin(p.angle) * p.speed;
-        if (p.x < 0) p.x = W;
-        if (p.x > W) p.x = 0;
-        if (p.y < 0) p.y = H;
-        if (p.y > H) p.y = 0;
-        p.element.style.left = p.x + 'px';
-        p.element.style.top = p.y + 'px';
-      });
-      requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  };
 
   // Card style — matches ProfileStats exactly
   const cardCls = 'bg-white border-2 rounded-xl p-6 transition-colors';
@@ -125,7 +72,7 @@ export default function SettingsPage() {
         }}
       >
         {/* Particles */}
-        <div id="settings-particles" className="fixed inset-0 pointer-events-none" style={{ zIndex: 2 }} />
+        <FloatingParticles color={theme.colors.primary} />
 
         <div className="relative z-10">
           <Header />

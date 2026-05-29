@@ -11,6 +11,7 @@ import {
   Trophy, Clock, Users, Calendar, ChevronLeft,
   Play, Lock, CheckCircle, BarChart2, Star, Zap
 } from 'lucide-react';
+import FloatingParticles from '@/components/ui/FloatingParticles';
 
 interface ContestProblem { problemId: number; points: number; title: string; difficulty: string; }
 interface Contest {
@@ -47,43 +48,6 @@ function formatCountdown(ms: number) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-const initFloatingParticles = (primaryColor: string) => {
-  const container = document.getElementById('floating-particles');
-  if (!container) return;
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
-      : { r: 46, g: 117, b: 178 };
-  };
-  const base = hexToRgb(primaryColor);
-  const W = window.innerWidth, H = window.innerHeight;
-  container.innerHTML = '';
-  const particles: any[] = [];
-  for (let i = 0; i < 800; i++) {
-    const el = document.createElement('div');
-    el.style.cssText = 'position:absolute;width:2px;height:2px;border-radius:50%;pointer-events:none;';
-    const r = Math.floor(Math.random() * 30) + Math.max(0, base.r - 15);
-    const g = Math.floor(Math.random() * 40) + Math.max(0, base.g - 20);
-    const b = Math.floor(Math.random() * 50) + Math.max(0, base.b - 25);
-    el.style.backgroundColor = `rgba(${r},${g},${b},${Math.random() * 0.5 + 0.2})`;
-    const x = Math.random() * W, y = Math.random() * H;
-    el.style.left = x + 'px'; el.style.top = y + 'px';
-    particles.push({ el, x, y, speed: Math.random() * 0.5 + 0.1, angle: Math.random() * Math.PI * 2 });
-    container.appendChild(el);
-  }
-  const animate = () => {
-    particles.forEach(p => {
-      p.x += Math.cos(p.angle) * p.speed; p.y += Math.sin(p.angle) * p.speed;
-      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
-      p.el.style.left = p.x + 'px'; p.el.style.top = p.y + 'px';
-    });
-    requestAnimationFrame(animate);
-  };
-  requestAnimationFrame(animate);
-};
-
 export default function ContestLobbyPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -95,7 +59,6 @@ export default function ContestLobbyPage({ params }: { params: { id: string } })
   const [registering, setRegistering] = useState(false);
   const [countdown, setCountdown] = useState('');
 
-  useEffect(() => { setTimeout(() => initFloatingParticles(theme.colors.primary), 100); }, []);
 
   useEffect(() => { loadContest(); }, [params.id]);
   useEffect(() => {
@@ -148,7 +111,7 @@ export default function ContestLobbyPage({ params }: { params: { id: string } })
         backgroundAttachment: 'fixed',
       }}
     >
-      <div id="floating-particles" className="fixed inset-0 pointer-events-none" style={{ zIndex: 2 }} />
+      <FloatingParticles color={theme.colors.primary} />
 
       <div className="relative z-10">
         <Header />
