@@ -507,7 +507,11 @@ finally:
         `--name ${name}`,
         '--network none',
         '--memory 128m',
+        '--memory-swap 128m',        // disable swap so it can't bypass the memory cap
         '--cpus=0.5',
+        '--pids-limit 64',           // block fork/thread bombs from exhausting host PIDs
+        '--cap-drop ALL',            // drop all Linux capabilities (none needed to run Python)
+        '--security-opt no-new-privileges',  // prevent privilege escalation inside the container
         '--read-only',
         '--tmpfs /tmp:size=50m,mode=1777',
         '--user 1000:1000',
