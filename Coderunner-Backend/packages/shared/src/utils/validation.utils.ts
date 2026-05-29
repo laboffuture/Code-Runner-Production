@@ -87,18 +87,6 @@ export const passwordSchema = z
   .min(8, 'Password must be at least 8 characters')
   .max(100, 'Password must be at most 100 characters');
 
-// Code validation
-export const codeSchema = z
-  .string()
-  .min(1, 'Code cannot be empty')
-  .max(50000, 'Code is too long (max 50,000 characters)');
-
-// Problem ID validation
-export const problemIdSchema = z.number().int().positive('Problem ID must be a positive integer');
-
-// Age group validation
-export const ageGroupSchema = z.enum(['11-14', '15-18']);
-
 // Helper function to validate data against a schema
 export function validate<T>(schema: z.ZodSchema<T>, data: unknown): {
   success: boolean;

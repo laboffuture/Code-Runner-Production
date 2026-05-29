@@ -262,7 +262,6 @@ export const api = {
   // Progress
   progress: {
     get: (userId: string) => apiClient.get(`/progress?userId=${userId}`),
-    update: (data: any) => apiClient.post('/progress', data),
     complete: (data: any) => apiClient.post('/progress/complete', data),
   },
 

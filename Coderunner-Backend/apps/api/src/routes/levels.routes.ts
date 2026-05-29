@@ -26,7 +26,6 @@ router.get('/:age_group', optionalAuthMiddleware, async (req: Request, res: Resp
     // Since we don't have a Level model in shared (problems are stored with level info),
     // Fetch all problems and group manually (Mongoose aggregation has limits)
     const allProblems = await Models.Problem.find({ age_group }).lean();
-    console.log(`[DEBUG] Found ${allProblems.length} total problems for age group ${age_group}`);
 
     // Group by level_number manually
     const levelMap = new Map();
@@ -46,12 +45,6 @@ router.get('/:age_group', optionalAuthMiddleware, async (req: Request, res: Resp
 
     // Transform the aggregated data to match the Level interface
     const formattedLevels = levels.map((level) => {
-      // Debug: Check how many problems we have
-      if (level.level_number === 1) {
-        console.log(`[DEBUG] Level 1 aggregation returned ${level.problems.length} problems`);
-        const uniqueSessions = [...new Set(level.problems.map((p: any) => p.session_id))] as number[];
-        console.log(`[DEBUG] Unique session IDs in problems:`, uniqueSessions.sort((a, b) => a - b));
-      }
 
       // Hardcoded session titles from database (Mongoose aggregation doesn't include session_title field)
       const sessionTitlesFromDB: { [key: string]: { [sessionId: number]: string } } = {
@@ -92,10 +85,6 @@ router.get('/:age_group', optionalAuthMiddleware, async (req: Request, res: Resp
 
       const sessions = Array.from(sessionMap.values());
 
-      // Debug: Log session IDs before filtering
-      if (level.level_number === 1) {
-        console.log(`[DEBUG] Level 1 has ${sessions.length} sessions:`, sessions.map(s => s.session_id));
-      }
 
       // Sort sessions by session_id to ensure correct order
       sessions.sort((a, b) => a.session_id - b.session_id);
