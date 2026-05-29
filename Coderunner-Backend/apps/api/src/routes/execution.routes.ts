@@ -144,8 +144,9 @@ router.get('/result/:jobId', optionalAuthMiddleware, async (req: Request, res: R
  * POST /execution/submit/grade
  * Submit code for grading (runs against all test cases)
  */
-// TODO: Change back to authMiddleware after implementing user authentication
-router.post('/submit/grade', executionLimiter, dailyExecutionLimiter, optionalAuthMiddleware, async (req: Request, res: Response) => {
+// Grading is tied to a user (it writes progress/stats), so it requires auth.
+// Anonymous grading would silently lose progress, so reject it with 401.
+router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLimiter, async (req: Request, res: Response) => {
   try {
     const { code, problemId, contestId } = req.body;
 
@@ -197,7 +198,7 @@ router.post('/submit/grade', executionLimiter, dailyExecutionLimiter, optionalAu
 
     // Generate unique job ID
     const jobId = uuidv4();
-    const userId = req.user?.userId || 'anonymous';
+    const userId = req.user!.userId; // guaranteed by authMiddleware above
 
     // Create submission job data
     const jobData: SubmissionJobData = {

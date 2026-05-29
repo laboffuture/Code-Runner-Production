@@ -33,6 +33,12 @@ export interface IUserProgress extends Document {
     date: Date;
     count: number;
   }>;
+  // Distinct first-time solves per day — drives the accurate "solved over time"
+  // chart (submissionCalendar counts every submission incl. failures).
+  solvedCalendar: Array<{
+    date: Date;
+    count: number;
+  }>;
   topicProgress: Array<{
     topic: string;
     solved: number;
@@ -91,6 +97,12 @@ const UserProgressSchema = new Schema<IUserProgress>(
       },
     ],
     submissionCalendar: [
+      {
+        date: { type: Date, required: true },
+        count: { type: Number, default: 0 },
+      },
+    ],
+    solvedCalendar: [
       {
         date: { type: Date, required: true },
         count: { type: Number, default: 0 },
