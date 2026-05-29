@@ -21,35 +21,53 @@ async function createAdminUser() {
       process.exit(1);
     }
 
+    // Admin credentials come from environment — NEVER hardcode them.
+    // Set these in .env.local (which is git-ignored) before running:
+    //   ADMIN_USERNAME=...  ADMIN_EMAIL=...  ADMIN_PASSWORD=...
+    const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@coderunner.com';
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword || adminPassword.length < 12) {
+      console.error('❌ ADMIN_PASSWORD env var is required and must be at least 12 characters.');
+      console.error('   Set it in .env.local (git-ignored), e.g.:');
+      console.error('   ADMIN_PASSWORD=<a-strong-unique-password> npx tsx src/scripts/create-admin.ts');
+      process.exit(1);
+    }
+
     console.log('🔌 Connecting to MongoDB...');
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
 
     // Check if admin user already exists
-    const existingAdmin = await Models.User.findOne({ username: 'admin' });
+    const existingAdmin = await Models.User.findOne({ username: adminUsername });
 
     if (existingAdmin) {
-      console.log('⚠️  Admin user already exists');
+      console.log('⚠️  Admin user already exists — leaving the existing password untouched.');
       console.log('📝 Admin details:', {
         username: existingAdmin.username,
         email: existingAdmin.email,
         role: existingAdmin.role,
       });
 
-      // Update password if needed
-      const newPasswordHash = await hashPassword('admin123');
-      existingAdmin.passwordHash = newPasswordHash;
-      await existingAdmin.save();
-      console.log('✅ Admin password reset to: admin123');
+      // Only reset the password when explicitly requested, to avoid silently
+      // clobbering a production admin password on every run.
+      if (process.env.ADMIN_RESET_PASSWORD === 'true') {
+        existingAdmin.passwordHash = await hashPassword(adminPassword);
+        await existingAdmin.save();
+        console.log('✅ Admin password reset from ADMIN_PASSWORD (ADMIN_RESET_PASSWORD=true).');
+      } else {
+        console.log('ℹ️  To reset it, re-run with ADMIN_RESET_PASSWORD=true.');
+      }
     } else {
       // Create admin user
       console.log('👤 Creating admin user...');
 
-      const passwordHash = await hashPassword('admin123');
+      const passwordHash = await hashPassword(adminPassword);
 
       const adminUser = new Models.User({
-        username: 'admin',
-        email: 'admin@coderunner.com',
+        username: adminUsername,
+        email: adminEmail,
         passwordHash,
         age_group: '15-18',
         role: 'admin',
@@ -60,11 +78,11 @@ async function createAdminUser() {
       await adminUser.save();
 
       console.log('✅ Admin user created successfully!');
-      console.log('📝 Login credentials:', {
-        username: 'admin',
-        password: 'admin123',
-        email: 'admin@coderunner.com',
+      console.log('📝 Login as:', {
+        username: adminUsername,
+        email: adminEmail,
         role: 'admin',
+        password: '(the ADMIN_PASSWORD you provided — not shown)',
       });
     }
 

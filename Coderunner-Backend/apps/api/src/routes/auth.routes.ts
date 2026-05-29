@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Models, generateToken, hashPassword, comparePassword, validate, usernameSchema, emailSchema, passwordSchema } from '@code-runner/shared';
 import { authMiddleware } from '../middleware/auth.middleware';
-// import { authLimiter } from '../middleware/rateLimit.middleware';
+import { authLimiter } from '../middleware/rateLimit.middleware';
 
 const router = Router();
 
@@ -9,7 +9,7 @@ const router = Router();
  * POST /auth/register
  * Register a new user
  */
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', authLimiter, async (req: Request, res: Response) => {
   try {
     const { username, email, password, age_group } = req.body;
 
@@ -100,7 +100,7 @@ router.post('/register', async (req: Request, res: Response) => {
  * POST /auth/login
  * Login a user
  */
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', authLimiter, async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
 
@@ -111,8 +111,8 @@ router.post('/login', async (req: Request, res: Response) => {
       });
     }
 
-    // Find user
-    const user = await Models.User.findOne({ username });
+    // Find user — passwordHash is select:false on the model, so opt in here.
+    const user = await Models.User.findOne({ username }).select('+passwordHash');
 
     if (!user) {
       return res.status(401).json({

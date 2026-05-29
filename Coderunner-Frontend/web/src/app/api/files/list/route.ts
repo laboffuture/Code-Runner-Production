@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server';
 import { readdir, stat } from 'fs/promises';
 import { join } from 'path';
-import { tmpdir } from 'os';
+import { getUserFilesDir } from '@/lib/utilities/userFiles';
 
 // API endpoint to list all files in user's persistent directory
 export async function POST(request: Request) {
   try {
     const { userSessionId } = await request.json();
 
-    if (!userSessionId) {
-      return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
+    // Validate the session id and build the sandbox dir server-side so a
+    // crafted session id can't escape into other host directories.
+    const persistentDir = getUserFilesDir(userSessionId);
+    if (!persistentDir) {
+      return NextResponse.json({ error: 'Invalid session id' }, { status: 400 });
     }
-
-    const persistentDir = join(tmpdir(), `user_files_${userSessionId}`);
 
     try {
       const fileNames = await readdir(persistentDir);

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Models, getLogger } from '@code-runner/shared';
-import { optionalAuthMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
 import { apiLimiter } from '../middleware/rateLimit.middleware';
 import mongoose from 'mongoose';
 
@@ -14,16 +14,11 @@ router.use(apiLimiter);
  * Returns the user's solved problem IDs, topic progress, and level info
  * from the UserProgress collection.
  */
-router.get('/', optionalAuthMiddleware, async (req: Request, res: Response) => {
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { userId } = req.query;
-
-    if (!userId || typeof userId !== 'string') {
-      return res.status(400).json({
-        error: 'Validation Error',
-        message: 'userId query parameter is required',
-      });
-    }
+    // Use the authenticated user's id from the JWT — never a client-supplied
+    // userId — so a student cannot read another student's progress (IDOR fix).
+    const userId = req.user!.userId;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'Validation Error', message: 'Invalid userId' });
@@ -79,14 +74,17 @@ router.get('/', optionalAuthMiddleware, async (req: Request, res: Response) => {
  * For problems: the worker handles stats — here we just ensure solvedProblemIds
  * stays consistent if the frontend marks something done the worker missed.
  */
-router.post('/complete', optionalAuthMiddleware, async (req: Request, res: Response) => {
+router.post('/complete', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { userId, type, id } = req.body;
+    const { type, id } = req.body;
+    // Derive the user from the JWT, never from the request body, so a student
+    // cannot mark problems complete on another student's account (IDOR fix).
+    const userId = req.user!.userId;
 
-    if (!userId || !type || id === undefined) {
+    if (!type || id === undefined) {
       return res.status(400).json({
         error: 'Validation Error',
-        message: 'userId, type, and id are required',
+        message: 'type and id are required',
       });
     }
 
@@ -121,7 +119,7 @@ router.post('/complete', optionalAuthMiddleware, async (req: Request, res: Respo
  * POST /progress  (kept for backwards compatibility — no-op for direct updates
  * since the submission worker is the canonical source of truth)
  */
-router.post('/', optionalAuthMiddleware, async (req: Request, res: Response) => {
+router.post('/', authMiddleware, async (req: Request, res: Response) => {
   res.json({ message: 'Progress acknowledged', data: req.body });
 });
 

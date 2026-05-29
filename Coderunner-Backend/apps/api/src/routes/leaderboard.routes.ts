@@ -32,7 +32,7 @@ router.get('/global', async (req: Request, res: Response) => {
       .sort(sortObject)
       .limit(Math.min(limit, 100))
       .skip(skip)
-      .populate('userId', 'username email createdAt')
+      .populate('userId', 'username createdAt') // never expose children's email on a public endpoint
       .lean();
 
     // Format the response

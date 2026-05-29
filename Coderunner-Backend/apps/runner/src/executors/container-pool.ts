@@ -337,11 +337,18 @@ export class ContainerPool {
       return;
     }
 
+    // cleanupNeeded=false signals the prior execution failed or timed out.
+    // The container may still hold a runaway process, so do NOT return it to
+    // the pool — remove it and let the pool replenish a clean one.
+    if (!cleanupNeeded) {
+      logger.warn(`Removing container ${container.name} after failed/timed-out execution (not reusing)`);
+      this.scheduleContainerRemoval(containerId);
+      return;
+    }
+
     try {
-      if (cleanupNeeded) {
-        // Issue #8: Enhanced cleanup with retries
-        await this.cleanupContainer(containerId);
-      }
+      // Issue #8: Enhanced cleanup with retries
+      await this.cleanupContainer(containerId);
 
       container.inUse = false;
       container.executions++;
@@ -404,7 +411,11 @@ export class ContainerPool {
         `--name ${name}`,
         '--network none',
         '--memory 128m',
+        '--memory-swap 128m',        // disable swap so it can't bypass the memory cap
         '--cpus=0.5',
+        '--pids-limit 64',           // block fork/thread bombs from exhausting host PIDs
+        '--cap-drop ALL',            // drop all Linux capabilities (none needed to run Python)
+        '--security-opt no-new-privileges',  // prevent privilege escalation inside the container
         '--read-only',
         '--tmpfs /tmp:size=50m,mode=1777',
         '--user 1000:1000',

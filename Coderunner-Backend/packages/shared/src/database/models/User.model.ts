@@ -33,6 +33,7 @@ const UserSchema = new Schema<IUser>({
   passwordHash: {
     type: String,
     required: true,
+    select: false, // never returned by default — must be opted in via .select('+passwordHash')
   },
   role: {
     type: String,
