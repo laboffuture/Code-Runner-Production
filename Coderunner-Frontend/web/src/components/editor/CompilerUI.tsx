@@ -156,12 +156,12 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   }, [isFileHandlingSession, result.files]);
 
   // Handle file click to view contents
-  const handleFileClick = async (fileName: string, filePath: string) => {
+  const handleFileClick = async (fileName: string, _filePath: string) => {
     try {
       const response = await fetch('/api/files', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filePath }),
+        body: JSON.stringify({ userSessionId, fileName }),
       });
 
       const data = await response.json();
@@ -186,12 +186,12 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   };
 
   // Handle file download
-  const handleFileDownload = async (fileName: string, filePath: string) => {
+  const handleFileDownload = async (fileName: string, _filePath: string) => {
     try {
       const response = await fetch('/api/files', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filePath }),
+        body: JSON.stringify({ userSessionId, fileName }),
       });
 
       const data = await response.json();
@@ -228,7 +228,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   };
 
   // Handle file deletion
-  const handleFileDelete = async (fileName: string, filePath: string) => {
+  const handleFileDelete = async (fileName: string, _filePath: string) => {
     if (!confirm(`Are you sure you want to delete "${fileName}"? This cannot be undone.`)) {
       return;
     }
@@ -237,7 +237,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
       const response = await fetch('/api/files/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filePath }),
+        body: JSON.stringify({ userSessionId, fileName }),
       });
 
       const data = await response.json();
