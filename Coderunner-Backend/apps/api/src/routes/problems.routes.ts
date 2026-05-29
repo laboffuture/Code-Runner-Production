@@ -79,31 +79,12 @@ router.get('/:id/test-cases', optionalAuthMiddleware, async (req: Request, res: 
   }
 });
 
-/**
- * GET /problems/:id/test-cases/all
- * Get ALL test cases for a problem (including hidden ones)
- * This will be used by the runner service
- */
-router.get('/:id/test-cases/all', async (req: Request, res: Response) => {
-  try {
-    const problemId = parseInt(req.params.id);
-
-    if (isNaN(problemId)) {
-      return res.status(400).json({ error: 'Invalid problem ID' });
-    }
-
-    // Get all test cases including hidden ones
-    const testCases = await Models.TestCase.find({
-      problem_id: problemId,
-    }).sort({ test_case_id: 1 }).lean();
-
-    // Unescape special characters in test cases (important for runner)
-    const unescapedTestCases = unescapeObject(testCases);
-    res.json(unescapedTestCases);
-  } catch (error) {
-    console.error('Error fetching test cases:', error);
-    res.status(500).json({ error: 'Failed to fetch test cases' });
-  }
-});
+// NOTE: The previous `GET /problems/:id/test-cases/all` endpoint was REMOVED.
+// It returned ALL test cases including hidden ones (i.e. the expected answers)
+// with no authentication, letting a student fetch the solutions. It had no
+// legitimate consumer: the runner/grader receives test cases via the BullMQ
+// job payload (see execution.routes.ts -> /submit/grade), which queries the
+// TestCase collection directly in MongoDB. Hidden answers must never be sent
+// to the browser.
 
 export default router;

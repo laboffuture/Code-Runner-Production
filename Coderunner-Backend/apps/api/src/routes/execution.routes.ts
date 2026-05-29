@@ -97,7 +97,7 @@ router.post('/submit', executionLimiter, dailyExecutionLimiter, optionalAuthMidd
  * GET /execution/result/:jobId
  * Get execution result by job ID (polling endpoint)
  */
-router.get('/result/:jobId', async (req: Request, res: Response) => {
+router.get('/result/:jobId', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
     const { jobId } = req.params;
 
@@ -109,6 +109,19 @@ router.get('/result/:jobId', async (req: Request, res: Response) => {
         error: 'Not Found',
         message: 'Job not found',
       });
+    }
+
+    // Ownership check (close IDOR): if this result belongs to a real user,
+    // only that user (or an admin) may read it — a random jobId must not
+    // expose another student's submitted code. Anonymous results have no
+    // owner, so they stay readable to keep the unauthenticated poll flow working.
+    if (result.userId && result.userId !== 'anonymous') {
+      if (!req.user || (req.user.userId !== result.userId && req.user.role !== 'admin')) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You do not have access to this result',
+        });
+      }
     }
 
     // Return result
