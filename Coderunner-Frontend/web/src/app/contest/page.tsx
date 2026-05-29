@@ -8,6 +8,7 @@ import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Trophy, Clock, Users, Zap, Calendar, ChevronLeft, Lock, Star } from 'lucide-react';
+import FloatingParticles from '@/components/ui/FloatingParticles';
 
 type ContestStatus = 'active' | 'upcoming' | 'ended';
 
@@ -41,51 +42,6 @@ function formatDate(iso: string) {
     hour: '2-digit', minute: '2-digit',
   });
 }
-
-const initFloatingParticles = (primaryColor: string) => {
-  const container = document.getElementById('floating-particles');
-  if (!container) return;
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
-      : { r: 46, g: 117, b: 178 };
-  };
-  const baseColor = hexToRgb(primaryColor);
-  const numParticles = 800;
-  const W = window.innerWidth;
-  const H = window.innerHeight;
-  container.innerHTML = '';
-  const particles: any[] = [];
-  for (let i = 0; i < numParticles; i++) {
-    const el = document.createElement('div');
-    el.style.cssText = `position:absolute;width:2px;height:2px;border-radius:50%;pointer-events:none;`;
-    const r = Math.floor(Math.random() * 30) + Math.max(0, baseColor.r - 15);
-    const g = Math.floor(Math.random() * 40) + Math.max(0, baseColor.g - 20);
-    const b = Math.floor(Math.random() * 50) + Math.max(0, baseColor.b - 25);
-    el.style.backgroundColor = `rgba(${r},${g},${b},${Math.random() * 0.5 + 0.2})`;
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    particles.push({ el, x, y, speed: Math.random() * 0.5 + 0.1, angle: Math.random() * Math.PI * 2 });
-    container.appendChild(el);
-  }
-  const animate = () => {
-    particles.forEach(p => {
-      p.x += Math.cos(p.angle) * p.speed;
-      p.y += Math.sin(p.angle) * p.speed;
-      if (p.x < 0) p.x = W;
-      if (p.x > W) p.x = 0;
-      if (p.y < 0) p.y = H;
-      if (p.y > H) p.y = 0;
-      p.el.style.left = p.x + 'px';
-      p.el.style.top = p.y + 'px';
-    });
-    requestAnimationFrame(animate);
-  };
-  requestAnimationFrame(animate);
-};
 
 const STATUS_MAP: Record<string, { label: string; bg: string; dot: string }> = {
   active:   { label: 'LIVE',     bg: '#22c55e', dot: 'animate-pulse' },
@@ -195,9 +151,6 @@ export default function ContestListPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => initFloatingParticles(theme.colors.primary), 100);
-  }, []);
 
   const fetchContests = useCallback(async (status: ContestStatus, pg: number) => {
     setLoading(true);
@@ -228,7 +181,7 @@ export default function ContestListPage() {
       }}
     >
       {/* Floating particles */}
-      <div id="floating-particles" className="fixed inset-0 pointer-events-none" style={{ zIndex: 2 }} />
+      <FloatingParticles color={theme.colors.primary} />
 
       <div className="relative z-10">
         <Header />

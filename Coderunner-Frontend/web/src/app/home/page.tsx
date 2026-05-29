@@ -10,10 +10,11 @@ import { usePageAudio } from '@/hooks/usePageAudio';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import FloatingParticles from '@/components/ui/FloatingParticles';
 
 function AgeSelectionPageContent() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { theme } = useTheme(); // Get current character theme
 
   // Check authentication and session boot status
@@ -26,13 +27,19 @@ function AgeSelectionPageContent() {
       return;
     }
 
+    // First-time users must finish onboarding before reaching home.
+    if (user && !user.onboardingComplete) {
+      router.push('/onboarding');
+      return;
+    }
+
     // If authenticated but hasn't gone through boot sequence this session, redirect to boot
     const sessionBooted = sessionStorage.getItem('sessionBooted');
     if (!sessionBooted) {
       router.push('/boot');
       return;
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading, user, router]);
   const { 
     playCardHover, 
     playButtonClick,
@@ -69,8 +76,6 @@ function AgeSelectionPageContent() {
         animateHeroEntrance();
         animateCardsEntrance();
         addGlitchEffect();
-        // Initialize lightweight floating particles
-        initFloatingParticles();
       }, 500);
 
       return () => {
@@ -78,95 +83,6 @@ function AgeSelectionPageContent() {
       };
     }
   }, [isLoaded]);
-
-  // Ensure particles are always initialized on mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      initFloatingParticles();
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, []);
-
-  // Initialize floating particles
-  const initFloatingParticles = () => {
-    const container = document.getElementById('floating-particles');
-    if (!container) return;
-
-    const numParticles = 800;
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-
-    container.innerHTML = '';
-    const particles: any[] = [];
-
-    // Convert hex color to RGB for particle variations
-    const hexToRgb = (hex: string) => {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-      } : { r: 46, g: 117, b: 178 };
-    };
-
-    const baseColor = hexToRgb(theme.colors.primary);
-
-    for (let i = 0; i < numParticles; i++) {
-      const particle = document.createElement('div');
-      particle.style.position = 'absolute';
-      particle.style.width = '2px';
-      particle.style.height = '2px';
-      particle.style.borderRadius = '50%';
-      particle.style.pointerEvents = 'none';
-
-      // Create variations around the character's primary color
-      const redValue = Math.floor(Math.random() * 30) + Math.max(0, baseColor.r - 15);
-      const greenValue = Math.floor(Math.random() * 40) + Math.max(0, baseColor.g - 20);
-      const blueValue = Math.floor(Math.random() * 50) + Math.max(0, baseColor.b - 25);
-      const opacity = Math.random() * 0.5 + 0.2;
-      particle.style.backgroundColor = `rgba(${redValue}, ${greenValue}, ${blueValue}, ${opacity})`;
-
-      const x = Math.random() * windowWidth;
-      const y = Math.random() * windowHeight;
-      particle.style.left = x + 'px';
-      particle.style.top = y + 'px';
-
-      const particleObj = {
-        element: particle,
-        x: x,
-        y: y,
-        speed: Math.random() * 0.5 + 0.1,
-        angle: Math.random() * Math.PI * 2,
-        size: 1.5
-      };
-
-      particles.push(particleObj);
-      container.appendChild(particle);
-    }
-
-    // Animate particles
-    let time = 0;
-    const animateParticles = () => {
-      time += 0.01;
-      particles.forEach((particle) => {
-        particle.x += Math.cos(particle.angle) * particle.speed;
-        particle.y += Math.sin(particle.angle) * particle.speed;
-
-        if (particle.x < 0) particle.x = windowWidth;
-        if (particle.x > windowWidth) particle.x = 0;
-        if (particle.y < 0) particle.y = windowHeight;
-        if (particle.y > windowHeight) particle.y = 0;
-
-        particle.element.style.left = particle.x + 'px';
-        particle.element.style.top = particle.y + 'px';
-      });
-      requestAnimationFrame(animateParticles);
-    };
-    requestAnimationFrame(animateParticles);
-  };
 
   const handleCardHover = (e: React.MouseEvent<HTMLAnchorElement>, isEntering: boolean) => {
     playCardHover();
@@ -244,7 +160,7 @@ function AgeSelectionPageContent() {
       ></div>
 
       {/* Floating Particles Container - CSS-based, lightweight */}
-      <div id="floating-particles" className="fixed inset-0 pointer-events-none" style={{ zIndex: 2 }}></div>
+      <FloatingParticles color={theme.colors.primary} />
       
       <Header />
       
