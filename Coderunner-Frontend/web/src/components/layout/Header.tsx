@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Terminal, Cpu, Activity, Zap, User, Power, Settings, LogOut } from 'lucide-react';
+import { Terminal, Cpu, Activity, Zap, User, Power, Settings, LogOut, LayoutDashboard } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useGlobalAudio } from '@/contexts/AudioContext';
@@ -16,7 +16,7 @@ export function Header() {
   const { playProjectTextSound } = useGlobalAudio();
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, isDeveloper } = useAuth();
   const { theme } = useTheme(); // Get character theme
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -237,6 +237,23 @@ export function Header() {
                   zIndex: 100
                 }}
               >
+                {isDeveloper && (
+                  <Link
+                    href="/admin/dashboard"
+                    className="flex items-center gap-3 px-4 py-3 transition-colors text-amber-400 border-b"
+                    style={{ borderColor: accent20 }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = accent10}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      playProjectTextSound();
+                    }}
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span className="text-sm font-space">Developer Dashboard</span>
+                  </Link>
+                )}
+
                 <Link
                   href="/profile"
                   className="flex items-center gap-3 px-4 py-3 transition-colors text-white"
