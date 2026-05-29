@@ -115,12 +115,4 @@ router.post('/complete', authMiddleware, async (req: Request, res: Response) => 
   }
 });
 
-/**
- * POST /progress  (kept for backwards compatibility — no-op for direct updates
- * since the submission worker is the canonical source of truth)
- */
-router.post('/', authMiddleware, async (req: Request, res: Response) => {
-  res.json({ message: 'Progress acknowledged', data: req.body });
-});
-
 export default router;

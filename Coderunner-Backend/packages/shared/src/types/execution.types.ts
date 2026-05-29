@@ -46,22 +46,6 @@ export interface ExecutionResult {
 }
 
 /**
- * Result of code submission (grading)
- */
-export interface SubmissionResult {
-  status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Error';
-  passed: number;
-  total: number;
-  results?: Array<{
-    input: string;
-    expected: string;
-    actual: string;
-    passed: boolean;
-    error?: string;
-  }>;
-}
-
-/**
  * Test case result for submissions
  */
 export interface TestCaseResult {

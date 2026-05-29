@@ -44,12 +44,3 @@ export function verifyToken(token: string): AuthToken {
     throw new Error('Invalid or expired token');
   }
 }
-
-export function decodeToken(token: string): AuthToken | null {
-  try {
-    const decoded = jwt.decode(token) as AuthToken;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}

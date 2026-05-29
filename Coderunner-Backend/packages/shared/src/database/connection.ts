@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/code-runner';
-
 interface MongooseConnection {
   isConnected: boolean;
 }
@@ -37,14 +35,4 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     console.error('MongoDB connection error:', error);
     throw error;
   }
-}
-
-export async function disconnectFromDatabase(): Promise<void> {
-  if (!connection.isConnected) {
-    return;
-  }
-
-  await mongoose.disconnect();
-  connection.isConnected = false;
-  console.log('Disconnected from MongoDB');
 }
