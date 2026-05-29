@@ -2,11 +2,14 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Activity, Server, Cloud, Database, Cpu, Package, ListChecks, AlertTriangle, LayoutDashboard } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Activity, Server, Cloud, Database, Cpu, Package, ListChecks, AlertTriangle, LayoutDashboard, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AdminHeader() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
 
   const navItems = [
     { href: '/admin/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
@@ -58,6 +61,14 @@ export default function AdminHeader() {
                 </Link>
               );
             })}
+            <button
+              onClick={() => { logout(); router.push('/login'); }}
+              title="Log out"
+              className="px-4 py-2 rounded-lg border-2 border-red-200 hover:border-red-300 hover:bg-red-50 text-red-600 flex items-center gap-2 font-orbitron font-bold text-xs tracking-wider transition-all"
+            >
+              <LogOut className="w-4 h-4" />
+              LOGOUT
+            </button>
           </nav>
         </div>
       </div>
