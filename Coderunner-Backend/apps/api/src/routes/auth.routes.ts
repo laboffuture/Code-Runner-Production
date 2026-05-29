@@ -71,6 +71,37 @@ router.post('/register', authLimiter, async (req: Request, res: Response) => {
 
     await user.save();
 
+    // Create the user's progress document up-front so stats/activity/level
+    // tracking is robust from the first action (previously this was created
+    // lazily on first stats fetch). A failure here must not fail registration —
+    // the lazy create-on-read path remains as a fallback.
+    try {
+      await Models.UserProgress.create({
+        userId: user._id,
+        stats: {
+          totalSolved: 0,
+          easySolved: 0,
+          mediumSolved: 0,
+          hardSolved: 0,
+          totalSubmissions: 0,
+          acceptedSubmissions: 0,
+          acceptanceRate: 0,
+        },
+        streak: { current: 0, longest: 0, lastSubmissionDate: null },
+        experience: 0,
+        level: 1,
+        contestRating: 1000,
+        rank: 'NOVICE',
+        achievements: [],
+        skills: [],
+        recentActivity: [],
+        submissionCalendar: [],
+        topicProgress: [],
+      });
+    } catch (progressError) {
+      console.error('Failed to create UserProgress at registration (will lazy-create later):', progressError);
+    }
+
     // Generate token
     const token = generateToken({
       userId: user._id.toString(),

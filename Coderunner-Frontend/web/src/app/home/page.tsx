@@ -14,7 +14,7 @@ import FloatingParticles from '@/components/ui/FloatingParticles';
 
 function AgeSelectionPageContent() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { theme } = useTheme(); // Get current character theme
 
   // Check authentication and session boot status
@@ -27,13 +27,19 @@ function AgeSelectionPageContent() {
       return;
     }
 
+    // First-time users must finish onboarding before reaching home.
+    if (user && !user.onboardingComplete) {
+      router.push('/onboarding');
+      return;
+    }
+
     // If authenticated but hasn't gone through boot sequence this session, redirect to boot
     const sessionBooted = sessionStorage.getItem('sessionBooted');
     if (!sessionBooted) {
       router.push('/boot');
       return;
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading, user, router]);
   const { 
     playCardHover, 
     playButtonClick,
