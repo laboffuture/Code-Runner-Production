@@ -730,7 +730,7 @@ router.get('/railway/metrics', async (req: Request, res: Response) => {
       throw new Error(`Railway API returned ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     // Railway's metrics API is limited — return what's available
     res.json({
       services: data.data?.project?.services?.edges?.map((e: any) => e.node) || [],
