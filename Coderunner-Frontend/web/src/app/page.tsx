@@ -13,6 +13,13 @@ export default function HomePage() {
     if (isLoading) return;
 
     if (isAuthenticated) {
+      // Developers go straight to their monitoring dashboard — they don't use
+      // the student boot/home flow. (Teachers will route to /teacher later.)
+      if (user?.role === 'developer') {
+        router.push('/admin/dashboard');
+        return;
+      }
+
       // First-time users must finish onboarding (character selection) before
       // entering the app, otherwise they land with no character chosen.
       if (user && !user.onboardingComplete) {
