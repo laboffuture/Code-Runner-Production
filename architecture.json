@@ -1,0 +1,425 @@
+{
+  "project": "Coderunner",
+  "description": "Full-stack coding challenge platform for students aged 11-18",
+  "version": "1.0.0",
+  "root": "D:/LOF/PROJECTS/PRODUCTION",
+
+  "services": {
+    "frontend": {
+      "name": "Coderunner Frontend",
+      "package": "@code-runner/web",
+      "path": "Coderunner-Frontend/web",
+      "framework": "Next.js 14.2.0",
+      "port": 3000,
+      "output": "standalone",
+      "entryPoint": "src/app/layout.tsx"
+    },
+    "api": {
+      "name": "Coderunner API",
+      "package": "@code-runner/api",
+      "path": "Coderunner-Backend/apps/api",
+      "framework": "Express.js",
+      "ports": [4000, 4001],
+      "pm2Instances": 2,
+      "entryPoint": "src/index.ts"
+    },
+    "runner": {
+      "name": "Coderunner Worker",
+      "package": "@code-runner/runner",
+      "path": "Coderunner-Backend/apps/runner",
+      "framework": "BullMQ Worker",
+      "ports": null,
+      "pm2Instances": 2,
+      "entryPoint": "src/index.ts"
+    },
+    "shared": {
+      "name": "Shared Library",
+      "package": "@code-runner/shared",
+      "path": "Coderunner-Backend/packages/shared",
+      "framework": "TypeScript library",
+      "ports": null
+    }
+  },
+
+  "infrastructure": {
+    "database": {
+      "type": "MongoDB Atlas",
+      "client": "Mongoose 8.18.0",
+      "hosting": "Cloud (Atlas)"
+    },
+    "cache_queue": {
+      "type": "Redis",
+      "client": "ioredis 5.3.2",
+      "port": 6379,
+      "hosting": "Local / VPS"
+    },
+    "job_queue": {
+      "type": "BullMQ",
+      "version": "5.1.8",
+      "queues": ["code-execution", "code-submission"]
+    },
+    "sandbox": {
+      "type": "Docker",
+      "client": "dockerode 4.0.2",
+      "sandbox_image": "python-code-runner",
+      "base_image": "python:3.11-slim",
+      "pool": { "min": 2, "max": 5, "max_age_ms": 1800000 }
+    },
+    "process_manager": {
+      "type": "PM2",
+      "config": "ecosystem.config.js",
+      "processes": [
+        { "name": "api-1", "port": 4000, "max_memory": "300M" },
+        { "name": "api-2", "port": 4001, "max_memory": "300M" },
+        { "name": "runner-1", "max_memory": "500M" },
+        { "name": "runner-2", "max_memory": "500M" }
+      ]
+    },
+    "reverse_proxy": {
+      "type": "Nginx",
+      "role": "Load balancer for api-1 and api-2",
+      "upstream_ports": [4000, 4001]
+    },
+    "cdn": {
+      "type": "Cloudinary",
+      "cloud_name": "dwqzqxeuk",
+      "usage": "Images, flowcharts, audio files"
+    },
+    "deployment": {
+      "options": ["VPS", "Railway"],
+      "docker": true
+    }
+  },
+
+  "backend": {
+    "api": {
+      "middleware": [
+        { "file": "auth.middleware.ts", "purpose": "JWT authentication" },
+        { "file": "errorHandler.ts", "purpose": "Global error handling" },
+        { "file": "notFoundHandler.ts", "purpose": "404 responses" },
+        { "file": "rateLimit.middleware.ts", "purpose": "Rate limiting — api, execution, daily limits" }
+      ],
+      "routes": [
+        {
+          "file": "auth.routes.ts",
+          "base": "/auth",
+          "endpoints": [
+            "POST /auth/register",
+            "POST /auth/login",
+            "GET  /auth/me",
+            "POST /auth/logout",
+            "POST /auth/refresh"
+          ]
+        },
+        {
+          "file": "users.routes.ts",
+          "base": "/users",
+          "endpoints": [
+            "GET  /users/:id",
+            "PUT  /users/:id",
+            "GET  /users/:id/profile",
+            "PUT  /users/:id/profile"
+          ]
+        },
+        {
+          "file": "problems.routes.ts",
+          "base": "/problems",
+          "endpoints": [
+            "GET  /problems",
+            "GET  /problems/:id",
+            "GET  /problems/:id/test-cases",
+            "POST /problems/:id/submit-code"
+          ]
+        },
+        {
+          "file": "levels.routes.ts",
+          "base": "/levels",
+          "endpoints": [
+            "GET /levels",
+            "GET /levels/:age_group",
+            "GET /levels/:age_group/:level_number"
+          ]
+        },
+        {
+          "file": "sessions.routes.ts",
+          "base": "/sessions",
+          "endpoints": ["GET /sessions/:id"]
+        },
+        {
+          "file": "execution.routes.ts",
+          "base": "/execution",
+          "endpoints": [
+            "POST /execution/submit",
+            "GET  /execution/:jobId"
+          ]
+        },
+        {
+          "file": "progress.routes.ts",
+          "base": "/progress",
+          "endpoints": [
+            "GET  /progress/:userId",
+            "POST /progress/:userId/update"
+          ]
+        },
+        {
+          "file": "leaderboard.routes.ts",
+          "base": "/leaderboard",
+          "endpoints": [
+            "GET /leaderboard",
+            "GET /leaderboard/:age_group"
+          ]
+        },
+        {
+          "file": "cheatsheets.routes.ts",
+          "base": "/cheatsheets",
+          "endpoints": [
+            "GET  /cheatsheets/:session_id",
+            "POST /cheatsheets/:session_id"
+          ]
+        },
+        {
+          "file": "admin.routes.ts",
+          "base": "/admin",
+          "endpoints": ["Admin monitoring endpoints (auth-gated)"]
+        },
+        {
+          "file": "health routes",
+          "base": "/health",
+          "endpoints": [
+            "GET /health",
+            "GET /health/redis",
+            "GET /health/metrics"
+          ]
+        }
+      ],
+      "queue": {
+        "config": "src/queue/queue.config.ts",
+        "queues": ["code-execution", "code-submission"]
+      },
+      "utils": ["railway.client.ts", "unescape.ts"],
+      "scripts": ["create-admin.ts", "test-api-server.ts", "test-mongodb.ts"]
+    },
+    "runner": {
+      "workers": [
+        { "file": "code-execution.worker.ts", "queue": "code-execution", "concurrency": 3 },
+        { "file": "code-submission.worker.ts", "queue": "code-submission", "concurrency": 2 }
+      ],
+      "executors": [
+        { "file": "docker.executor.ts", "purpose": "Run Python code in Docker container" },
+        { "file": "container-pool.ts", "purpose": "Pre-warmed container pool management" }
+      ],
+      "dockerfiles": [
+        { "file": "Dockerfile", "base": "node:22-bullseye", "purpose": "Runner service image" },
+        { "file": "sandbox/Dockerfile", "base": "python:3.11-slim", "purpose": "Code execution sandbox" }
+      ]
+    },
+    "shared": {
+      "models": [
+        {
+          "file": "User.model.ts",
+          "collection": "users",
+          "fields": ["username", "email", "passwordHash", "role", "age_group", "selectedCharacter", "onboardingComplete"]
+        },
+        {
+          "file": "UserProgress.model.ts",
+          "collection": "userprogresses",
+          "fields": ["userId", "age_group", "problems_solved", "current_level", "total_points", "updated_at"]
+        },
+        {
+          "file": "Problem.model.ts",
+          "collection": "problems",
+          "fields": ["problem_id", "title", "description", "session_id", "difficulty", "test_cases", "constraints", "examples", "solution"]
+        },
+        {
+          "file": "TestCase.model.ts",
+          "collection": "testcases",
+          "fields": ["problemId", "input", "output", "isHidden"]
+        },
+        {
+          "file": "ExecutionResult.model.ts",
+          "collection": "executionresults",
+          "fields": ["jobId", "userId", "problemId", "code", "status", "output", "error", "executionTime"]
+        },
+        {
+          "file": "CheatSheet.model.ts",
+          "collection": "cheatsheets",
+          "fields": ["sessionId", "content", "createdBy", "createdAt"]
+        }
+      ],
+      "utils": ["jwt.utils.ts", "password.utils.ts", "logger.utils.ts", "validation.utils.ts"],
+      "types": ["user.types.ts", "problem.types.ts", "execution.types.ts", "job.types.ts"]
+    }
+  },
+
+  "frontend": {
+    "providers": [
+      { "file": "AuthContext.tsx", "purpose": "Auth state — user, token, login/logout" },
+      { "file": "ThemeContext.tsx", "purpose": "Light/dark theme + accent color" },
+      { "file": "AudioContext.tsx", "purpose": "Global audio and sound effects" },
+      { "file": "BackgroundContext.tsx", "purpose": "WebGL / background animation" }
+    ],
+    "pages": {
+      "public": [
+        { "route": "/", "file": "page.tsx", "purpose": "Landing page" },
+        { "route": "/boot", "file": "boot/page.tsx", "purpose": "Boot / startup sequence" },
+        { "route": "/login", "file": "(auth)/login/page.tsx", "purpose": "User login" },
+        { "route": "/register", "file": "(auth)/register/page.tsx", "purpose": "User registration" }
+      ],
+      "protected": [
+        { "route": "/home", "file": "home/page.tsx", "purpose": "User home dashboard" },
+        { "route": "/onboarding", "file": "(auth)/onboarding/page.tsx", "purpose": "Character selection" },
+        { "route": "/profile", "file": "(auth)/profile/page.tsx", "purpose": "Profile dashboard" },
+        { "route": "/profile/settings", "file": "(auth)/profile/settings/page.tsx", "purpose": "Settings" },
+        { "route": "/compiler", "file": "compiler/page.tsx", "purpose": "Free Python compiler" },
+        { "route": "/missions", "file": "missions/page.tsx", "purpose": "Mission list" },
+        { "route": "/rank", "file": "rank/page.tsx", "purpose": "Leaderboard" },
+        { "route": "/levels/:age_group", "file": "levels/[age_group]/page.tsx", "purpose": "Level selection" },
+        { "route": "/levels/:age_group/:level", "file": "levels/[age_group]/[level_number]/page.tsx", "purpose": "Level problem list" },
+        { "route": "/problems/:id", "file": "problems/[id]/page.tsx", "purpose": "Problem solver + Monaco editor" },
+        { "route": "/sessions/:id/introduction", "file": "sessions/[session_id]/introduction/page.tsx", "purpose": "Session intro + flowcharts" },
+        { "route": "/sessions/:id/cheat-sheet", "file": "sessions/[session_id]/cheat-sheet/page.tsx", "purpose": "Session cheat sheet" },
+        { "route": "/sessions/:id/summary", "file": "sessions/[session_id]/summary/page.tsx", "purpose": "Session summary" },
+        { "route": "/code-convergence/:age/:level/introduction", "file": "code-convergence/.../introduction/page.tsx", "purpose": "Code convergence intro" },
+        { "route": "/code-convergence/:age/:level/ultimate-challenge", "file": "code-convergence/.../ultimate-challenge/page.tsx", "purpose": "Final challenge" }
+      ],
+      "admin": [
+        { "route": "/admin/dashboard", "purpose": "Admin overview" },
+        { "route": "/admin/api", "purpose": "API metrics" },
+        { "route": "/admin/docker", "purpose": "Docker container metrics" },
+        { "route": "/admin/runners", "purpose": "Runner service metrics" },
+        { "route": "/admin/redis", "purpose": "Redis monitoring" },
+        { "route": "/admin/mongodb", "purpose": "Database monitoring" },
+        { "route": "/admin/queues", "purpose": "BullMQ job queue monitoring" },
+        { "route": "/admin/errors", "purpose": "Error analytics" },
+        { "route": "/admin/cloudinary", "purpose": "Image CDN management" },
+        { "route": "/admin/frontend", "purpose": "Frontend metrics" },
+        { "route": "/admin/nginx", "purpose": "Nginx metrics" }
+      ],
+      "api_routes": [
+        "api/health/route.ts",
+        "api/cache/clear/route.ts",
+        "api/cheatsheets/[session_id]/route.ts",
+        "api/sessions/[session_id]/route.ts",
+        "api/files/route.ts",
+        "api/files/list/route.ts",
+        "api/files/delete/route.ts"
+      ]
+    },
+    "components": {
+      "editor": ["CodeEditor.tsx", "CompilerUI.tsx", "FreeCompiler.tsx", "PygameCanvas.tsx", "NeuralHeader.tsx", "NeuralSidebar.tsx", "EditorHeader.tsx", "CodeEditorSection.tsx", "ConsolePanel.tsx", "ConsoleTabs.tsx", "ActionButtons.tsx"],
+      "problem_panel": ["ProblemHeader.tsx", "TaskSection.tsx", "EducationalAccordions.tsx", "MissionBriefing.tsx", "SampleDataTabs.tsx"],
+      "cheatsheet": ["CheatSheetTemplate.tsx", "CheatSheetTemplateInteractive.tsx", "CheatSheetContentEditor.tsx"],
+      "layout": ["Header.tsx", "LoadingScreen.tsx", "MemoryLoadingScreen.tsx", "GlobalAudioControl.tsx"],
+      "profile": ["ProfileStats.tsx", "Achievements.tsx", "ActivityCalendar.tsx", "ProblemChart.tsx", "RecentActivity.tsx", "TopicProgress.tsx", "SkillsTags.tsx", "WeakAreas.tsx", "RecommendedProblems.tsx"],
+      "lists": ["ProblemList.tsx", "LevelList.tsx", "SessionList.tsx", "Leaderboard.tsx"],
+      "webgl_3d": ["WebGLWrapper.tsx", "FuturisticWebGL.tsx", "SpaceWebGL.tsx", "ARKGridBackground.tsx"],
+      "audio": ["AudioControl.tsx", "SoundToggle.tsx"],
+      "auth": ["ProtectedRoute.tsx"],
+      "ui_primitives": ["accordion", "alert", "button", "card", "dialog", "dropdown-menu", "form", "input", "select", "tabs", "toast", "tooltip", "badge", "separator", "sheet", "sidebar"]
+    },
+    "hooks": ["useAudio.ts", "usePageAudio.ts", "useAnimations.ts", "use3DTransition.ts", "use-mobile.tsx", "use-toast.ts"],
+    "lib": {
+      "api": ["api-client.ts"],
+      "data": ["cloudinary.ts", "character-themes.ts", "downloadCheatsheet.ts", "types.ts", "utils.ts"],
+      "database": ["mongodb.ts", "db-service.ts", "db-service-optimized.ts", "data-service.ts", "db-types.ts"],
+      "parsers": ["python-error-parser.ts"],
+      "utilities": ["cache.ts", "progress.ts", "deviceDetection.ts", "imagePaths.ts"]
+    }
+  },
+
+  "tech_stack": {
+    "backend": {
+      "runtime": "Node.js 18+",
+      "language": "TypeScript",
+      "api_framework": "Express.js 4.18",
+      "database_orm": "Mongoose 8.18",
+      "cache": "Redis + ioredis 5.3",
+      "job_queue": "BullMQ 5.1",
+      "sandboxing": "Docker + dockerode 4.0",
+      "auth": "JWT (jsonwebtoken 9.0)",
+      "validation": "Zod 3.24",
+      "logging": "Winston 3.19",
+      "password": "bcrypt 5.1"
+    },
+    "frontend": {
+      "framework": "Next.js 14.2",
+      "library": "React 18.3",
+      "language": "TypeScript",
+      "styling": "Tailwind CSS 3.4",
+      "components": "Radix UI",
+      "code_editor": "Monaco Editor (@monaco-editor/react 4.7)",
+      "3d_graphics": "Three.js 0.182",
+      "charts": "Recharts 3.7",
+      "forms": "react-hook-form 7.71",
+      "screenshots": "modern-screenshot 4.6"
+    },
+    "infrastructure": {
+      "process_manager": "PM2",
+      "reverse_proxy": "Nginx",
+      "containerization": "Docker",
+      "cdn": "Cloudinary",
+      "database_hosting": "MongoDB Atlas",
+      "deployment": "VPS / Railway"
+    }
+  },
+
+  "data_flow": {
+    "code_execution": [
+      "Student submits code on /problems/:id page",
+      "Frontend POST /api/execution/submit → API server (port 4000/4001 via Nginx)",
+      "API validates request, creates BullMQ job in 'code-execution' queue",
+      "API returns jobId to frontend",
+      "Frontend polls GET /execution/:jobId for status",
+      "Runner worker picks up job from Redis queue",
+      "Runner pulls pre-warmed Python container from pool",
+      "Python code executes in sandboxed Docker container (5s timeout)",
+      "Output captured, container returned to pool or recycled",
+      "Result saved to ExecutionResult collection in MongoDB",
+      "Job status updated in Redis",
+      "Frontend receives result on next poll"
+    ],
+    "session_flowcharts": [
+      "Frontend loads /sessions/:id/introduction page",
+      "API route GET /api/sessions/:id fetches session from MongoDB via backend",
+      "Frontend looks up SESSION_FLOWCHART_CONFIG[levelNumber][sessionNumber]",
+      "getFlowchartUrl() builds Cloudinary CDN URL",
+      "Images served from Cloudinary with f_auto,q_auto optimization",
+      "Per-flow title and explanation shown from FlowConfig data"
+    ],
+    "authentication": [
+      "User POST /auth/register or /auth/login",
+      "Backend validates, bcrypt-hashes password, signs JWT",
+      "JWT stored in localStorage (AuthContext)",
+      "All protected API calls include Authorization: Bearer <token>",
+      "auth.middleware.ts verifies JWT on every protected route"
+    ]
+  },
+
+  "known_issues": [
+    "Rate limiter uses in-memory store — broken across 2 PM2 instances (should use Redis store)",
+    "JWT stored in localStorage (XSS risk — should use httpOnly cookies)",
+    "userRole not stored in localStorage after login",
+    "Progress routes (/progress/*) return empty stubs — not yet implemented",
+    "Teacher role not yet added to User model or auth middleware",
+    "SpaceWebGL.tsx has a pre-existing TypeScript error (line 270)"
+  ],
+
+  "pending_features": [
+    "Teacher role + separate registration with invite code",
+    "Teacher dashboard for monitoring student progress",
+    "Real progress tracking (UserProgress model wired to submission worker)",
+    "Rate limiter Redis store fix",
+    "Winston logger replacing console.log throughout",
+    "Test case comparison improvements (whitespace tolerance, float precision)"
+  ],
+
+  "cloudinary": {
+    "cloud_name": "dwqzqxeuk",
+    "flowchart_path": "code-runner/flowcharts/{age_group}/level-{L}/session-{S}/flow-{F}",
+    "levels_uploaded": [1, 2],
+    "age_group": "11-14",
+    "sessions_per_level": 10,
+    "flows_per_session": 5,
+    "total_flowcharts": 100
+  }
+}

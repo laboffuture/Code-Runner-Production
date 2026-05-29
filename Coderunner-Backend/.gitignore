@@ -1,0 +1,72 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js
+.next/
+out/
+build/
+
+# Build outputs - ignore all dist folders
+dist/
+**/dist/
+apps/api/dist/
+apps/runner/dist/
+apps/web/dist/
+packages/*/dist/
+
+# Production
+*.log
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+*/.env
+*/.env.local
+*/.env.production
+**/.env
+**/.env.local
+**/.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+nul
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+*.pem
+.cache/
+
+# Claude temporary files
+tmpclaude*
+**/tmpclaude*
+
+# Next.js cache and build
+apps/web/.next/
+**/.next/
+
+# Package lock files in subfolders (keep only root)
+apps/*/package-lock.json
+packages/*/package-lock.json

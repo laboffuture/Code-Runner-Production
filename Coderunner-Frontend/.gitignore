@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+web/.next/
+web/out/
+
+# Production
+*.log
+*.tsbuildinfo
+
+# Environment variables — NEVER commit real secrets
+# Only *.example files are committed; .env.local holds live credentials.
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production
+.env.production.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+nul
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+*.pem
+.cache/
+
+# Claude temporary files
+tmpclaude*
+**/tmpclaude*

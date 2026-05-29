@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:res.cloudinary.com)",
+      "Read(//d:/LOF/PROJECTS/PRODUCTION/**)",
+      "Bash(head -60 Coderunner-Backend/apps/api/src/middleware/*.ts)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\TRG-LOF-131-048\\.claude\\projects\\d--LOF-PROJECTS-PRODUCTION\\memory"
+    ]
+  }
+}
