@@ -29,9 +29,9 @@ export default function AdminHeader() {
           {/* Title */}
           <div>
             <h1 className="text-2xl font-orbitron font-black text-gray-900 tracking-wider">
-              ADMIN DASHBOARD
+              DEVELOPER DASHBOARD
             </h1>
-            <p className="text-sm text-gray-600 mt-1 font-fira">System Monitoring & Management</p>
+            <p className="text-sm text-gray-600 mt-1 font-fira">Infrastructure Monitoring &amp; Metrics</p>
           </div>
 
           {/* Navigation */}

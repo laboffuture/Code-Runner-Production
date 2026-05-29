@@ -9,12 +9,12 @@ interface NeuralSidebarProps {
 }
 
 export default function NeuralSidebar({ isOpen }: NeuralSidebarProps) {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isDeveloper, setIsDeveloper] = useState(false);
 
   useEffect(() => {
-    // Check if user has admin role
+    // Only developer-role accounts see the monitoring dashboard link
     const userRole = localStorage.getItem('userRole');
-    setIsAdmin(userRole === 'admin');
+    setIsDeveloper(userRole === 'developer');
   }, []);
 
   return (
@@ -60,15 +60,15 @@ export default function NeuralSidebar({ isOpen }: NeuralSidebarProps) {
         <Settings className="w-5 h-5" />
       </Link>
 
-      {/* Admin Dashboard - Only visible for admins */}
-      {isAdmin && (
+      {/* Developer Dashboard - only visible to developer-role accounts */}
+      {isDeveloper && (
         <>
           {/* Divider */}
           <div className="w-8 h-[1px] bg-slate-300 dark:bg-slate-700" />
           <Link
             href="/admin/dashboard"
             className="text-amber-500 hover:text-amber-400 transition-all hover:scale-110"
-            title="Admin Dashboard"
+            title="Developer Dashboard"
           >
             <Shield className="w-5 h-5" />
           </Link>

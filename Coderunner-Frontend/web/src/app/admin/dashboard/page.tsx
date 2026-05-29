@@ -103,10 +103,9 @@ export default function AdminDashboard() {
   const [logsExpanded, setLogsExpanded] = useState(false);
 
   useEffect(() => {
-    // TODO: Re-enable authentication later
-    // const token = localStorage.getItem('authToken');
-    // const isAuth = localStorage.getItem('isAuthenticated');
-    // if (!token && !isAuth) { router.push('/login'); return; }
+    // Access control is enforced by the developer-gated admin layout
+    // (ProtectedRoute requireRole="developer") and by the developer-gated
+    // backend routes, so by the time this renders the user is authorized.
     setAuthed(true);
     setAuthChecking(false);
   }, [router]);

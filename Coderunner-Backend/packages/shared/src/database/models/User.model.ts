@@ -4,7 +4,7 @@ export interface IUser extends Document {
   username: string;
   email: string;
   passwordHash: string;
-  role: 'student' | 'admin';
+  role: 'student' | 'teacher' | 'developer';
   age_group: '11-14' | '15-18';
   selectedCharacter: 'astra' | 'nila' | 'kenji' | 'leo';
   onboardingComplete: boolean;
@@ -37,7 +37,7 @@ const UserSchema = new Schema<IUser>({
   },
   role: {
     type: String,
-    enum: ['student', 'admin'],
+    enum: ['student', 'teacher', 'developer'],
     default: 'student',
   },
   age_group: {

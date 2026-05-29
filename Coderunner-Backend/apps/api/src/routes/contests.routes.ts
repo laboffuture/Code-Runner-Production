@@ -326,8 +326,8 @@ router.get('/:id/my-entry', authMiddleware, async (req: Request, res: Response) 
  */
 router.post('/', authMiddleware, async (req: Request, res: Response) => {
   try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin only' });
+    if (req.user?.role !== 'developer') {
+      return res.status(403).json({ error: 'Developer only' });
     }
 
     const { title, description, startTime, durationMinutes, problems, ageGroup, maxParticipants } = req.body;
@@ -369,8 +369,8 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
  */
 router.patch('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin only' });
+    if (req.user?.role !== 'developer') {
+      return res.status(403).json({ error: 'Developer only' });
     }
 
     const contest = await Models.Contest.findById(req.params.id);
@@ -404,8 +404,8 @@ router.patch('/:id', authMiddleware, async (req: Request, res: Response) => {
  */
 router.post('/:id/end', authMiddleware, async (req: Request, res: Response) => {
   try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin only' });
+    if (req.user?.role !== 'developer') {
+      return res.status(403).json({ error: 'Developer only' });
     }
 
     const contest = await Models.Contest.findById(req.params.id);
@@ -437,8 +437,8 @@ router.post('/:id/end', authMiddleware, async (req: Request, res: Response) => {
  */
 router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin only' });
+    if (req.user?.role !== 'developer') {
+      return res.status(403).json({ error: 'Developer only' });
     }
 
     const contest = await Models.Contest.findById(req.params.id);

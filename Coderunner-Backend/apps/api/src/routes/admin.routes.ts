@@ -3,15 +3,15 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import { Models, getLogger } from '@code-runner/shared';
-import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, developerMiddleware } from '../middleware/auth.middleware';
 import { redis } from '../queue/queue.config';
 
 const router = Router();
 const logger = getLogger('admin');
 
-// All admin routes require auth + admin role
+// All monitoring routes require auth + developer role (the dev/ops team only)
 router.use(authMiddleware);
-router.use(adminMiddleware);
+router.use(developerMiddleware);
 
 // ===== HELPERS =====
 function parseTimeRange(tr: string): { points: number; interval: number; ms: number } | null {

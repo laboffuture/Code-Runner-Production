@@ -68,7 +68,7 @@ export interface User {
   username: string;
   email: string;
   passwordHash: string;
-  role: 'student' | 'admin';
+  role: 'student' | 'teacher' | 'developer';
   age_group: '11-14' | '15-18';
   createdAt: Date;
   updatedAt: Date;
@@ -77,7 +77,7 @@ export interface User {
 export interface AuthToken {
   userId: string;
   username: string;
-  role: 'student' | 'admin';
+  role: 'student' | 'teacher' | 'developer';
   iat: number;
   exp: number;
 }
@@ -100,7 +100,7 @@ export interface AuthResponse {
     id: string;
     username: string;
     email: string;
-    role: 'student' | 'admin';
+    role: 'student' | 'teacher' | 'developer';
     age_group: '11-14' | '15-18';
   };
 }
