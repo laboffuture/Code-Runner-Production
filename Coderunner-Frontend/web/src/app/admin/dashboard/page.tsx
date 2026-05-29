@@ -26,7 +26,6 @@ interface DockerData {
   containers: Array<{ id: string; status: string; created: string }>;
 }
 interface LogEntry { timestamp: string; level: string; message: string }
-interface UserData { totalUsers: number; activeToday: number; recentSignups: Array<{ username: string; createdAt: string }> }
 interface ErrorData { recentErrors: Array<{ timestamp: string; message: string; endpoint: string; count: number }>; totalErrors24h: number; errorRate: number }
 
 function fmtUp(s: number) { const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60); return d>0?`${d}d ${h}h`:h>0?`${h}h ${m}m`:`${m}m`; }
@@ -95,7 +94,6 @@ export default function AdminDashboard() {
   const [queues, setQueues] = useState<QueueData | null>(null);
   const [docker, setDocker] = useState<DockerData | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [users, setUsers] = useState<UserData | null>(null);
   const [errors, setErrors] = useState<ErrorData | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -114,19 +112,18 @@ export default function AdminDashboard() {
     setRefreshing(true); setFetchError(null);
     const r = await Promise.allSettled([
       api.admin.system(), api.admin.queues(), api.admin.docker(),
-      api.admin.logs(30), api.admin.users(), api.admin.errors(),
+      api.admin.logs(30), api.admin.errors(),
     ]);
     if (r.every(x => x.status === 'rejected')) {
       const msg = (r[0] as PromiseRejectedResult).reason?.message || 'Failed';
-      setFetchError(msg.includes('401') || msg.includes('403') ? 'Access denied. Admin privileges required.' : msg);
+      setFetchError(msg.includes('401') || msg.includes('403') ? 'Access denied. Developer privileges required.' : msg);
       setRefreshing(false); return;
     }
     if (r[0].status === 'fulfilled') setSystem(r[0].value as SystemData);
     if (r[1].status === 'fulfilled') setQueues(r[1].value as QueueData);
     if (r[2].status === 'fulfilled') setDocker(r[2].value as DockerData);
     if (r[3].status === 'fulfilled') { const d = r[3].value as any; setLogs(Array.isArray(d) ? d : d?.logs || []); }
-    if (r[4].status === 'fulfilled') setUsers(r[4].value as UserData);
-    if (r[5].status === 'fulfilled') setErrors(r[5].value as ErrorData);
+    if (r[4].status === 'fulfilled') setErrors(r[4].value as ErrorData);
     setLastUpdated(new Date()); setRefreshing(false);
   }, []);
 
@@ -228,12 +225,7 @@ export default function AdminDashboard() {
               onClick={() => router.push('/admin/frontend')}
               className="cursor-pointer w-full"
             >
-              <ArchLayer title="FRONTEND" subtitle="Railway · Next.js · Port 8080" icon={Globe} status="online">
-                <div className="grid grid-cols-2 gap-x-6">
-                  <MiniStat label="Active Users" value={users?.activeToday ?? '—'} color="text-[#76B900]" />
-                  <MiniStat label="Total Users" value={users?.totalUsers ?? '—'} />
-                </div>
-              </ArchLayer>
+              <ArchLayer title="FRONTEND" subtitle="Railway · Next.js · Port 8080" icon={Globe} status="online" />
             </div>
 
             <FlowConnector label="HTTPS" />
@@ -493,33 +485,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         </section>
-
-        {/* ━━━ SIGNUPS ━━━ */}
-        {users && users.recentSignups.length > 0 && (
-          <section>
-            <h2 className="font-orbitron text-xs font-bold text-[#76B900] tracking-[0.3em] uppercase mb-6">Recent Signups</h2>
-            <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b-2 border-gray-100 bg-gray-50">
-                    <th className="px-6 py-4 text-[10px] font-orbitron text-gray-400 tracking-[0.2em]">#</th>
-                    <th className="px-6 py-4 text-[10px] font-orbitron text-gray-400 tracking-[0.2em]">USERNAME</th>
-                    <th className="px-6 py-4 text-[10px] font-orbitron text-gray-400 tracking-[0.2em]">JOINED</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.recentSignups.slice(0, 10).map((u, i) => (
-                    <tr key={i} className="border-b border-gray-100 hover:bg-[#76B900]/5 transition-colors">
-                      <td className="px-6 py-3 text-sm text-gray-400 font-fira">{i + 1}</td>
-                      <td className="px-6 py-3 text-sm font-rajdhani font-bold text-gray-900">{u.username}</td>
-                      <td className="px-6 py-3 text-sm text-gray-400 font-fira">{new Date(u.createdAt).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
 
       </main>
 
