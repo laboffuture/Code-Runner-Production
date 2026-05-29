@@ -135,6 +135,7 @@ router.get('/me/stats', async (req: Request, res: Response) => {
       skills: structuredSkills,
       recentActivity: progress.recentActivity,
       submissionCalendar: progress.submissionCalendar,
+      solvedCalendar: (progress as any).solvedCalendar || [],
       topicProgress,
       solvedProblemIds: progress.solvedProblemIds || [],
       unlockedCharacters: allCharacters, // All characters unlocked

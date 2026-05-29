@@ -3,10 +3,11 @@
 import { CompilerUI } from '@/components/editor/CompilerUI';
 import NeuralHeader from '@/components/editor/NeuralHeader';
 import type { Problem } from '@/lib/types';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { useGlobalAudio } from '@/contexts/AudioContext';
 import { useEffect, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api-client';
 
 interface ProblemPageProps {
@@ -22,8 +23,19 @@ export default function ProblemPage({ params }: ProblemPageProps) {
   const [mounted, setMounted] = useState(false);
   const { forcePlayMissionMusic, forcePlayBackgroundMusic, getCurrentMusicType } = useGlobalAudio();
   const { character, accentColor } = useTheme();
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Solving writes progress, so it requires login. Send logged-out users to
+  // login with a redirect back here (prevents silent progress loss on submit).
+  useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=/problems/${params.id}`);
+    }
+  }, [authLoading, isAuthenticated, router, params.id]);
 
   useEffect(() => {
     async function loadData() {

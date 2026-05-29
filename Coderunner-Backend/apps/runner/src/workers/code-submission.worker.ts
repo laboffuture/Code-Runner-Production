@@ -164,6 +164,14 @@ export class CodeSubmissionWorker {
     status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Error'
   ): Promise<void> {
     try {
+      // Progress is only tracked for authenticated users. A missing/invalid
+      // userId (e.g. 'anonymous') would otherwise throw a CastError that gets
+      // swallowed below, silently losing the update. Skip cleanly instead.
+      if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+        logger.info('Skipping progress update for non-authenticated submission', { userId, problemId });
+        return;
+      }
+
       // Fetch the problem to get difficulty and title
       const problem = await Models.Problem.findOne({ problem_id: problemId });
       if (!problem) {
@@ -198,6 +206,7 @@ export class CodeSubmissionWorker {
           skills: [],
           recentActivity: [],
           submissionCalendar: [],
+          solvedCalendar: [],
           topicProgress: [],
         });
       }
@@ -358,6 +367,23 @@ export class CodeSubmissionWorker {
       userProgress.submissionCalendar = userProgress.submissionCalendar.filter(
         (day) => new Date(day.date) >= oneYearAgo
       );
+
+      // Update solved calendar — count only DISTINCT first-time solves per day.
+      // This is what drives the accurate "solved over time" chart (vs the
+      // submission calendar above, which counts every attempt incl. failures).
+      if (accepted && !alreadySolved) {
+        const existingSolvedDay = userProgress.solvedCalendar.find(
+          (day: { date: Date; count: number }) => new Date(day.date).toISOString().split('T')[0] === todayStr
+        );
+        if (existingSolvedDay) {
+          existingSolvedDay.count += 1;
+        } else {
+          userProgress.solvedCalendar.push({ date: today, count: 1 });
+        }
+        userProgress.solvedCalendar = userProgress.solvedCalendar.filter(
+          (day: { date: Date; count: number }) => new Date(day.date) >= oneYearAgo
+        );
+      }
 
       // Save the updated progress
       await userProgress.save();

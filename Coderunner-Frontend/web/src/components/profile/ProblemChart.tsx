@@ -46,9 +46,11 @@ export function ProblemChart({ data }: ProblemChartProps) {
     { name: 'Hard', value: hardSolved, color: '#EF4444' }
   ];
 
-  // Build progress data from submission calendar
-  const submissionCalendar = data?.submissionCalendar || [];
-  const progressData = buildProgressData(submissionCalendar);
+  // Build progress data from the SOLVED calendar (distinct first-time solves
+  // per day) so "Progress Over Time" reflects problems solved, not raw
+  // submissions. Falls back to empty for users with no solves yet.
+  const solvedCalendar = data?.solvedCalendar || [];
+  const progressData = buildProgressData(solvedCalendar);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -187,18 +189,19 @@ export function ProblemChart({ data }: ProblemChartProps) {
   );
 }
 
-// Helper function to build progress data from submission calendar
-function buildProgressData(submissionCalendar: any[]): any[] {
-  if (!submissionCalendar || submissionCalendar.length === 0) {
+// Helper function to build cumulative "solved over time" data from the
+// per-day solved calendar (each entry's count = distinct first-time solves).
+function buildProgressData(solvedCalendar: any[]): any[] {
+  if (!solvedCalendar || solvedCalendar.length === 0) {
     return [];
   }
 
-  // Group by month and count cumulative problems solved
+  // Group by month and accumulate distinct solves
   const monthlyData: { [key: string]: number } = {};
   let cumulative = 0;
 
   // Sort by date
-  const sorted = [...submissionCalendar].sort((a, b) =>
+  const sorted = [...solvedCalendar].sort((a, b) =>
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 

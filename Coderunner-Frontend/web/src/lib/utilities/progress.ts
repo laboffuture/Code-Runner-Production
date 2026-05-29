@@ -16,6 +16,23 @@ export interface LevelProgress {
 // (completedProblems are preserved).
 const PROGRESS_VERSION = 'v2';
 
+// LAUNCH SETTING — every level is intentionally unlocked for the initial
+// release. Only a couple of intro levels ship, gating adds friction with little
+// benefit, and unlock state is currently client-only (localStorage) so it can't
+// be meaningfully enforced anyway. Flip to `false` to restore sequential
+// "finish the previous level to unlock the next" gating once level completion
+// is tracked server-side (see Caveat 2 in the project notes).
+const UNLOCK_ALL_LEVELS = true;
+
+// Number of levels per age group, used only for progress-percentage helpers
+// (getChapterProgress/getOverallProgress — not currently rendered anywhere).
+// TODO: derive this from the backend levels API instead of hardcoding; update
+// as more levels are released.
+const LEVELS_PER_AGE_GROUP: Record<string, number> = {
+  '11-14': 4,
+  '15-18': 4,
+};
+
 class ProgressManager {
   private static instance: ProgressManager;
   private progress: UserProgress;
@@ -142,10 +159,10 @@ class ProgressManager {
     // Level 1 is always unlocked
     if (levelNumber === 1) return true;
 
-    // TEMPORARY: Unlock all levels for age group 11-14 for development (Level 2)
-    if (ageGroup === '11-14') return true;
+    // Launch posture: everything unlocked (see UNLOCK_ALL_LEVELS note above).
+    if (UNLOCK_ALL_LEVELS) return true;
 
-    // Level is unlocked if the previous level is completed
+    // Otherwise a level is unlocked once the previous one is completed.
     return this.isLevelCompleted(ageGroup, levelNumber - 1);
   }
 
@@ -174,9 +191,7 @@ class ProgressManager {
   }
 
   private getTotalLevelsForAgeGroup(ageGroup: string): number {
-    // This should be updated based on your actual level structure
-    // For now, assuming 10 levels per age group
-    return 10;
+    return LEVELS_PER_AGE_GROUP[ageGroup] ?? 4;
   }
 
   getOverallProgress(): { completed: number; total: number; percentage: number } {
