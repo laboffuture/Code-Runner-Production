@@ -116,7 +116,7 @@ router.get('/result/:jobId', optionalAuthMiddleware, async (req: Request, res: R
     // expose another student's submitted code. Anonymous results have no
     // owner, so they stay readable to keep the unauthenticated poll flow working.
     if (result.userId && result.userId !== 'anonymous') {
-      if (!req.user || (req.user.userId !== result.userId && req.user.role !== 'admin')) {
+      if (!req.user || (req.user.userId !== result.userId && req.user.role !== 'developer')) {
         return res.status(403).json({
           error: 'Forbidden',
           message: 'You do not have access to this result',

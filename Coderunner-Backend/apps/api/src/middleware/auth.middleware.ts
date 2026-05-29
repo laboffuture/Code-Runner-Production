@@ -39,12 +39,13 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   }
 }
 
-// Admin-only middleware (must be used after authMiddleware)
-export function adminMiddleware(req: Request, res: Response, next: NextFunction) {
-  if (!req.user || req.user.role !== 'admin') {
+// Developer-only middleware (must be used after authMiddleware).
+// Gates the infrastructure/monitoring dashboard — the dev team only.
+export function developerMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (!req.user || req.user.role !== 'developer') {
     return res.status(403).json({
       error: 'Forbidden',
-      message: 'Admin access required',
+      message: 'Developer access required',
     });
   }
   next();

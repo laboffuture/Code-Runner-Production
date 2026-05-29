@@ -70,18 +70,18 @@ async function createAdminUser() {
         email: adminEmail,
         passwordHash,
         age_group: '15-18',
-        role: 'admin',
+        role: 'developer',
         selectedCharacter: 'astra',
         onboardingComplete: true,
       });
 
       await adminUser.save();
 
-      console.log('✅ Admin user created successfully!');
+      console.log('✅ Developer user created successfully!');
       console.log('📝 Login as:', {
         username: adminUsername,
         email: adminEmail,
-        role: 'admin',
+        role: 'developer',
         password: '(the ADMIN_PASSWORD you provided — not shown)',
       });
     }

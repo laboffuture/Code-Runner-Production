@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Models } from '@code-runner/shared';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, developerMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
 
 router.use(authMiddleware);
+router.use(developerMiddleware);
 
 /**
  * GET /admin/mongodb/stats
@@ -16,8 +17,8 @@ router.use(authMiddleware);
  */
 router.get('/stats', async (req: Request, res: Response) => {
   try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Forbidden', message: 'Admin access required' });
+    if (req.user?.role !== 'developer') {
+      return res.status(403).json({ error: 'Forbidden', message: 'Developer access required' });
     }
 
     const db = mongoose.connection.db;
@@ -152,8 +153,8 @@ router.get('/stats', async (req: Request, res: Response) => {
  */
 router.get('/atlas', async (req: Request, res: Response) => {
   try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Forbidden', message: 'Admin access required' });
+    if (req.user?.role !== 'developer') {
+      return res.status(403).json({ error: 'Forbidden', message: 'Developer access required' });
     }
 
     const connHost = mongoose.connection.host || '';
