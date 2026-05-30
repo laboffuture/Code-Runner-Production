@@ -27,15 +27,35 @@ function diffPill(difficulty: string): string {
   return 'bg-emerald-100 text-emerald-700';
 }
 
-function relTime(ts: string | null): string {
+function timeOnly(ts: string | null): string {
   if (!ts) return '';
-  const diff = Date.now() - new Date(ts).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function dayLabel(ts: string | null): string {
+  if (!ts) return 'Earlier';
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.round((today.getTime() - d.getTime()) / 86400000);
+  if (diff <= 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  return new Date(ts).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function groupByDay(items: any[]): Array<{ label: string; items: any[] }> {
+  const groups: Record<string, any[]> = {};
+  const order: string[] = [];
+  for (const a of items) {
+    const label = dayLabel(a.timestamp);
+    if (!groups[label]) {
+      groups[label] = [];
+      order.push(label);
+    }
+    groups[label].push(a);
+  }
+  return order.map((label) => ({ label, items: groups[label] }));
 }
 
 export default function StudentDetail() {
@@ -168,43 +188,47 @@ export default function StudentDetail() {
                 RECENT ACTIVITY
               </h2>
               {data.recentActivity?.length ? (
-                <ul className="space-y-2">
-                  {data.recentActivity.slice(0, 20).map((a: any, i: number) => {
-                    const ok = a.status === 'ACCEPTED';
-                    return (
-                      <li
-                        key={i}
-                        className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50/70 transition-colors"
-                      >
-                        <span
-                          className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                            ok ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
-                          }`}
-                        >
-                          {ok ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                <div className="space-y-6">
+                  {groupByDay(data.recentActivity.slice(0, 30)).map((group) => (
+                    <div key={group.label}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="font-orbitron text-[11px] font-bold text-gray-400 tracking-[0.2em] uppercase">
+                          {group.label}
                         </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-rajdhani font-bold text-gray-800 truncate">
-                            {a.problemTitle || `Problem ${a.problemId}`}
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-400 font-fira mt-0.5">
-                            <span className={`px-1.5 py-0.5 rounded ${diffPill(a.difficulty)}`}>
-                              {a.difficulty}
-                            </span>
-                            <span>{relTime(a.timestamp)}</span>
-                          </div>
-                        </div>
-                        <span
-                          className={`text-xs font-orbitron font-bold ${
-                            ok ? 'text-emerald-600' : 'text-rose-500'
-                          }`}
-                        >
-                          {ok ? 'SOLVED' : 'FAILED'}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
+                        <span className="h-px flex-1 bg-gray-100" />
+                        <span className="text-[11px] font-fira text-gray-400">{group.items.length}</span>
+                      </div>
+                      <ul className="space-y-1.5">
+                        {group.items.map((a: any, i: number) => {
+                          const ok = a.status === 'ACCEPTED';
+                          return (
+                            <li
+                              key={i}
+                              className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                              <span
+                                className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
+                                  ok ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
+                                }`}
+                              >
+                                {ok ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+                              </span>
+                              <span className="font-rajdhani font-bold text-gray-800 truncate flex-1 min-w-0">
+                                {a.problemTitle || `Problem ${a.problemId}`}
+                              </span>
+                              <span className={`shrink-0 text-[10px] font-fira px-1.5 py-0.5 rounded ${diffPill(a.difficulty)}`}>
+                                {a.difficulty}
+                              </span>
+                              <span className="shrink-0 text-xs text-gray-400 font-fira w-14 text-right">
+                                {timeOnly(a.timestamp)}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <p className="text-gray-400 font-rajdhani text-sm">No recent activity.</p>
               )}
