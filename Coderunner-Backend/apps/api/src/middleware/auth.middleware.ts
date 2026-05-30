@@ -51,6 +51,18 @@ export function developerMiddleware(req: Request, res: Response, next: NextFunct
   next();
 }
 
+// Teacher-only middleware (must be used after authMiddleware).
+// Gates the classroom-insight area — teachers only.
+export function teacherMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (!req.user || req.user.role !== 'teacher') {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'Teacher access required',
+    });
+  }
+  next();
+}
+
 // Optional auth middleware (doesn't fail if no token)
 export function optionalAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   try {

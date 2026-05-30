@@ -27,6 +27,9 @@ async function createAdminUser() {
     const adminUsername = process.env.ADMIN_USERNAME || 'admin';
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@coderunner.com';
     const adminPassword = process.env.ADMIN_PASSWORD;
+    // ADMIN_ROLE lets this script seed either a developer (default) or a teacher.
+    const adminRole: 'developer' | 'teacher' =
+      process.env.ADMIN_ROLE === 'teacher' ? 'teacher' : 'developer';
 
     if (!adminPassword || adminPassword.length < 12) {
       console.error('❌ ADMIN_PASSWORD env var is required and must be at least 12 characters.');
@@ -70,18 +73,18 @@ async function createAdminUser() {
         email: adminEmail,
         passwordHash,
         age_group: '15-18',
-        role: 'developer',
+        role: adminRole,
         selectedCharacter: 'astra',
         onboardingComplete: true,
       });
 
       await adminUser.save();
 
-      console.log('✅ Developer user created successfully!');
+      console.log(`✅ ${adminRole} user created successfully!`);
       console.log('📝 Login as:', {
         username: adminUsername,
         email: adminEmail,
-        role: 'developer',
+        role: adminRole,
         password: '(the ADMIN_PASSWORD you provided — not shown)',
       });
     }

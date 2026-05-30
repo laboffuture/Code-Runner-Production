@@ -13,10 +13,13 @@ export default function HomePage() {
     if (isLoading) return;
 
     if (isAuthenticated) {
-      // Developers go straight to their monitoring dashboard — they don't use
-      // the student boot/home flow. (Teachers will route to /teacher later.)
+      // Developers and teachers go to their own areas, not the student flow.
       if (user?.role === 'developer') {
         router.push('/admin/dashboard');
+        return;
+      }
+      if (user?.role === 'teacher') {
+        router.push('/teacher');
         return;
       }
 

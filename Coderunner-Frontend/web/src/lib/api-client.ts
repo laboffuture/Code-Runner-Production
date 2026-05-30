@@ -294,6 +294,11 @@ export const api = {
     cloudinaryStats: () => apiClient.get('/admin/cloudinary/stats'),
   },
 
+  // Teacher (classroom insight)
+  teacher: {
+    getStudents: () => apiClient.get('/teacher/students'),
+  },
+
   // Contests
   contests: {
     list: (params?: { status?: string; ageGroup?: string; page?: number }) => {
