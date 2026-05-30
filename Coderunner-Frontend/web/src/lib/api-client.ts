@@ -297,6 +297,7 @@ export const api = {
   // Teacher (classroom insight)
   teacher: {
     getStudents: () => apiClient.get('/teacher/students'),
+    getStudent: (id: string) => apiClient.get(`/teacher/students/${id}`),
   },
 
   // Contests

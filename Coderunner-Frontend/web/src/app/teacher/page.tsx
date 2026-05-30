@@ -128,7 +128,8 @@ export default function TeacherDashboard() {
                 {students.map((s) => (
                   <tr
                     key={s.userId}
-                    className="border-b border-gray-100 hover:bg-indigo-50/40 transition-colors font-rajdhani"
+                    onClick={() => router.push(`/teacher/students/${s.userId}`)}
+                    className="border-b border-gray-100 hover:bg-indigo-50/40 transition-colors font-rajdhani cursor-pointer"
                   >
                     <td className="px-5 py-3 font-bold text-gray-900">{s.username}</td>
                     <td className="px-5 py-3 text-gray-500">{s.age_group}</td>

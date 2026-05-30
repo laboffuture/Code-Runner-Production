@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Models, getLogger } from '@code-runner/shared';
 import { authMiddleware, teacherMiddleware } from '../middleware/auth.middleware';
 
@@ -59,6 +60,71 @@ router.get('/students', async (_req: Request, res: Response) => {
   } catch (error) {
     logger.error('Error fetching teacher student roster', { error });
     res.status(500).json({ error: 'Failed to fetch students' });
+  }
+});
+
+/**
+ * GET /teacher/students/:id
+ * Deep-dive for one student. Returns the same shape as /users/me/stats so the
+ * frontend can reuse the existing profile components (ProfileStats, ProblemChart,
+ * ActivityCalendar). Read-only — never creates a progress doc.
+ */
+router.get('/students/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Validation Error', message: 'Invalid student id' });
+    }
+    const objId = new mongoose.Types.ObjectId(id);
+
+    const user = (await Models.User.findById(objId).select('-passwordHash').lean()) as any;
+    if (!user || user.role !== 'student') {
+      return res.status(404).json({ error: 'Not Found', message: 'Student not found' });
+    }
+
+    const progress = (await Models.UserProgress.findOne({ userId: objId }).lean()) as any;
+
+    const topicProgress = (progress?.topicProgress || []).map((t: any) => ({
+      topic: t.topic,
+      solved: t.solved,
+      total: t.total,
+      percentage: t.total > 0 ? Math.round((t.solved / t.total) * 100) : 0,
+    }));
+    const skills = topicProgress
+      .filter((t: any) => t.solved > 0)
+      .map((t: any) => ({ name: t.topic, problemCount: t.solved, category: 'CONCEPT' }));
+
+    res.json({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      age_group: user.age_group,
+      joinDate: user.createdAt,
+      avatar: user.avatar || '',
+      bio: user.bio || '',
+      selectedCharacter: user.selectedCharacter,
+      onboardingComplete: user.onboardingComplete,
+      rank: progress?.rank || 'NOVICE',
+      level: progress?.level || 1,
+      experience: progress?.experience || 0,
+      streak: progress?.streak || { current: 0, longest: 0, lastSubmissionDate: null },
+      stats: progress?.stats || {
+        totalSolved: 0, easySolved: 0, mediumSolved: 0, hardSolved: 0,
+        totalSubmissions: 0, acceptedSubmissions: 0, acceptanceRate: 0,
+      },
+      contestRating: progress?.contestRating || 1000,
+      achievements: progress?.achievements || [],
+      skills,
+      recentActivity: progress?.recentActivity || [],
+      submissionCalendar: progress?.submissionCalendar || [],
+      solvedCalendar: progress?.solvedCalendar || [],
+      topicProgress,
+      solvedProblemIds: progress?.solvedProblemIds || [],
+    });
+  } catch (error) {
+    logger.error('Error fetching student detail', { error });
+    res.status(500).json({ error: 'Failed to fetch student' });
   }
 });
 
