@@ -45,6 +45,9 @@ router.get('/students', async (_req: Request, res: Response) => {
         level: p?.level ?? 1,
         rank: p?.rank ?? 'NOVICE',
         totalSolved: p?.stats?.totalSolved ?? 0,
+        easySolved: p?.stats?.easySolved ?? 0,
+        mediumSolved: p?.stats?.mediumSolved ?? 0,
+        hardSolved: p?.stats?.hardSolved ?? 0,
         solvedToday,
         totalSubmissions: p?.stats?.totalSubmissions ?? 0,
         acceptanceRate: p?.stats?.acceptanceRate ?? 0,
@@ -56,7 +59,44 @@ router.get('/students', async (_req: Request, res: Response) => {
     // Default sort: most problems solved first.
     roster.sort((a, b) => b.totalSolved - a.totalSolved);
 
-    res.json({ count: roster.length, students: roster });
+    // ===== Aggregates for the Classroom charts =====
+    const difficulty = { easy: 0, medium: 0, hard: 0 };
+    const levelCounts: Record<number, number> = {};
+    const dayMap: Record<string, number> = {};
+    for (const s of students) {
+      const p = progressByUser.get(String(s._id));
+      const lvl = p?.level ?? 1;
+      levelCounts[lvl] = (levelCounts[lvl] || 0) + 1;
+      difficulty.easy += p?.stats?.easySolved || 0;
+      difficulty.medium += p?.stats?.mediumSolved || 0;
+      difficulty.hard += p?.stats?.hardSolved || 0;
+      for (const d of (p?.solvedCalendar || [])) {
+        const key = new Date(d.date).toISOString().split('T')[0];
+        dayMap[key] = (dayMap[key] || 0) + (d.count || 0);
+      }
+    }
+
+    // Class momentum: cumulative distinct solves over the last 30 days.
+    const solvedByDay: Array<{ date: string; daily: number; cumulative: number }> = [];
+    let running = 0;
+    for (let i = 29; i >= 0; i--) {
+      const dt = new Date();
+      dt.setDate(dt.getDate() - i);
+      const key = dt.toISOString().split('T')[0];
+      const daily = dayMap[key] || 0;
+      running += daily;
+      solvedByDay.push({ date: key, daily, cumulative: running });
+    }
+
+    const levelDistribution = Object.entries(levelCounts)
+      .map(([level, count]) => ({ level: Number(level), students: count }))
+      .sort((a, b) => a.level - b.level);
+
+    res.json({
+      count: roster.length,
+      students: roster,
+      overview: { solvedByDay, difficulty, levelDistribution },
+    });
   } catch (error) {
     logger.error('Error fetching teacher student roster', { error });
     res.status(500).json({ error: 'Failed to fetch students' });
