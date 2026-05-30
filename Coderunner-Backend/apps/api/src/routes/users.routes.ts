@@ -11,6 +11,36 @@ const router = Router();
 router.use(authMiddleware);
 
 /**
+ * POST /users/me/join-classroom
+ * Student self-enrolls into a classroom using its join code.
+ */
+router.post('/me/join-classroom', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (req.user?.role !== 'student') {
+      return res.status(403).json({ error: 'Forbidden', message: 'Only students can join a classroom' });
+    }
+    const code = String(req.body?.code || '').trim().toUpperCase();
+    if (!code) {
+      return res.status(400).json({ error: 'Validation Error', message: 'A join code is required' });
+    }
+    const classroom = await Models.Classroom.findOne({ joinCode: code });
+    if (!classroom) {
+      return res.status(404).json({ error: 'Not Found', message: 'No classroom found for that code' });
+    }
+    await Models.User.updateOne(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      { $set: { classroomId: classroom._id } }
+    );
+    res.json({ message: `Joined ${classroom.name}`, classroomName: classroom.name });
+  } catch (error) {
+    logger.error('Error joining classroom', { error });
+    res.status(500).json({ error: 'Failed to join classroom' });
+  }
+});
+
+/**
  * GET /users/me/stats
  * Get current user's profile and statistics
  */
