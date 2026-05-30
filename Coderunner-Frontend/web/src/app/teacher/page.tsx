@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
-import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LogOut, Plus, Loader2, Users, ChevronRight, KeyRound } from 'lucide-react';
+import { GraduationCap, Plus, Loader2, Users, ChevronRight, KeyRound } from 'lucide-react';
 
 interface ClassroomRow {
   id: string;
@@ -16,7 +15,6 @@ interface ClassroomRow {
 
 export default function TeacherClassrooms() {
   const router = useRouter();
-  const { logout } = useAuth();
   const [classrooms, setClassrooms] = useState<ClassroomRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,15 +77,6 @@ export default function TeacherClassrooms() {
               className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 font-orbitron font-bold text-xs tracking-wider"
             >
               <Plus className="w-4 h-4" /> NEW CLASS
-            </button>
-            <button
-              onClick={() => {
-                logout();
-                router.push('/login');
-              }}
-              className="px-4 py-2 rounded-lg border-2 border-red-200 hover:bg-red-50 text-red-600 flex items-center gap-2 font-orbitron font-bold text-xs tracking-wider"
-            >
-              <LogOut className="w-4 h-4" /> LOGOUT
             </button>
           </div>
         </div>

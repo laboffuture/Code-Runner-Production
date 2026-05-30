@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { TeacherShell } from '@/components/teacher/TeacherShell';
 
 export const metadata: Metadata = {
   title: 'Classroom | Code Runner',
@@ -11,11 +12,11 @@ export default function TeacherLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Gate the whole teacher area to teacher-role accounts (matches the
-  // teacher-gated backend routes).
+  // Gate the whole teacher area to teacher-role accounts, inside the shared
+  // sidebar shell.
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ProtectedRoute requireRole="teacher">{children}</ProtectedRoute>
-    </div>
+    <ProtectedRoute requireRole="teacher">
+      <TeacherShell>{children}</TeacherShell>
+    </ProtectedRoute>
   );
 }
