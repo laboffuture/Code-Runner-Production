@@ -223,11 +223,12 @@ export const api = {
     getResult: (jobId: string) => apiClient.get(`/execution/result/${jobId}`),
 
     // Submit code for grading against test cases (optional contestId for contest submissions)
-    submitForGrading: (code: string, problemId: number, contestId?: string) =>
+    submitForGrading: (code: string, problemId: number, contestId?: string, metrics?: any) =>
       apiClient.post('/execution/submit/grade', {
         code,
         problemId,
         ...(contestId ? { contestId } : {}),
+        ...(metrics ? { metrics } : {}),
       }),
 
     // Poll for result with timeout
