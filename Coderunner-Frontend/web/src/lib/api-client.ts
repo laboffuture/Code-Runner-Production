@@ -294,6 +294,11 @@ export const api = {
     cloudinaryStats: () => apiClient.get('/admin/cloudinary/stats'),
   },
 
+  // Student joins a classroom by code
+  classroom: {
+    join: (code: string) => apiClient.post('/users/me/join-classroom', { code }),
+  },
+
   // Teacher (classroom insight)
   teacher: {
     getClassrooms: () => apiClient.get('/teacher/classrooms'),
