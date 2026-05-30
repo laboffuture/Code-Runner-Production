@@ -296,7 +296,11 @@ export const api = {
 
   // Teacher (classroom insight)
   teacher: {
-    getStudents: () => apiClient.get('/teacher/students'),
+    getClassrooms: () => apiClient.get('/teacher/classrooms'),
+    createClassroom: (data: { name: string; age_group: string }) => apiClient.post('/teacher/classrooms', data),
+    getClassroom: (id: string) => apiClient.get(`/teacher/classrooms/${id}`),
+    addStudent: (classroomId: string, username: string) =>
+      apiClient.post(`/teacher/classrooms/${classroomId}/students`, { username }),
     getStudent: (id: string) => apiClient.get(`/teacher/students/${id}`),
   },
 
