@@ -61,6 +61,7 @@ import adminRoutes from './routes/admin.routes';
 import mongodbRoutes from './routes/mongodb.routes';
 import cloudinaryRoutes from './routes/cloudinary.routes';
 import contestsRoutes from './routes/contests.routes';
+import teacherRoutes from './routes/teacher.routes';
 
 // Import Redis and queue initializer (AFTER dotenv is loaded)
 import { redis, initializeQueues } from './queue/queue.config';
@@ -253,6 +254,7 @@ app.use('/admin', adminRoutes);
 app.use('/admin/mongodb', mongodbRoutes);
 app.use('/admin/cloudinary', cloudinaryRoutes);
 app.use('/contests', contestsRoutes);
+app.use('/teacher', teacherRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
