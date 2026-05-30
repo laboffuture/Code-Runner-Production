@@ -107,12 +107,15 @@ export class CodeSubmissionWorker {
       });
 
       // Update user progress after submission
-      await this.updateUserProgress(
+      const firstSolve = await this.updateUserProgress(
         job.data.userId,
         job.data.problemId,
         allPassed,
         submissionStatus
       );
+
+      // Record the attempt (with behavioural flags) for the integrity engine.
+      await this.recordAttempt(job, allPassed, submissionStatus, firstSolve);
 
       // Record contest result if this is a contest submission
       if (job.data.contestId) {
@@ -162,21 +165,21 @@ export class CodeSubmissionWorker {
     problemId: number,
     accepted: boolean,
     status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Error'
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
       // Progress is only tracked for authenticated users. A missing/invalid
       // userId (e.g. 'anonymous') would otherwise throw a CastError that gets
       // swallowed below, silently losing the update. Skip cleanly instead.
       if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
         logger.info('Skipping progress update for non-authenticated submission', { userId, problemId });
-        return;
+        return false;
       }
 
       // Fetch the problem to get difficulty and title
       const problem = await Models.Problem.findOne({ problem_id: problemId });
       if (!problem) {
         logger.warn('Problem not found for progress update', { problemId });
-        return;
+        return false;
       }
 
       // Find or create UserProgress
@@ -398,6 +401,8 @@ export class CodeSubmissionWorker {
         rank: userProgress.rank,
         streak: userProgress.streak.current,
       });
+
+      return accepted && !alreadySolved;
     } catch (error) {
       logger.error('Failed to update user progress', {
         userId,
@@ -406,6 +411,53 @@ export class CodeSubmissionWorker {
         stack: error instanceof Error ? error.stack : undefined,
       });
       // Don't throw - progress update failure shouldn't fail the submission
+      return false;
+    }
+  }
+
+  /**
+   * Record a graded submission into the durable attempt log with behavioural
+   * flags for the teacher integrity engine.
+   */
+  private async recordAttempt(
+    job: Job<SubmissionJobData>,
+    accepted: boolean,
+    status: string,
+    firstSolve: boolean
+  ): Promise<void> {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(job.data.userId)) return;
+      const m = job.data.metrics || {};
+      const codeLength = m.codeLength ?? job.data.code.length;
+      const pasteChars = m.pasteChars ?? 0;
+
+      const flags = {
+        // An ACCEPTED solve in seconds, with no testing, or pasted wholesale.
+        solvedTooFast: accepted && typeof m.timeOnProblemMs === 'number' && m.timeOnProblemMs < 15000,
+        noIteration: accepted && typeof m.runsBeforeSubmit === 'number' && m.runsBeforeSubmit <= 1,
+        largePaste: pasteChars >= 60 && (codeLength === 0 || pasteChars / codeLength >= 0.5),
+      };
+
+      const student = (await Models.User.findById(job.data.userId).select('classroomId').lean()) as any;
+
+      await Models.StudentAttempt.create({
+        userId: new mongoose.Types.ObjectId(job.data.userId),
+        problemId: job.data.problemId,
+        classroomId: student?.classroomId || null,
+        accepted,
+        status,
+        firstSolve,
+        timeOnProblemMs: m.timeOnProblemMs,
+        runsBeforeSubmit: m.runsBeforeSubmit,
+        pasteCount: m.pasteCount,
+        pasteChars: m.pasteChars,
+        codeLength,
+        flags,
+      });
+    } catch (error) {
+      logger.error('Failed to record student attempt', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

@@ -54,6 +54,9 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   const isHResizing = useRef(false);
   const hStartX = useRef(0);
   const hStartWidth = useRef(0);
+  // Integrity-engine capture: when the problem was opened + how many test runs.
+  const openedAtRef = useRef<number>(Date.now());
+  const runCountRef = useRef(0);
 
   const handleHMouseDown = useCallback((e: React.MouseEvent) => {
     isHResizing.current = true;
@@ -309,6 +312,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   // ===== CODE EXECUTION =====
   const handleRunCode = async () => {
     if (isRunning || isSubmitting) return;
+    runCountRef.current += 1;
     setIsRunning(true);
     setResult({ stdout: '', stderr: '', status: 'Running', executionTime: null });
     setSubmissionResult(null);
@@ -378,7 +382,12 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
     playProjectTextSound();
 
     try {
-      const submission = await api.execution.submitForGrading(code, problem.problem_id, contestId) as { jobId: string };
+      const metrics = {
+        timeOnProblemMs: Date.now() - openedAtRef.current,
+        runsBeforeSubmit: runCountRef.current,
+        codeLength: code.length,
+      };
+      const submission = await api.execution.submitForGrading(code, problem.problem_id, contestId, metrics) as { jobId: string };
 
       setResult({ stdout: '', stderr: '', status: 'Grading...', executionTime: null });
       const resultData = await api.execution.waitForResult(submission.jobId);

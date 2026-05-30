@@ -8,3 +8,4 @@ export { CheatSheet } from './CheatSheet.model';
 export { Contest } from './Contest.model';
 export { ContestEntry } from './ContestEntry.model';
 export { Classroom } from './Classroom.model';
+export { StudentAttempt } from './StudentAttempt.model';

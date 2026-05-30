@@ -148,7 +148,7 @@ router.get('/result/:jobId', optionalAuthMiddleware, async (req: Request, res: R
 // Anonymous grading would silently lose progress, so reject it with 401.
 router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLimiter, async (req: Request, res: Response) => {
   try {
-    const { code, problemId, contestId } = req.body;
+    const { code, problemId, contestId, metrics } = req.body;
 
     if (!code || typeof code !== 'string') {
       return res.status(400).json({
@@ -213,6 +213,7 @@ router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLim
       })),
       timestamp: Date.now(),
       ...(contestId && typeof contestId === 'string' ? { contestId } : {}),
+      ...(metrics && typeof metrics === 'object' ? { metrics } : {}),
     };
 
     // Save initial status FIRST (before queue add) to prevent race condition

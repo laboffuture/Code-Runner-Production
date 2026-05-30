@@ -30,5 +30,13 @@ export interface SubmissionJobData {
   timestamp: number;
   /** Optional: if set the worker also records a ContestEntry result */
   contestId?: string;
+  /** Optional behavioural metrics from the editor for the integrity engine. */
+  metrics?: {
+    timeOnProblemMs?: number;
+    runsBeforeSubmit?: number;
+    pasteCount?: number;
+    pasteChars?: number;
+    codeLength?: number;
+  };
 }
 
