@@ -8,13 +8,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { ProblemList } from './ProblemList';
-import { Cpu, Activity, Zap, ArrowRight } from 'lucide-react';
+import { Cpu, Activity, Zap, ArrowRight, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useProgress, syncProgressFromServer } from '@/lib/utilities/progress';
 
 
 interface SessionListProps {
@@ -25,6 +26,18 @@ interface SessionListProps {
 export function SessionList({ sessions, level }: SessionListProps) {
   const [openSession, setOpenSession] = useState<string | undefined>(undefined);
   const { accentColor, theme } = useTheme();
+  const { isProblemCompleted } = useProgress();
+  const [, forceSync] = useState(0);
+
+  // Pull the latest solved set from the server so unlock state is accurate.
+  useEffect(() => {
+    syncProgressFromServer().then(() => forceSync((n) => n + 1));
+  }, []);
+
+  // A session counts as complete when every one of its problems is solved.
+  const isSessionComplete = (s: Session) =>
+    (s.problems?.length ?? 0) > 0 &&
+    s.problems.every((p: any) => isProblemCompleted(String(p.problem_id)));
 
   const hexToRgba = (hex: string, opacity: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -68,11 +81,17 @@ export function SessionList({ sessions, level }: SessionListProps) {
     session.session_number !== 11 && session.session_number !== 12
   );
 
+  // The final challenge unlocks only after every session is complete.
+  const allSessionsComplete =
+    filteredSessions.length > 0 && filteredSessions.every(isSessionComplete);
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="w-full space-y-6">
-        {filteredSessions.map((session, index) => (
-          <div key={session.session_id} id={`session-${session.session_id}`} className="relative">
+        {filteredSessions.map((session, index) => {
+          const locked = index > 0 && !isSessionComplete(filteredSessions[index - 1]);
+          return (
+          <div key={session.session_id} id={`session-${session.session_id}`} className={`relative ${locked ? 'opacity-70' : ''}`}>
             {/* SVG Filter Definition */}
             <svg className="absolute" style={{ width: 0, height: 0 }}>
               <defs>
@@ -151,7 +170,7 @@ export function SessionList({ sessions, level }: SessionListProps) {
                     }}
                   >
                     <Accordion type="single" collapsible value={openSession} onValueChange={setOpenSession}>
-                      <AccordionItem value={`session-${session.session_id}`} className="border-0">
+                      <AccordionItem value={`session-${session.session_id}`} disabled={locked} className="border-0">
                         <AccordionTrigger
                           className="text-xl hover:no-underline py-6 px-6 transition-colors [&[data-state=open]>div>svg]:rotate-180"
                           style={{ ['--tw-bg-opacity' as string]: '1' } as React.CSSProperties}
@@ -166,7 +185,7 @@ export function SessionList({ sessions, level }: SessionListProps) {
                                   color: accentColor
                                 }}
                               >
-                                {session.session_number}
+                                {locked ? <Lock className="h-6 w-6" /> : session.session_number}
                               </span>
                               <div className="absolute -inset-1 rounded-full blur animate-pulse" style={{ backgroundColor: hexToRgba(accentColor, 0.1) }}></div>
                             </div>
@@ -188,8 +207,17 @@ export function SessionList({ sessions, level }: SessionListProps) {
                                 boxShadow: `0 0 20px ${hexToRgba(theme.colors.light, 0.3)}`
                               }}
                             >
-                              <Activity className="w-3 h-3 animate-pulse" style={{ color: theme.colors.light }} />
-                              <span>{session.problems.length} TASKS</span>
+                              {locked ? (
+                                <>
+                                  <Lock className="w-3 h-3" style={{ color: theme.colors.light }} />
+                                  <span>LOCKED</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Activity className="w-3 h-3 animate-pulse" style={{ color: theme.colors.light }} />
+                                  <span>{session.problems.length} TASKS</span>
+                                </>
+                              )}
                             </div>
                           </div>
                         </AccordionTrigger>
@@ -257,10 +285,11 @@ export function SessionList({ sessions, level }: SessionListProps) {
               ></div>
             </div>
           </div>
-        ))}
+          );
+        })}
 
         {/* Code Convergence Section */}
-        <div id="code-convergence" className="relative">
+        <div id="code-convergence" className={`relative ${!allSessionsComplete ? 'opacity-70' : ''}`}>
           {/* SVG Filter Definition */}
           <svg className="absolute" style={{ width: 0, height: 0 }}>
             <defs>
@@ -350,7 +379,7 @@ export function SessionList({ sessions, level }: SessionListProps) {
                       }, 100);
                     }
                   }}>
-                    <AccordionItem value="code-convergence" className="border-0">
+                    <AccordionItem value="code-convergence" disabled={!allSessionsComplete} className="border-0">
                       <AccordionTrigger className="text-xl hover:no-underline py-6 px-6 transition-colors [&[data-state=open]>div>svg]:rotate-180">
                         <div className="flex items-center gap-6 w-full">
                           <div className="relative flex-shrink-0">
@@ -362,7 +391,7 @@ export function SessionList({ sessions, level }: SessionListProps) {
                                 color: accentColor
                               }}
                             >
-                              <Zap className="h-7 w-7" />
+                              {allSessionsComplete ? <Zap className="h-7 w-7" /> : <Lock className="h-7 w-7" />}
                             </span>
                             <div className="absolute -inset-1 rounded-full blur animate-pulse" style={{ backgroundColor: hexToRgba(accentColor, 0.1) }}></div>
                           </div>
