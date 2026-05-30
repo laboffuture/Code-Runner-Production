@@ -10,6 +10,7 @@ export interface IUser extends Document {
   onboardingComplete: boolean;
   avatar: string;
   bio: string;
+  classroomId?: mongoose.Types.ObjectId | null; // the classroom a student belongs to
   createdAt: Date;
   updatedAt: Date;
 }
@@ -64,6 +65,12 @@ const UserSchema = new Schema<IUser>({
     default: '',
     trim: true,
     maxlength: 500,
+  },
+  classroomId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Classroom',
+    default: null,
+    index: true,
   },
 }, {
   timestamps: true,
