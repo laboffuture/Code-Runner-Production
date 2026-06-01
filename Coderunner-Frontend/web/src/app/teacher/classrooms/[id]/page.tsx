@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import Link from 'next/link';
-import { ChevronLeft, Loader2, Users, Flame, CheckCircle2, Trophy, UserPlus, KeyRound, X } from 'lucide-react';
+import { ChevronLeft, Loader2, Users, Flame, CheckCircle2, Trophy, UserPlus, KeyRound, X, ShieldAlert } from 'lucide-react';
+import { activeFlags, whyText, type AttemptRecord } from '@/lib/integrity';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -20,6 +21,7 @@ interface StudentRow {
   acceptanceRate: number;
   currentStreak: number;
   lastActive: string | null;
+  flaggedCount: number;
 }
 interface Overview {
   solvedByDay: Array<{ date: string; daily: number; cumulative: number }>;
@@ -287,7 +289,19 @@ export default function ClassroomDashboard() {
                         onClick={() => setSelId(s.userId)}
                         className={`border-b border-gray-100 hover:bg-indigo-50/40 transition-colors font-rajdhani cursor-pointer ${selId === s.userId ? 'bg-indigo-50' : ''}`}
                       >
-                        <td className="px-5 py-3 font-bold text-gray-900">{s.username}</td>
+                        <td className="px-5 py-3 font-bold text-gray-900">
+                          <span className="flex items-center gap-2">
+                            {s.username}
+                            {s.flaggedCount > 0 && (
+                              <span
+                                title={`${s.flaggedCount} solve${s.flaggedCount === 1 ? '' : 's'} worth a look`}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-orbitron"
+                              >
+                                <ShieldAlert className="w-3 h-3" /> {s.flaggedCount}
+                              </span>
+                            )}
+                          </span>
+                        </td>
                         <td className="px-5 py-3 text-gray-700">L{s.level}</td>
                         <td className="px-5 py-3 text-gray-700">{s.solvedToday}</td>
                         <td className="px-5 py-3 font-bold text-indigo-600">{s.totalSolved}</td>
@@ -381,6 +395,37 @@ export default function ClassroomDashboard() {
                   ) : (
                     <p className="text-xs text-gray-400 font-rajdhani mb-6">No recent activity.</p>
                   )}
+
+                  <h3 className="font-orbitron text-[11px] font-bold text-gray-400 tracking-[0.2em] mb-2 flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> INTEGRITY SIGNALS
+                  </h3>
+                  {(() => {
+                    const flagged = ((detail.attempts || []) as AttemptRecord[]).filter(
+                      (a) => activeFlags(a.flags).length > 0
+                    );
+                    return flagged.length ? (
+                      <div className="space-y-2 mb-6">
+                        {flagged.slice(0, 6).map((a, i) => (
+                          <div key={i} className="rounded-lg border border-amber-100 bg-amber-50/60 p-2.5">
+                            <div className="flex items-center justify-between gap-2 text-xs font-rajdhani">
+                              <span className="font-bold text-gray-700 truncate">Problem {String(a.problemId)}</span>
+                              <span className="flex items-center gap-1 shrink-0">
+                                {activeFlags(a.flags).map((f) => (
+                                  <span key={f.key} title={f.label}>{f.icon}</span>
+                                ))}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-gray-500 font-fira mt-0.5">{whyText(a)}</div>
+                          </div>
+                        ))}
+                        <p className="text-[10px] text-gray-400 font-rajdhani leading-snug">
+                          Heuristics, not proof — worth a quick chat, not an accusation.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 font-rajdhani mb-6">No integrity signals. 🎉</p>
+                    );
+                  })()}
 
                   <Link
                     href={`/teacher/students/${selId}`}

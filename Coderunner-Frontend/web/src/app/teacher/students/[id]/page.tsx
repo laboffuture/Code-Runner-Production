@@ -6,7 +6,8 @@ import { api } from '@/lib/api-client';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ProblemChart } from '@/components/profile/ProblemChart';
 import { ActivityCalendar } from '@/components/profile/ActivityCalendar';
-import { ChevronLeft, Loader2, Check, X } from 'lucide-react';
+import { ChevronLeft, Loader2, Check, X, ShieldAlert } from 'lucide-react';
+import { activeFlags, whyText, type AttemptRecord } from '@/lib/integrity';
 
 // Full static class strings (Tailwind can't see interpolated color names).
 const TOPIC_COLORS = {
@@ -180,6 +181,60 @@ export default function StudentDetail() {
               ) : (
                 <p className="text-gray-400 font-rajdhani text-sm">No topic activity yet.</p>
               )}
+            </div>
+
+            {/* Integrity signals — heuristics worth a look, never accusations */}
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+                <h2 className="font-orbitron text-sm font-bold text-gray-900 tracking-wider flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-amber-500" /> INTEGRITY SIGNALS
+                </h2>
+                <span className="text-[11px] font-rajdhani text-gray-400">⚡ fast · 🔁 no iteration · 📋 large paste</span>
+              </div>
+              {(() => {
+                const flagged = ((data.attempts || []) as AttemptRecord[]).filter(
+                  (a) => activeFlags(a.flags).length > 0
+                );
+                return flagged.length ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {flagged.map((a, i) => (
+                        <div key={i} className="border border-amber-100 bg-amber-50/50 rounded-lg p-3">
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <span className="font-rajdhani font-bold text-gray-800 truncate">
+                              Problem {String(a.problemId)}
+                            </span>
+                            <span className="flex items-center gap-1.5 shrink-0">
+                              {activeFlags(a.flags).map((f) => (
+                                <span key={f.key} title={f.hint} className="text-sm cursor-help">
+                                  {f.icon}
+                                </span>
+                              ))}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 mb-1.5">
+                            {activeFlags(a.flags).map((f) => (
+                              <span
+                                key={f.key}
+                                className="text-[10px] font-orbitron px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"
+                              >
+                                {f.label}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="text-[11px] text-gray-500 font-fira">{whyText(a)}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-4 text-[11px] text-gray-400 font-rajdhani leading-relaxed">
+                      These are heuristics, not proof. A fast typist, a genuinely easy problem, or pasting their
+                      own earlier work all trip the same wires — use them to start a conversation, never to accuse.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-gray-400 font-rajdhani text-sm">No integrity signals on recent solves. 🎉</p>
+                );
+              })()}
             </div>
 
             {/* Recent activity — timeline of solve/fail outcomes */}

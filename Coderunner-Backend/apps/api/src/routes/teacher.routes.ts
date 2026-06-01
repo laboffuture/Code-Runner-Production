@@ -31,6 +31,22 @@ async function buildClassData(students: any[]) {
   const byUser = new Map<string, any>(progressDocs.map((p: any) => [String(p.userId), p]));
   const todayStr = new Date().toISOString().split('T')[0];
 
+  // Integrity: count of flagged attempts per student (any flag set).
+  const flaggedAgg = await Models.StudentAttempt.aggregate([
+    {
+      $match: {
+        userId: { $in: ids },
+        $or: [
+          { 'flags.solvedTooFast': true },
+          { 'flags.noIteration': true },
+          { 'flags.largePaste': true },
+        ],
+      },
+    },
+    { $group: { _id: '$userId', count: { $sum: 1 } } },
+  ]);
+  const flaggedByUser = new Map<string, number>(flaggedAgg.map((f: any) => [String(f._id), f.count]));
+
   const roster = students.map((s: any) => {
     const p = byUser.get(String(s._id));
     const solvedToday =
@@ -52,6 +68,7 @@ async function buildClassData(students: any[]) {
       acceptanceRate: p?.stats?.acceptanceRate ?? 0,
       currentStreak: p?.streak?.current ?? 0,
       lastActive,
+      flaggedCount: flaggedByUser.get(String(s._id)) || 0,
     };
   });
   roster.sort((a, b) => b.totalSolved - a.totalSolved);
@@ -198,6 +215,24 @@ router.get('/students/:id', async (req: Request, res: Response) => {
     }
 
     const progress = (await Models.UserProgress.findOne({ userId: objId }).lean()) as any;
+
+    // Integrity: most-recent graded attempts (for the "how they solved it" panel).
+    const attemptDocs = (await Models.StudentAttempt.find({ userId: objId })
+      .sort({ createdAt: -1 })
+      .limit(25)
+      .lean()) as any[];
+    const attempts = attemptDocs.map((a) => ({
+      problemId: a.problemId,
+      accepted: a.accepted,
+      status: a.status,
+      flags: a.flags || {},
+      timeOnProblemMs: a.timeOnProblemMs ?? null,
+      runsBeforeSubmit: a.runsBeforeSubmit ?? null,
+      pasteCount: a.pasteCount ?? 0,
+      pasteChars: a.pasteChars ?? 0,
+      codeLength: a.codeLength ?? null,
+      createdAt: a.createdAt,
+    }));
     const topicProgress = (progress?.topicProgress || []).map((t: any) => ({
       topic: t.topic,
       solved: t.solved,
@@ -235,6 +270,7 @@ router.get('/students/:id', async (req: Request, res: Response) => {
       solvedCalendar: progress?.solvedCalendar || [],
       topicProgress,
       solvedProblemIds: progress?.solvedProblemIds || [],
+      attempts,
     });
   } catch (error) {
     logger.error('Error fetching student detail', { error });
