@@ -108,6 +108,20 @@ The integrity engine helps a teacher understand **how** a student solved a probl
 - 🔁 **no-iteration** — passed first try with ≤1 test run
 - 📋 **large-paste** — a big share of the final code arrived via paste
 
+### ✅ M6 — Judge Panel (review process)
+A repeatable 5-judge **blocking** review gate, run before committing substantive code (anything under
+`apps/`, `packages/`, `web/src`).
+
+| Item | What | Status |
+|------|------|--------|
+| **Panel** | 5 judges — correctness · real-environment fit · security & integrity · simplicity & conventions · architecture-fit & resilience. Lives at `.claude/skills/judge-panel/`. | Done |
+| **Debate** | Two rounds: independent (parallel) → cross-examination (refute/concede/escalate). Severity veto — any HIGH surviving the debate blocks; nits are recorded, not blocking. | Done |
+| **Contract** | `DO_NOT_DISTURB.md` (repo root) — guardrails the panel hard-enforces; pointer in `CLAUDE.md`. | Done |
+| **Validated** | Acceptance fixtures: known-bad `roster→students` drift → **BLOCKED**; clean middleware-reorder → **PASS**. | Done |
+
+Spec: `docs/superpowers/specs/2026-06-01-judge-panel-design.md` · Plan:
+`docs/superpowers/plans/2026-06-01-judge-panel.md`.
+
 ---
 
 ## 4. In Progress
