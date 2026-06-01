@@ -30,7 +30,7 @@ interface Overview {
 }
 interface ClassroomData {
   classroom: { id: string; name: string; age_group: string; joinCode: string };
-  students: StudentRow[];
+  roster: StudentRow[];
   overview: Overview;
 }
 
@@ -125,7 +125,7 @@ export default function ClassroomDashboard() {
     }
   };
 
-  const students = data?.students || [];
+  const students = data?.roster || [];
   const overview = data?.overview;
   const shortDate = (d: string) => {
     const dt = new Date(d);

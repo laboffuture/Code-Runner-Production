@@ -15,7 +15,7 @@ const MAX_QUEUE_DEPTH = parseInt(process.env.MAX_QUEUE_DEPTH || '200');
  * POST /execution/submit
  * Submit code for execution (returns jobId immediately)
  */
-router.post('/submit', executionLimiter, dailyExecutionLimiter, optionalAuthMiddleware, async (req: Request, res: Response) => {
+router.post('/submit', optionalAuthMiddleware, executionLimiter, dailyExecutionLimiter, async (req: Request, res: Response) => {
   try {
     const { code, input, problemId, userSessionId } = req.body;
 
