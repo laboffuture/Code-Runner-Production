@@ -400,16 +400,21 @@ finally:
    */
   private static tokensMatch(actual: string, expected: string): boolean {
     if (actual === expected) return true;
-    const fa = parseFloat(actual);
-    const fe = parseFloat(expected);
-    if (
-      !isNaN(fa) && !isNaN(fe) &&
-      isFinite(fa) && isFinite(fe) &&
-      // Ensure the whole token is a number, not a partial parse
-      String(fa) === actual || /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(actual.trim())
-    ) {
-      const tol = Math.max(1e-4, Math.abs(fe) * 1e-4);
-      return Math.abs(fa - fe) <= tol;
+    // Only fall back to float-tolerant comparison when BOTH tokens are a whole
+    // number — applied symmetrically so a non-numeric token can't slip through
+    // parseFloat's partial parse (parseFloat('50x') === 50 would otherwise let
+    // '50' match '50x'). One regex defines "is a clean numeric token"; checking
+    // it on both sides before parseFloat also avoids any &&/|| precedence trap.
+    const numRe = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/;
+    const a = actual.trim();
+    const e = expected.trim();
+    if (numRe.test(a) && numRe.test(e)) {
+      const fa = parseFloat(a);
+      const fe = parseFloat(e);
+      if (isFinite(fa) && isFinite(fe)) {
+        const tol = Math.max(1e-4, Math.abs(fe) * 1e-4);
+        return Math.abs(fa - fe) <= tol;
+      }
     }
     return false;
   }
