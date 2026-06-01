@@ -81,11 +81,16 @@ export const usernameSchema = z
   .max(50, 'Username must be at most 50 characters')
   .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, hyphens, and underscores');
 
-// Password validation
+// Password validation — must match the frontend register rules (which require a
+// lowercase, an uppercase, and a digit). The backend is the real gate: without
+// this, the API accepted any 8+ char password, so a direct API call bypassed the
+// UI's complexity check. Login is unaffected (it compares hashes, not this
+// schema), so existing accounts are never locked out.
 export const passwordSchema = z
   .string()
   .min(8, 'Password must be at least 8 characters')
-  .max(100, 'Password must be at most 100 characters');
+  .max(100, 'Password must be at most 100 characters')
+  .regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain an uppercase letter, a lowercase letter, and a number');
 
 // Helper function to validate data against a schema
 export function validate<T>(schema: z.ZodSchema<T>, data: unknown): {

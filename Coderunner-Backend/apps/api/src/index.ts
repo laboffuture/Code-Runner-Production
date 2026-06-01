@@ -62,6 +62,7 @@ import mongodbRoutes from './routes/mongodb.routes';
 import cloudinaryRoutes from './routes/cloudinary.routes';
 import contestsRoutes from './routes/contests.routes';
 import teacherRoutes from './routes/teacher.routes';
+import { authMiddleware, developerMiddleware } from './middleware/auth.middleware';
 
 // Import Redis and queue initializer (AFTER dotenv is loaded)
 import { redis, initializeQueues } from './queue/queue.config';
@@ -69,9 +70,13 @@ import { redis, initializeQueues } from './queue/queue.config';
 const app: Express = express();
 const PORT = process.env.PORT || 4000;
 
-// ✅ Trust proxy - required when behind reverse proxy (Nginx/Cloudflare/Railway)
-// This allows express-rate-limit to correctly identify users via X-Forwarded-For header
-app.set('trust proxy', true);
+// Trust the reverse proxy (Nginx) in front of the API so express-rate-limit can
+// read the real client IP from X-Forwarded-For. Trust a fixed NUMBER of hops, not
+// `true`: `true` trusts a fully client-settable XFF header, letting anyone spoof
+// req.ip to bypass the per-IP rate limits or poison logs. Default 1 (single Nginx
+// hop); set TRUST_PROXY_HOPS=2 if another proxy (e.g. Cloudflare) sits in front.
+const trustProxyHops = parseInt(process.env.TRUST_PROXY_HOPS || '1', 10);
+app.set('trust proxy', Number.isNaN(trustProxyHops) ? 1 : trustProxyHops);
 
 // Force cache bust for Railway deployment
 const BUILD_ID = '20260119-1';
@@ -182,8 +187,10 @@ app.get('/health/redis', async (req, res) => {
   }
 });
 
-// Comprehensive metrics endpoint for monitoring
-app.get('/health/metrics', async (req, res) => {
+// Comprehensive metrics endpoint for monitoring — exposes queue depth and
+// failure counts, so it's gated to the developer (infra) role. The basic
+// `/health` liveness endpoint above stays open for load-balancer/uptime checks.
+app.get('/health/metrics', authMiddleware, developerMiddleware, async (req, res) => {
   try {
     // Get queue stats from Redis
     const executionWaiting = await redis.llen('bull:code-execution:wait');

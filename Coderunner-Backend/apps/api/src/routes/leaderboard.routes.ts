@@ -1,7 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { Models } from '@code-runner/shared';
+import { apiLimiter } from '../middleware/rateLimit.middleware';
 
 const router = Router();
+
+// Public read endpoints — apply the general per-IP rate limit so the leaderboard
+// can't be hammered anonymously (it was previously the only un-limited router).
+router.use(apiLimiter);
 
 /**
  * GET /leaderboard/global

@@ -334,16 +334,6 @@ export const api = {
   health: {
     metrics: () => apiClient.get('/health/metrics'),
   },
-
-  // Files
-  files: {
-    upload: (data: any) => apiClient.post('/files', data),
-    list: (userSessionId: string) => apiClient.get(`/files/list?userSessionId=${userSessionId}`),
-    delete: (fileName: string, userSessionId: string) =>
-      apiClient.post('/files/delete', { fileName, userSessionId }),
-    get: (fileName: string, userSessionId: string) =>
-      apiClient.get(`/files?fileName=${fileName}&userSessionId=${userSessionId}`),
-  },
 };
 
 export default apiClient;

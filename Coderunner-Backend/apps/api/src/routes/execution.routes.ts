@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { Models, CodeExecutionJobData, SubmissionJobData } from '@code-runner/shared';
-import { optionalAuthMiddleware, authMiddleware } from '../middleware/auth.middleware';
+import { optionalAuthMiddleware, authMiddleware, developerMiddleware } from '../middleware/auth.middleware';
 import { executionLimiter, dailyExecutionLimiter } from '../middleware/rateLimit.middleware';
 import { codeExecutionQueue, codeSubmissionQueue } from '../queue/queue.config';
 import { unescapeString } from '../utils/unescape';
@@ -245,9 +245,10 @@ router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLim
 
 /**
  * GET /execution/queue/stats
- * Get queue statistics (for monitoring)
+ * Get queue statistics (for monitoring) — developer (infra) role only, since it
+ * exposes queue depth/backlog that shouldn't be readable by anonymous callers.
  */
-router.get('/queue/stats', async (req: Request, res: Response) => {
+router.get('/queue/stats', authMiddleware, developerMiddleware, async (req: Request, res: Response) => {
   try {
     const [executionCounts, submissionCounts] = await Promise.all([
       codeExecutionQueue.getJobCounts(),
