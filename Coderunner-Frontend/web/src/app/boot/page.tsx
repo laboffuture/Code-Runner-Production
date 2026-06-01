@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { CLOUDINARY_BASE } from '@/lib/cloudinary';
@@ -259,7 +259,22 @@ export default function BootPage() {
   };
 
   return (
-    <div onClick={handleClick} className="relative w-full h-screen overflow-hidden bg-black">
+    <div
+      onClick={handleClick}
+      className="relative w-full h-screen overflow-hidden bg-black"
+      // Drive the theme colour directly on the boot container: define the
+      // --color_* vars the boot CSS reads AND set an explicit text colour, so the
+      // boot log/title inherit a guaranteed-bright theme colour and can never
+      // fall through to globals.css's dark `text-slate-800` (which rendered the
+      // text black/unreadable on the dark boot background when the vars from the
+      // styled-jsx :root block didn't resolve).
+      style={{
+        color: theme.colors.primary,
+        ['--color_r']: String(themeRgb.r),
+        ['--color_g']: String(themeRgb.g),
+        ['--color_b']: String(themeRgb.b),
+      } as CSSProperties}
+    >
       {/* Background Image - ENV from Login Page */}
       <div className="absolute inset-0 z-0">
         <Image

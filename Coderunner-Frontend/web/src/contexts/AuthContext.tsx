@@ -98,6 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('userData');
     // Clear session boot flag to force boot sequence on next login
     sessionStorage.removeItem('sessionBooted');
+    // Clear any pending change-character return path so it can't leak across
+    // accounts (an abandoned "Change character" flow would otherwise mis-route
+    // the next user's first onboarding lock-in).
+    sessionStorage.removeItem('returnAfterOnboarding');
   };
 
   const login = async (username: string, password: string) => {

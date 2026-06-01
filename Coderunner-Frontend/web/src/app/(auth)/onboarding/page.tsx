@@ -40,7 +40,15 @@ export default function OnboardingPage() {
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
   useEffect(() => { if (!authLoading && !isAuthenticated) router.push('/login'); }, [authLoading, isAuthenticated, router]);
-  useEffect(() => { if (!authLoading && user?.onboardingComplete) router.push('/boot'); }, [authLoading, user, router]);
+  // Onboarded users reach this page only to CHANGE their character (e.g. the
+  // settings "Change" button sets returnAfterOnboarding before navigating here).
+  // Only bounce a genuinely-finished user to /boot when they did NOT arrive to
+  // change — otherwise the picker is unreachable for returning students.
+  useEffect(() => {
+    if (!authLoading && user?.onboardingComplete && !sessionStorage.getItem('returnAfterOnboarding')) {
+      router.push('/boot');
+    }
+  }, [authLoading, user, router]);
   useEffect(() => {
     const urls = Object.values(CDN_IMAGES); let loaded = 0;
     urls.forEach((url) => { const img = new window.Image(); img.onload = img.onerror = () => { loaded++; if (loaded === urls.length) setImagesLoaded(true); }; img.src = url; });
