@@ -54,9 +54,24 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   const isHResizing = useRef(false);
   const hStartX = useRef(0);
   const hStartWidth = useRef(0);
-  // Integrity-engine capture: when the problem was opened + how many test runs.
+  // Integrity-engine capture: open time, test-run count, and paste volume.
   const openedAtRef = useRef<number>(Date.now());
   const runCountRef = useRef(0);
+  const pasteCountRef = useRef(0);
+  const pasteCharsRef = useRef(0);
+
+  const handlePaste = (chars: number) => {
+    pasteCountRef.current += 1;
+    pasteCharsRef.current += chars;
+  };
+
+  // Reset integrity capture when switching to a different problem.
+  useEffect(() => {
+    openedAtRef.current = Date.now();
+    runCountRef.current = 0;
+    pasteCountRef.current = 0;
+    pasteCharsRef.current = 0;
+  }, [problem?.problem_id]);
 
   const handleHMouseDown = useCallback((e: React.MouseEvent) => {
     isHResizing.current = true;
@@ -385,6 +400,8 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
       const metrics = {
         timeOnProblemMs: Date.now() - openedAtRef.current,
         runsBeforeSubmit: runCountRef.current,
+        pasteCount: pasteCountRef.current,
+        pasteChars: pasteCharsRef.current,
         codeLength: code.length,
       };
       const submission = await api.execution.submitForGrading(code, problem.problem_id, contestId, metrics) as { jobId: string };
@@ -568,6 +585,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onRunCode={handleRunCode}
+          onPaste={handlePaste}
           onSubmitCode={handleSubmitCode}
           problem={problem}
           uploadedImages={uploadedImageUrls}

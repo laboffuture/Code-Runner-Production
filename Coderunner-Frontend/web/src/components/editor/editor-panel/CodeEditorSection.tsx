@@ -14,6 +14,7 @@ interface CodeEditorSectionProps {
   uploadedImages?: string[];
   onImageUpload?: (file: File) => void;
   onRemoveImage?: (index: number) => void;
+  onPaste?: (chars: number) => void;
 }
 
 export default function CodeEditorSection({
@@ -23,6 +24,7 @@ export default function CodeEditorSection({
   uploadedImages = [],
   onImageUpload,
   onRemoveImage,
+  onPaste,
 }: CodeEditorSectionProps) {
   const { character, accentColor } = useTheme();
   const hasCompilerTheme = ['astra', 'nila', 'kenji', 'leo'].includes(character);
@@ -66,6 +68,7 @@ export default function CodeEditorSection({
           value={code}
           onChange={(value) => onChange(value ?? '')}
           isDark={isDark}
+          onPaste={onPaste}
         />
       </div>
 

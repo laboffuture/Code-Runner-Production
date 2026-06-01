@@ -27,6 +27,7 @@ interface EditorPanelProps {
   status: 'Ready' | 'EXECUTING...' | 'SUCCESS' | 'ERROR';
   showFilesTab?: boolean;
   renderFilesContent?: () => React.ReactNode;
+  onPaste?: (chars: number) => void;
 }
 
 export default function EditorPanel({
@@ -49,6 +50,7 @@ export default function EditorPanel({
   status,
   showFilesTab,
   renderFilesContent,
+  onPaste,
 }: EditorPanelProps) {
   const isPending = isRunning || isSubmitting;
   const { character, accentColor } = useTheme();
@@ -101,6 +103,7 @@ export default function EditorPanel({
         uploadedImages={uploadedImages}
         onImageUpload={onImageUpload}
         onRemoveImage={onRemoveImage}
+        onPaste={onPaste}
       />
 
       {/* Vertical Resize Handle */}

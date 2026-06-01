@@ -8,9 +8,11 @@ interface CodeEditorProps {
   value: string;
   onChange: OnChange;
   isDark?: boolean;
+  /** Fired on paste with the number of characters pasted (integrity capture). */
+  onPaste?: (chars: number) => void;
 }
 
-export function CodeEditor({ language, value, onChange, isDark = true }: CodeEditorProps) {
+export function CodeEditor({ language, value, onChange, isDark = true, onPaste }: CodeEditorProps) {
   return (
     <Editor
       height="100%"
@@ -18,6 +20,20 @@ export function CodeEditor({ language, value, onChange, isDark = true }: CodeEdi
       theme={isDark ? 'vs-dark' : 'light'}
       value={value}
       onChange={onChange}
+      onMount={(editor: any) => {
+        try {
+          editor.onDidPaste((e: any) => {
+            try {
+              const text = editor.getModel()?.getValueInRange(e.range) || '';
+              if (text) onPaste?.(text.length);
+            } catch {
+              /* ignore */
+            }
+          });
+        } catch {
+          /* editor API unavailable */
+        }
+      }}
       loading={<Loader className="h-8 w-8 animate-spin text-cyan-500" />}
       options={{
         fontSize: 14,
