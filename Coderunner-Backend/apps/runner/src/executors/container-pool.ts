@@ -45,6 +45,24 @@ export class ContainerPool {
   // Issue #2, #24: Track containers being removed to prevent race conditions
   private containersBeingRemoved = new Set<string>();
 
+  // PM2 runs multiple runner instances, each with its OWN in-memory pool and its
+  // own Docker containers. Namespace container names per instance so
+  // cleanupOrphanedContainers() only reaps THIS instance's containers and never
+  // force-removes a peer instance's live pool. The id comes from RUNNER_INSTANCE_ID,
+  // set explicitly per app in ecosystem.config.js: PM2 does NOT give separately
+  // named fork-mode apps distinct NODE_APP_INSTANCE values (both resolve to '0'),
+  // and pm_id is not exposed in the child env — so relying on those would leave
+  // both runners sharing one prefix. RUNNER_INSTANCE_ID is stable across restarts,
+  // so an instance still reclaims its own orphans after a crash. NODE_APP_INSTANCE
+  // remains a fallback for cluster mode; '0' is correct for a single dev process.
+  // Sanitised to a shell-safe token since it is interpolated into docker commands.
+  // The trailing `|| '0'` is NOT redundant with `?? '0'`: `??` only catches
+  // null/undefined, while a set-but-junk value (e.g. '@@@') survives `??`, strips
+  // to '' under .replace(), and must still fall back to avoid an empty 'pool-i-'.
+  private readonly instanceId =
+    (process.env.RUNNER_INSTANCE_ID ?? process.env.NODE_APP_INSTANCE ?? '0').replace(/[^a-zA-Z0-9]/g, '') || '0';
+  private readonly containerPrefix = `pool-i${this.instanceId}-`;
+
   // Issue #3: Track consecutive health check failures
   private healthCheckFailures = 0;
   private static readonly MAX_HEALTH_FAILURES = 10;
@@ -135,7 +153,7 @@ export class ContainerPool {
   private async cleanupOrphanedContainers(): Promise<void> {
     try {
       const { stdout } = await execAsync(
-        'docker ps -a --filter "name=pool-" --format "{{.ID}}"',
+        `docker ps -a --filter "name=${this.containerPrefix}" --format "{{.ID}}"`,
         { timeout: 10000 }
       );
 
@@ -408,7 +426,7 @@ export class ContainerPool {
    * Create a new container for the pool
    */
   private async createContainer(markInUse: boolean = false): Promise<PooledContainer> {
-    const name = `pool-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    const name = `${this.containerPrefix}${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
     try {
       // Create container with keep-alive command

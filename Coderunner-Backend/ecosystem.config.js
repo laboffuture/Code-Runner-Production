@@ -56,6 +56,10 @@ module.exports = {
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
+        // Unique, restart-stable id for THIS runner. Namespaces its Docker pool
+        // containers (pool-i1-*) so it never reaps runner-2's live pool. Required
+        // because separate fork-mode apps both get NODE_APP_INSTANCE=0.
+        RUNNER_INSTANCE_ID: '1',
         // Container pool configuration
         ENABLE_CONTAINER_POOL: 'true',
         POOL_MIN_SIZE: 2,
@@ -83,6 +87,10 @@ module.exports = {
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
+        // Unique, restart-stable id for THIS runner. Namespaces its Docker pool
+        // containers (pool-i2-*) so it never reaps runner-1's live pool. Required
+        // because separate fork-mode apps both get NODE_APP_INSTANCE=0.
+        RUNNER_INSTANCE_ID: '2',
         // Container pool configuration
         ENABLE_CONTAINER_POOL: 'true',
         POOL_MIN_SIZE: 2,

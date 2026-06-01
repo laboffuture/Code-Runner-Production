@@ -451,12 +451,12 @@ finally:
     const startTime = Date.now();
     const results: TestCaseResult[] = [];
 
-    // Preprocess code once
-    const processedCode = this.preprocessCode(code);
-
     for (const testCase of testCases) {
       try {
-        const execution = await this.executeCode(processedCode, testCase.input);
+        // executeCode() owns preprocessing (matplotlib/pygame). Pass the RAW
+        // code so it is preprocessed exactly once per run — preprocessing the
+        // already-processed code here doubled the pygame capture block.
+        const execution = await this.executeCode(code, testCase.input);
 
         const actualOutput   = this.normalizeOutput(execution.stdout);
         const expectedOutput = this.normalizeOutput(testCase.expected_output);

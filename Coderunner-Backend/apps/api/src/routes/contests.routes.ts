@@ -34,11 +34,17 @@ async function resolveStatus(contest: any): Promise<string> {
 
 /** Award / deduct contestRating and XP for all participants after contest ends */
 async function applyRatingUpdates(contestId: mongoose.Types.ObjectId): Promise<void> {
-  // Mark as applied first to prevent duplicate runs
-  await Models.Contest.findByIdAndUpdate(contestId, { ratingUpdateApplied: true });
-
-  const contest = await Models.Contest.findById(contestId);
-  if (!contest) return;
+  // Atomic compare-and-set: only the caller that flips ratingUpdateApplied from
+  // unset to true proceeds. Two concurrent pollers can both pass the in-memory
+  // !ratingUpdateApplied check in resolveStatus and call this; without an atomic
+  // claim they would both run and double-apply every rating/XP delta.
+  // findOneAndUpdate returns the matched (pre-update) doc, or null if another
+  // caller already claimed it.
+  const contest = await Models.Contest.findOneAndUpdate(
+    { _id: contestId, ratingUpdateApplied: { $ne: true } },
+    { $set: { ratingUpdateApplied: true } }
+  );
+  if (!contest) return; // already applied (or being applied) by a concurrent caller
 
   const entries = await Models.ContestEntry.find({ contestId })
     .sort({ totalScore: -1, penaltyTime: 1 })
