@@ -190,11 +190,19 @@ export class ContainerPool {
       const containerAge = Date.now() - container.createdAt;
       const skipDetailedHealthCheck = containerAge < 3000; // 3 seconds grace period
 
+      // Reserve the container synchronously BEFORE any await below. The health
+      // and running checks yield the event loop, so without reserving here two
+      // concurrent acquire() calls could both pass the `inUse` check above and
+      // be handed the same container (file/state collision). Marking it now
+      // makes a competing acquire() skip it; we roll back on every failure path.
+      container.inUse = true;
+
       // Check container health
       const isHealthy = skipDetailedHealthCheck || await this.checkContainerHealth(containerId);
 
       if (!isHealthy) {
         logger.warn(`Container ${container.name} is unhealthy, replacing...`);
+        container.inUse = false;
         this.scheduleContainerRemoval(containerId);
         this.healthCheckFailures++;
 
@@ -212,12 +220,12 @@ export class ContainerPool {
       const stillRunning = await this.isContainerRunning(containerId);
       if (!stillRunning) {
         logger.warn(`Container ${container.name} died during acquisition`);
+        container.inUse = false;
         this.scheduleContainerRemoval(containerId);
         continue;
       }
 
-      // Container is available and healthy
-      container.inUse = true;
+      // Container is available and healthy (already reserved above)
       container.lastUsedAt = Date.now();
 
       const acquireTime = Date.now() - startTime;
@@ -238,8 +246,7 @@ export class ContainerPool {
       logger.info(`📦 Scaling UP: ${poolInfo}`);
 
       try {
-        const container = await this.createContainer();
-        container.inUse = true;
+        const container = await this.createContainer(true);
         return container.id;
       } catch (error) {
         logger.error(`Failed to create new container: ${error}`);
@@ -254,8 +261,7 @@ export class ContainerPool {
         logger.warn(`🚨 High pressure (${Math.round(utilization * 100)}%), emergency scaling: ${poolInfo}`);
 
         try {
-          const container = await this.createContainer();
-          container.inUse = true;
+          const container = await this.createContainer(true);
           return container.id;
         } catch (error) {
           logger.error(`Failed to create emergency container: ${error}`);
@@ -295,14 +301,15 @@ export class ContainerPool {
       // Check for available container
       for (const [containerId, container] of this.containers) {
         if (!container.inUse && !this.containersBeingRemoved.has(containerId)) {
-          // Quick health check
+          // Reserve synchronously before the await, same race as acquire().
+          container.inUse = true;
           const isHealthy = await this.isContainerRunning(containerId);
           if (isHealthy) {
-            container.inUse = true;
             container.lastUsedAt = Date.now();
             logger.info(`Container acquired after waiting: ${container.name}`);
             return containerId;
           } else {
+            container.inUse = false;
             this.scheduleContainerRemoval(containerId);
           }
         }
@@ -314,8 +321,7 @@ export class ContainerPool {
     // Timeout - try one more time to create a container (emergency override)
     if (this.containers.size < this.config.hardMaxContainers + 2) {
       logger.warn('⏰ Wait timeout, forcing emergency container creation');
-      const container = await this.createContainer();
-      container.inUse = true;
+      const container = await this.createContainer(true);
       return container.id;
     }
 
@@ -401,7 +407,7 @@ export class ContainerPool {
   /**
    * Create a new container for the pool
    */
-  private async createContainer(): Promise<PooledContainer> {
+  private async createContainer(markInUse: boolean = false): Promise<PooledContainer> {
     const name = `pool-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
     try {
@@ -438,7 +444,7 @@ export class ContainerPool {
         name,
         createdAt: Date.now(),
         lastUsedAt: Date.now(),
-        inUse: false,
+        inUse: markInUse,
         executions: 0,
         healthy: true
       };
