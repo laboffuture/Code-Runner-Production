@@ -1,0 +1,5 @@
+--- a/Coderunner-Backend/apps/api/src/routes/execution.routes.ts
++++ b/Coderunner-Backend/apps/api/src/routes/execution.routes.ts
+@@ POST /execution/submit
+-router.post('/submit', executionLimiter, dailyExecutionLimiter, optionalAuthMiddleware, async (req, res) => {
++router.post('/submit', optionalAuthMiddleware, executionLimiter, dailyExecutionLimiter, async (req, res) => {
