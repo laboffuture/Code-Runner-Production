@@ -127,6 +127,16 @@ const UserProgressSchema = new Schema<IUserProgress>(
   {
     timestamps: true,
     collection: 'user_progress',
+    // Guard the submission worker's read-modify-write progress update against
+    // lost updates under concurrent grading (PM2 2x runner x worker concurrency).
+    // save() now includes __v in its filter and throws VersionError on a stale
+    // write; the worker retries from a fresh read. NOTE: this only affects
+    // hydrated .save() of an EXISTING doc — atomic updateOne()/findOneAndUpdate()
+    // and brand-new inserts are unaffected (an insert has no prior __v to stale).
+    // The other hydrated savers are both on the users stats route: the
+    // lazy-create insert (an insert — cannot VersionError) and the
+    // solvedProblemIds backfill (converted to an atomic updateOne).
+    optimisticConcurrency: true,
   }
 );
 

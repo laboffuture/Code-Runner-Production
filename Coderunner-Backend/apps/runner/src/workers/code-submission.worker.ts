@@ -164,8 +164,11 @@ export class CodeSubmissionWorker {
     userId: string,
     problemId: number,
     accepted: boolean,
-    status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Error'
+    status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Error',
+    attempt: number = 1
   ): Promise<boolean> {
+    // Retry the read-modify-write below on a concurrent write conflict (see catch).
+    const MAX_PROGRESS_ATTEMPTS = 5;
     try {
       // Progress is only tracked for authenticated users. A missing/invalid
       // userId (e.g. 'anonymous') would otherwise throw a CastError that gets
@@ -404,6 +407,19 @@ export class CodeSubmissionWorker {
 
       return accepted && !alreadySolved;
     } catch (error) {
+      // UserProgress has optimisticConcurrency enabled: a stale save() throws a
+      // VersionError, and a racing first-insert collides on the unique userId
+      // index (E11000). Either means another graded submission for this user
+      // committed concurrently — retry from a fresh read so this update isn't
+      // lost (dropped increments / missing solvedProblemIds entry).
+      const isWriteConflict =
+        error instanceof mongoose.Error.VersionError ||
+        (error as { code?: number })?.code === 11000;
+      if (isWriteConflict && attempt < MAX_PROGRESS_ATTEMPTS) {
+        logger.warn('UserProgress write conflict, retrying', { userId, problemId, attempt });
+        await new Promise((resolve) => setTimeout(resolve, 20 * attempt + Math.floor(Math.random() * 20)));
+        return this.updateUserProgress(userId, problemId, accepted, status, attempt + 1);
+      }
       logger.error('Failed to update user progress', {
         userId,
         problemId,

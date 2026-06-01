@@ -115,8 +115,14 @@ router.get('/me/stats', async (req: Request, res: Response) => {
         ),
       ];
       if (backfilled.length > 0) {
-        progress.solvedProblemIds = backfilled;
-        await progress.save();
+        // Atomic update (not a hydrated save) so UserProgress optimisticConcurrency
+        // cannot throw a VersionError on this read path during concurrent grading.
+        // The $size:0 guard makes it a no-op if a writer already populated the list.
+        await Models.UserProgress.updateOne(
+          { _id: progress._id, solvedProblemIds: { $size: 0 } },
+          { $set: { solvedProblemIds: backfilled } }
+        );
+        progress.solvedProblemIds = backfilled; // reflect in the in-memory doc for the response below
         logger.info('Backfilled solvedProblemIds from recentActivity', {
           userId,
           count: backfilled.length,
