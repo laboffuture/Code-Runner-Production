@@ -69,13 +69,28 @@ export default function LoginPage() {
   const [loginError, setLoginError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // If already authenticated, redirect to root page
-  // Let the root page handle routing logic based on auth + sessionBooted
+  // After auth (already-authenticated or just-logged-in), honor a ?redirect=
+  // deep link if present; otherwise let the root page route by role/onboarding.
+  // Only same-origin relative paths are allowed — reject protocol-relative
+  // (//host) and backslash (/\) forms so a crafted ?redirect= can't open-redirect
+  // to an external site.
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      router.push('/');
+      const raw = new URLSearchParams(window.location.search).get('redirect');
+      const dest = raw && raw.startsWith('/') && !raw.startsWith('//') && raw[1] !== '\\' ? raw : '/';
+      // Un-onboarded users must pick a character first. This gate previously
+      // lived on the root page, which login always routed through; honoring a
+      // deep link directly would skip it. Preserve the intended destination
+      // across onboarding via the returnAfterOnboarding handoff the onboarding
+      // page already consumes.
+      if (user && !user.onboardingComplete) {
+        if (dest !== '/') sessionStorage.setItem('returnAfterOnboarding', dest);
+        router.push('/onboarding');
+        return;
+      }
+      router.push(dest);
     }
-  }, [authLoading, isAuthenticated, router]);
+  }, [authLoading, isAuthenticated, user, router]);
 
   useEffect(() => {
     const timer = setInterval(() => {

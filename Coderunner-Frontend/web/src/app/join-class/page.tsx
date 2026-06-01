@@ -26,11 +26,14 @@ export default function JoinClass() {
       const r = (await api.classroom.join(code.trim())) as { classroomName: string };
       setJoined(r.classroomName);
     } catch (e: any) {
-      const msg = e?.message || '';
+      // api-client attaches the HTTP status as e.status; match on that rather
+      // than substring-scanning the message (the message is the backend's
+      // `error` string like "Not Found", which never contains "404"/"403").
+      const status = e?.status;
       setError(
-        msg.includes('404')
+        status === 404
           ? 'No class found for that code. Check with your teacher.'
-          : msg.includes('403')
+          : status === 403
           ? 'Only students can join a class.'
           : 'Could not join. Please try again.'
       );

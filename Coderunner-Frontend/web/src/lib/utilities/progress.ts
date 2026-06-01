@@ -224,11 +224,6 @@ class ProgressManager {
     if (changed) this.saveProgress();
   }
 
-  resetProgress(): void {
-    this.progress = this.getDefaultProgress();
-    this.saveProgress();
-  }
-
   // Get all levels for an age group with their status
   getAllLevelsForAgeGroup(ageGroup: string): LevelProgress[] {
     const totalLevels = this.getTotalLevelsForAgeGroup(ageGroup);
@@ -277,7 +272,6 @@ export function useProgress() {
     getChapterProgress: (ageGroup: string) => progressManager.getChapterProgress(ageGroup),
     getOverallProgress: () => progressManager.getOverallProgress(),
     getAllLevelsForAgeGroup: (ageGroup: string) => progressManager.getAllLevelsForAgeGroup(ageGroup),
-    resetProgress: () => progressManager.resetProgress(),
     syncFromServer: (ids: number[]) => progressManager.syncFromServer(ids),
   };
 }

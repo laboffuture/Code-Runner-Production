@@ -4,9 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useGlobalAudio } from '@/contexts/AudioContext';
-import { useProgress } from '@/lib/utilities/progress';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -16,23 +14,10 @@ import {
   Volume2,
   VolumeX,
   Music,
-  Trash2,
-  AlertTriangle,
   ChevronLeft,
   User,
   Sparkles
 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -44,16 +29,6 @@ export default function SettingsPage() {
     toggleBackgroundMusic,
     toggleSoundEffects
   } = useGlobalAudio();
-
-  const progress = useProgress();
-  const [showResetDialog, setShowResetDialog] = useState(false);
-
-  const handleResetProgress = () => {
-    progress.resetProgress();
-    setShowResetDialog(false);
-    router.push('/home');
-  };
-
 
   // Card style — matches ProfileStats exactly
   const cardCls = 'bg-white border-2 rounded-xl p-6 transition-colors';
@@ -201,59 +176,6 @@ export default function SettingsPage() {
                     </div>
                     <Switch id="sfx" checked={isSoundEffectsEnabled} onCheckedChange={toggleSoundEffects} />
                   </div>
-                </div>
-              </div>
-
-              {/* ── Progress ───────────────────────────────────── */}
-              <div className={cardCls} style={{ borderColor: '#f59e0b44', borderWidth: 2 }}>
-                <h3 className="text-sm font-orbitron font-bold text-gray-700 mb-1 tracking-wider flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                  PROGRESS MANAGEMENT
-                </h3>
-                <p className="font-rajdhani text-gray-500 text-sm mb-4">Manage your learning progress and data</p>
-
-                <div className="p-4 rounded-lg" style={{ backgroundColor: '#fffbeb', border: '1px solid #f59e0b33' }}>
-                  <h4 className="text-xs font-orbitron font-bold text-yellow-600 flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    DANGER ZONE
-                  </h4>
-                  <p className="text-sm font-rajdhani text-gray-500 mb-4">
-                    Resetting your progress will clear all completed problems and levels. This action cannot be undone.
-                  </p>
-
-                  <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-                    <AlertDialogTrigger asChild>
-                      <button
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-orbitron font-bold tracking-wider text-red-600 transition-all duration-200"
-                        style={{ border: '1.5px solid #ef444455', backgroundColor: '#ef444408' }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#ef444418'; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#ef444408'; }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Reset All Progress
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete all your progress including:
-                          <ul className="list-disc list-inside mt-2 space-y-1">
-                            <li>All completed problems</li>
-                            <li>All completed levels</li>
-                            <li>Current level progress</li>
-                          </ul>
-                          <p className="mt-3 font-semibold text-destructive">This action cannot be undone!</p>
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleResetProgress} className="bg-destructive hover:bg-destructive/90">
-                          Yes, Reset Everything
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
                 </div>
               </div>
 
