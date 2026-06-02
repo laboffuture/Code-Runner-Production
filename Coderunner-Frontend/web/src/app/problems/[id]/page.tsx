@@ -133,7 +133,7 @@ export default function ProblemPage({ params }: ProblemPageProps) {
 
   return (
     <div
-      className={`flex flex-col h-screen text-foreground relative overflow-hidden${hasCompilerTheme && mounted ? ' bg-[#020408]' : ''}`}
+      className={`flex flex-col min-h-screen text-foreground relative${hasCompilerTheme && mounted ? ' bg-[#020408]' : ''}`}
     >
       {/* Header — outside the wallpaper frame, spans full width */}
       <NeuralHeader />
@@ -153,14 +153,19 @@ export default function ProblemPage({ params }: ProblemPageProps) {
         </div>
       )}
 
-      <main className="flex-grow relative z-10 overflow-hidden">
+      <main className="flex-grow relative z-10">
         {/*
           All characters: wallpaper lives inside the rounded frame.
           The outer page is bg-[#020408] (near-black), so the padding area is dark
           and the thin border separating them is clearly visible.
         */}
+        {/* The page owns the editor's concrete height (viewport minus the 64px
+            NeuralHeader) with a min-height floor — so the shared CompilerUI fills
+            it via h-full and Monaco never collapses. On a tall window this fits
+            the viewport (panels scroll inside); on a short window/tablet the floor
+            holds and the page (min-h-screen root) scrolls to reveal it. */}
         <div
-          className={hasCompilerTheme && mounted ? 'relative h-full rounded-2xl overflow-hidden' : 'h-full'}
+          className={`h-[calc(100vh-64px)] min-h-[640px] ${hasCompilerTheme && mounted ? 'relative rounded-2xl overflow-hidden' : ''}`}
           style={hasCompilerTheme && mounted ? {
             background: colorBg,
             border: `1px solid ${accentColor}30`,

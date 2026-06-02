@@ -530,13 +530,19 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   };
 
   // ===== MAIN RENDER =====
+  // Root fills its parent's height (h-full). CompilerUI is shared by three pages
+  // (problems, contest arena, ultimate-challenge); each page wrapper owns the
+  // concrete height so this component stays page-agnostic. The Monaco editor
+  // (height="100%") needs that definite parent height to avoid collapsing to 0.
   return (
     <div className="flex flex-col h-full overflow-hidden font-rajdhani">
       {/* Neural Sidebar */}
       <NeuralSidebar isOpen={sidebarOpen} />
 
-      {/* Main Content Area */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+      {/* Main Content Area — min-h-0 lets the flex children be bounded by the
+          parent's height so the inner panels (overflow-y-auto) actually scroll
+          instead of expanding (the default flex min-height:auto trap). */}
+      <div className="flex flex-col md:flex-row flex-1 min-h-0">
         {/* Left Panel - Problem Description (resizable) */}
       <div
         className={`problem-panel flex-shrink-0 flex flex-col shadow-xl hidden md:flex ${hasCompilerTheme ? '' : 'border-purple-200/50 dark:border-purple-700/30 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90'}`}
