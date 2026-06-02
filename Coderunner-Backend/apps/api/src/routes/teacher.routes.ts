@@ -282,7 +282,7 @@ router.get('/students/:id', async (req: Request, res: Response) => {
       streak: progress?.streak || { current: 0, longest: 0, lastSubmissionDate: null },
       stats: progress?.stats || {
         totalSolved: 0, easySolved: 0, mediumSolved: 0, hardSolved: 0,
-        totalSubmissions: 0, acceptedSubmissions: 0, acceptanceRate: 0,
+        totalSubmissions: 0, acceptedSubmissions: 0, acceptanceRate: 0, failedRuns: 0,
       },
       contestRating: progress?.contestRating || 1000,
       achievements: progress?.achievements || [],

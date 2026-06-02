@@ -10,6 +10,7 @@ export interface IUserProgress extends Document {
     totalSubmissions: number;
     acceptedSubmissions: number;
     acceptanceRate: number;
+    failedRuns: number;
   };
   streak: {
     current: number;
@@ -67,6 +68,8 @@ const UserProgressSchema = new Schema<IUserProgress>(
       totalSubmissions: { type: Number, default: 0 },
       acceptedSubmissions: { type: Number, default: 0 },
       acceptanceRate: { type: Number, default: 0 },
+      // G3: durable count of failed Runs (Run button erroring/timing out on a problem).
+      failedRuns: { type: Number, default: 0 },
     },
     streak: {
       current: { type: Number, default: 0 },

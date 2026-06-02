@@ -10,6 +10,7 @@ function assert(cond: boolean, msg: string) {
   const r = computeResetProgress({ survivingSolvedIds: [], solvedMeta: {}, sessionTotals: {}, survivingAttempts: [], survivingRecentActivity: [], prevLongestStreak: 7 });
   assert(r.solvedProblemIds.length === 0, 'full: no solved');
   assert(r.stats.totalSolved === 0, 'full: totalSolved 0');
+  assert(r.stats.failedRuns === 0, 'full: failedRuns reset to 0');
   assert(r.experience === 0 && r.level === 1, 'full: xp 0 / level 1');
   assert(r.contestRating === 1000 && r.rank === 'NOVICE', 'full: rating 1000 NOVICE');
   assert(r.streak.current === 0 && r.streak.longest === 7 && r.streak.lastSubmissionDate === null, 'full: streak reset, longest kept');
@@ -40,6 +41,7 @@ function assert(cond: boolean, msg: string) {
   assert(r.contestRating === 1045, 'partial: rating 1000+15*3');
   assert(r.stats.totalSubmissions === 4 && r.stats.acceptedSubmissions === 3, 'partial: submission counts');
   assert(r.stats.acceptanceRate === 75, 'partial: acceptance 75%');
+  assert(r.stats.failedRuns === 0, 'partial: failedRuns always resets to 0 (run-level, not solve-tied)');
   assert(r.submissionCalendar.length === 2, 'partial: 2 submission days');
   const day2 = r.solvedCalendar.find((d) => d.date.toISOString().startsWith('2026-05-02'));
   assert(!!day2 && day2.count === 2, 'partial: 2 first-solves on day 2');

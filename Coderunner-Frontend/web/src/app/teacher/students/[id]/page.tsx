@@ -140,8 +140,9 @@ export default function StudentDetail() {
           <div className="flex flex-col gap-6">
             {/* Teacher monitoring strip — surfaces the numbers a teacher actually
                 asks: how far through the curriculum, and how much they struggled.
-                'Failed' = graded submissions that did not pass (totalSubmissions −
-                acceptedSubmissions); it counts SUBMISSIONS, not failed test runs. */}
+                FAILED SUBMITS = graded submissions that did not pass (totalSubmissions −
+                acceptedSubmissions). FAILED RUNS = Run-button attempts that errored or
+                timed out on a problem (stats.failedRuns) — practice struggle, not grading. */}
             {(() => {
               const s = data.stats || {};
               const failed = Math.max(0, (s.totalSubmissions ?? 0) - (s.acceptedSubmissions ?? 0));
@@ -150,9 +151,10 @@ export default function StudentDetail() {
                 { label: 'ACCEPTANCE', value: `${s.acceptanceRate ?? 0}%`, accent: 'text-emerald-600' },
                 { label: 'SUBMISSIONS', value: s.totalSubmissions ?? 0, accent: 'text-gray-800' },
                 { label: 'FAILED SUBMITS', value: failed, accent: 'text-rose-600' },
+                { label: 'FAILED RUNS', value: s.failedRuns ?? 0, accent: 'text-amber-600' },
               ];
               return (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {cards.map((c) => (
                     <div key={c.label} className="bg-white border-2 border-gray-200 rounded-xl p-4">
                       <div className={`text-2xl font-orbitron font-black ${c.accent} leading-none`}>{c.value}</div>

@@ -19,7 +19,7 @@ export interface ComputeResetInput {
 
 export interface ResetProgressFields {
   solvedProblemIds: number[];
-  stats: { totalSolved: number; easySolved: number; mediumSolved: number; hardSolved: number; totalSubmissions: number; acceptedSubmissions: number; acceptanceRate: number; };
+  stats: { totalSolved: number; easySolved: number; mediumSolved: number; hardSolved: number; totalSubmissions: number; acceptedSubmissions: number; acceptanceRate: number; failedRuns: number; };
   experience: number;
   level: number;
   contestRating: number;
@@ -113,7 +113,7 @@ export function computeResetProgress(input: ComputeResetInput): ResetProgressFie
 
   return {
     solvedProblemIds: solved,
-    stats: { totalSolved, easySolved: easy, mediumSolved: medium, hardSolved: hard, totalSubmissions, acceptedSubmissions, acceptanceRate },
+    stats: { totalSolved, easySolved: easy, mediumSolved: medium, hardSolved: hard, totalSubmissions, acceptedSubmissions, acceptanceRate, failedRuns: 0 },
     experience, level, contestRating, rank,
     streak: { current: 0, longest: prevLongestStreak, lastSubmissionDate: null },
     topicProgress, achievements, skills,

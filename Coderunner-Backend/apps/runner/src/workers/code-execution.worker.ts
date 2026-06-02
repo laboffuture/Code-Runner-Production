@@ -72,6 +72,34 @@ export class CodeExecutionWorker {
         filesCount: result.files?.length || 0,
       });
 
+      // G3: durably count a failed Run so teachers can see a student's practice struggle.
+      // The ExecutionResult above is already saved — this is fire-and-forget: a stats write
+      // must never fail or slow a run. Atomic $inc bypasses optimistic-concurrency versioning,
+      // so a failed run racing a grade can't conflict. Only logged-in students on a curriculum
+      // problem count (anonymous / no-problemId runs are unattributable; problemId 0 is allowed).
+      // Best-effort, at-most-once: the UserProgress doc is created up-front at registration
+      // (auth.routes.ts), so this non-upsert update matches it; in the rare case it is missing
+      // the increment is harmlessly skipped rather than creating a partial doc.
+      if (
+        (result.status === 'Error' || result.status === 'Timeout') &&
+        job.data.userId &&
+        job.data.userId !== 'anonymous' &&
+        job.data.problemId != null
+      ) {
+        try {
+          await Models.UserProgress.updateOne(
+            { userId: job.data.userId },
+            { $inc: { 'stats.failedRuns': 1 } }
+          );
+        } catch (statsError) {
+          logger.warn('Failed to increment failedRuns stat', {
+            jobId: job.data.jobId,
+            userId: job.data.userId,
+            error: statsError instanceof Error ? statsError.message : String(statsError),
+          });
+        }
+      }
+
     } catch (error) {
       logger.error('Code execution job failed', {
         jobId: job.data.jobId,
