@@ -3,8 +3,7 @@
  * Usage: npx tsx scripts/reset-password.ts <username> <new-password>
  */
 
-import { connectToDatabase, Models } from '@code-runner/shared';
-import bcrypt from 'bcrypt';
+import { connectToDatabase, Models, hashPassword } from '@code-runner/shared';
 
 async function resetPassword() {
   const username = process.argv[2];
@@ -29,11 +28,13 @@ async function resetPassword() {
       process.exit(1);
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Hash new password (shared util — keeps the bcrypt cost in one place).
+    const hashedPassword = await hashPassword(newPassword);
 
-    // Update password
-    user.password = hashedPassword;
+    // Update the REAL field. The model field is `passwordHash` (select:false);
+    // writing `user.password` (a non-existent field) silently no-op'd, so this
+    // script used to print "success" while the password never changed.
+    user.passwordHash = hashedPassword;
     await user.save();
 
     console.log(`✅ Password reset successful for user: ${username}`);

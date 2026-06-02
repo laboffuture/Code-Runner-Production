@@ -43,7 +43,7 @@ async function main() {
       console.log('  (no users found — register one first via the app)');
     } else {
       allUsers.forEach(u => {
-        const marker = u.role === 'admin' ? '👑' : '  ';
+        const marker = u.role === 'developer' ? '👑' : '  ';
         console.log(`  ${marker} ${u.username} — ${u.role} — ${u.email}`);
       });
       console.log(`\nTo promote a user: npx tsx scripts/make-admin.ts <username>`);
@@ -63,18 +63,20 @@ async function main() {
     process.exit(1);
   }
 
-  if (user.role === 'admin') {
-    console.log(`✅ "${username}" is already an admin.`);
+  if (user.role === 'developer') {
+    console.log(`✅ "${username}" is already a developer.`);
     await mongoose.disconnect();
     return;
   }
 
-  // Promote
-  await usersCollection.updateOne({ username }, { $set: { role: 'admin' } });
-  console.log(`✅ "${username}" promoted to admin!\n`);
+  // Promote to 'developer' — the infra/admin role in the current 3-role model
+  // (student | teacher | developer). 'admin' is NOT a valid role and would write
+  // an account that satisfies no role gate.
+  await usersCollection.updateOne({ username }, { $set: { role: 'developer' } });
+  console.log(`✅ "${username}" promoted to developer!\n`);
   console.log(`   Email: ${user.email}`);
   console.log(`   Previous role: ${user.role}`);
-  console.log(`   New role: admin`);
+  console.log(`   New role: developer`);
   console.log(`\nNow log in with this account and go to /admin/dashboard`);
 
   await mongoose.disconnect();

@@ -65,14 +65,7 @@ export default function LevelPage({ params }: LevelPageProps) {
                 setAgeGroup(age_group);
 
                 // Use API client to fetch from backend API service
-                console.log('[Levels Page] Fetching levels for age group:', age_group);
                 const data = await api.levels.getByAgeGroup(age_group as '11-14' | '15-18');
-                console.log('[Levels Page] Received data:', {
-                    isArray: Array.isArray(data),
-                    length: Array.isArray(data) ? data.length : 'not an array',
-                    type: typeof data,
-                    firstItem: Array.isArray(data) && data.length > 0 ? data[0] : null
-                });
                 setLevelsData(data as Level[]);
             } catch (error) {
                 console.error('Error loading levels:', error);

@@ -51,14 +51,7 @@ export default function ProblemPage({ params }: ProblemPageProps) {
         }
 
         // Use API client to fetch from backend API service
-        console.log('[Problem Page] Fetching problem:', problemId);
         data = await api.problems.getById(problemId);
-        console.log('[Problem Page] Received problem:', {
-          problem_id: data.problem_id,
-          title: data.title,
-          has_case_code: !!data.case_code,
-          case_code_preview: data.case_code?.substring(0, 50)
-        });
         setProblem(data);
 
         // Store age group in localStorage for theme persistence

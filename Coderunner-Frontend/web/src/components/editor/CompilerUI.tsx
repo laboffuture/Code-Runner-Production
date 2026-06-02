@@ -23,13 +23,6 @@ interface CompilerUIProps {
 }
 
 export function CompilerUI({ problem, contestId }: CompilerUIProps) {
-  console.log('CompilerUI received problem:', {
-    problem_id: problem.problem_id,
-    title: problem.title,
-    has_case_code: !!problem.case_code,
-    case_code_length: problem.case_code?.length || 0
-  });
-
   // ===== STATE MANAGEMENT =====
   const [code, setCode] = useState<string>(problem.compiler_comment || '# Write your code here\n');
   const [customInput, setCustomInput] = useState<string>(problem.sample_input || '');
@@ -313,9 +306,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   useEffect(() => {
     async function loadTestCases() {
       try {
-        console.log('[CompilerUI] Fetching test cases for problem:', problem.problem_id);
         const cases = await api.problems.getTestCases(problem.problem_id) as TestCase[];
-        console.log('[CompilerUI] Received test cases:', cases.length);
         setProblemTestCases(cases);
       } catch (error) {
         console.error('[CompilerUI] Failed to load test cases:', error);

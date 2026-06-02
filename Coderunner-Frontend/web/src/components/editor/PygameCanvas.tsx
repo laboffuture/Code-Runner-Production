@@ -42,25 +42,13 @@ export function PygameCanvas({ bundle, onConsoleOutput }: PygameCanvasProps) {
     if (!iframeRef.current) return;
 
     try {
-      console.log('[PygameCanvas] Received bundle:', {
-        hasHtml: !!bundle.html,
-        hasWasm: !!bundle.wasm,
-        htmlLength: bundle.html?.length || 0,
-        wasmLength: bundle.wasm?.length || 0
-      });
-      console.log('[PygameCanvas] Decoding and injecting Pygame bundle (0.9.2 format)');
-
       // Decode base64 encoded files
       const decodedHTML = atob(bundle.html);
       const apkBinary = Uint8Array.from(atob(bundle.wasm), c => c.charCodeAt(0));
 
-      console.log('[PygameCanvas] Decoded HTML length:', decodedHTML.length);
-      console.log('[PygameCanvas] APK binary length:', apkBinary.length);
-
       // Create a separate blob URL for the APK file
       const apkBlob = new Blob([apkBinary], { type: 'application/octet-stream' });
       const apkUrl = URL.createObjectURL(apkBlob);
-      console.log('[PygameCanvas] APK Blob URL created:', apkUrl);
 
       // Replace game.apk reference with the blob URL
       let modifiedHTML = decodedHTML
@@ -71,9 +59,6 @@ export function PygameCanvas({ bundle, onConsoleOutput }: PygameCanvasProps) {
       const htmlUrl = URL.createObjectURL(htmlBlob);
 
       iframeRef.current.src = htmlUrl;
-
-      console.log('[PygameCanvas] HTML Blob URL created:', htmlUrl);
-      console.log('[PygameCanvas] Pygame bundle loaded with console capture');
 
       // Cleanup blob URLs when component unmounts
       return () => {
@@ -93,7 +78,6 @@ export function PygameCanvas({ bundle, onConsoleOutput }: PygameCanvasProps) {
         sandbox="allow-scripts allow-same-origin allow-modals"
         allow="cross-origin-isolated"
         title="Pygame Interactive Canvas"
-        onLoad={() => console.log('[PygameCanvas] Iframe loaded')}
         onError={(e) => console.error('[PygameCanvas] Iframe error:', e)}
       />
     </div>

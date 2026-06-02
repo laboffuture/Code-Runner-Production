@@ -83,17 +83,7 @@ export default function LevelDetailPage({ params }: LevelDetailPageProps) {
         
         const requiredMusicType = isGalacticMission ? 'mission' : 'background';
         const currentMusicType = getCurrentMusicType();
-        
-        console.log('Mission Check:', {
-            title: levelData.title,
-            description: levelData.description?.substring(0, 50) + '...',
-            isGalacticMission,
-            requiredMusicType,
-            currentMusicType,
-            needsChange: currentMusicType !== requiredMusicType,
-            path: window.location.pathname
-        });
-        
+
         // Only change music if we need to switch to a different type
         if (currentMusicType !== requiredMusicType) {
             const playAudio = async () => {
