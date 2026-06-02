@@ -5,6 +5,7 @@ import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ActivityCalendar } from '@/components/profile/ActivityCalendar';
 import { Achievements } from '@/components/profile/Achievements';
 import { ProblemChart } from '@/components/profile/ProblemChart';
+import { NovasTeaserCard } from '@/components/novas/NovasTeaserCard';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { api } from '@/lib/api-client';
 import { useState, useEffect } from 'react';
@@ -123,6 +124,9 @@ export default function ProfilePage() {
             {/* Main Content — 3 separate rows with gaps */}
             {!isLoading && !authLoading && profileData && (
               <div className="flex flex-col gap-6">
+                {/* Novas (✨) teaser — releasing soon */}
+                <NovasTeaserCard />
+
                 {/* Row 1: Identity card + Problem Solving Statistics */}
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
                   <div className="xl:col-span-3 h-full">

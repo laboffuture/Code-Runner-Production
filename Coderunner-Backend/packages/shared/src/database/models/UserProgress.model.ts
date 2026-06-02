@@ -20,6 +20,10 @@ export interface IUserProgress extends Document {
   experience: number;
   level: number;
   contestRating: number;
+  // Novas (✨) wallet balance. Earned via contests, spent in the store. Top-level
+  // (not in stats) because it is a real-merch currency, not a learning metric — a
+  // teacher progress-reset never touches it.
+  coins: number;
   rank: 'NOVICE' | 'ADVANCED' | 'EXPERT' | 'MASTER';
   achievements: string[];
   skills: string[];
@@ -79,6 +83,7 @@ const UserProgressSchema = new Schema<IUserProgress>(
     experience: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
     contestRating: { type: Number, default: 1000 },
+    coins: { type: Number, default: 0 },
     rank: {
       type: String,
       enum: ['NOVICE', 'ADVANCED', 'EXPERT', 'MASTER'],

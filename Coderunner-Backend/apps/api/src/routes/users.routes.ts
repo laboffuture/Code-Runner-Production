@@ -10,6 +10,25 @@ const router = Router();
 // All routes in this file require authentication
 router.use(authMiddleware);
 
+// GET /users/me/wallet — the caller's Novas balance + recent ledger entries.
+// Earning/spending are off this phase, so this returns 0 / [] for everyone.
+router.get('/me/wallet', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    const [progress, recentTransactions] = await Promise.all([
+      Models.UserProgress.findOne({ userId }).select('coins').lean<{ coins?: number } | null>(),
+      Models.CoinTransaction.find({ userId }).sort({ createdAt: -1 }).limit(20).lean(),
+    ]);
+    res.json({ coins: progress?.coins ?? 0, recentTransactions });
+  } catch (error) {
+    logger.error('Failed to fetch wallet', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    res.status(500).json({ error: 'Failed to fetch wallet' });
+  }
+});
+
 /**
  * POST /users/me/join-classroom
  * Student self-enrolls into a classroom using its join code.

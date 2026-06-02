@@ -10,3 +10,4 @@ export { ContestEntry } from './ContestEntry.model';
 export { Classroom } from './Classroom.model';
 export { StudentAttempt } from './StudentAttempt.model';
 export { ResetLog } from './ResetLog.model';
+export { CoinTransaction } from './CoinTransaction.model';

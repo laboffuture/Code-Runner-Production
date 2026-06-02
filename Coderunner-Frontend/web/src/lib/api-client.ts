@@ -175,6 +175,7 @@ export const api = {
   // Users
   users: {
     getStats: () => apiClient.get('/users/me/stats'),
+    getWallet: () => apiClient.get('/users/me/wallet'),
     getActivity: () => apiClient.get('/users/me/activity'),
     getAchievements: () => apiClient.get('/users/me/achievements'),
     selectCharacter: (character: 'astra' | 'nila' | 'kenji' | 'leo') =>

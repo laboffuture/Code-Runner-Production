@@ -9,6 +9,7 @@ import { Leaderboard } from '@/components/lists/Leaderboard';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { SoundToggle } from '@/components/audio/SoundToggle';
+import { NovasChip } from '@/components/novas/NovasChip';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -209,6 +210,9 @@ export function Header() {
 
         {/* User Section */}
         <div className="flex flex-1 items-center justify-end space-x-4">
+          {/* Novas balance (✨) — releasing soon */}
+          <NovasChip />
+
           {/* Sound Toggle */}
           <SoundToggle />
 
