@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 import { NOVAS } from '@/lib/novas';
 import { useNovasBalance } from '@/lib/useNovasBalance';
@@ -27,6 +28,9 @@ export function NovasTeaserCard() {
       <p className="mt-1 text-sm text-gray-500 font-rajdhani">
         Win {NOVAS.NAME} in weekly contests and spend them in the store. Coming soon!
       </p>
+      <Link href="/store" className="mt-3 inline-block text-sm font-semibold text-amber-600 hover:text-amber-700">
+        Browse the store →
+      </Link>
     </div>
   );
 }

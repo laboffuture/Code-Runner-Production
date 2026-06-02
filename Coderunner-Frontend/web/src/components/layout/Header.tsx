@@ -10,6 +10,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { SoundToggle } from '@/components/audio/SoundToggle';
 import { NovasChip } from '@/components/novas/NovasChip';
+import { NOVAS } from '@/lib/novas';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -185,7 +186,8 @@ export function Header() {
             { href: '/home', label: 'HOME' },
             { href: '/compiler', label: 'COMPILER' },
             { href: '/rank', label: 'LEADERBOARD' },
-            { href: '/contest', label: 'CONTEST' }
+            { href: '/contest', label: 'CONTEST' },
+            ...(NOVAS.VISIBLE ? [{ href: '/store', label: 'STORE' }] : [])
           ].map((item) => (
             <Link
               key={item.href}

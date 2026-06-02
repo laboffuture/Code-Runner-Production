@@ -184,6 +184,12 @@ export const api = {
       apiClient.patch('/users/me', data),
   },
 
+  // Store (Novas)
+  store: {
+    getItems: () => apiClient.get('/store/items'),
+    getMyOrders: () => apiClient.get('/store/my-orders'),
+  },
+
   // Leaderboard
   leaderboard: {
     getGlobal: (params?: { limit?: number; sortBy?: string; skip?: number }) => {
