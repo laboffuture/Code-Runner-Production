@@ -58,7 +58,7 @@ by subtracting deltas — so the numbers can never drift out of sync with realit
 | `stats.acceptanceRate` | accepted / total over surviving attempts (0 if none) |
 | `submissionCalendar` | rebuilt from surviving attempts grouped by `createdAt` day |
 | `solvedCalendar` | rebuilt from surviving attempts where `firstSolve && accepted`, by day |
-| `recentActivity` | rebuilt from the 50 most-recent surviving attempts |
+| `recentActivity` | the existing feed filtered to surviving problems, capped at 50 (StudentAttempt carries no display title/difficulty, so the in-place feed is the faithful source) |
 
 **Two judgment calls (approved):**
 - **`streak.current` → 0** (and `lastSubmissionDate` → null). A live streak can't be honestly claimed after

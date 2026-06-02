@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Models, getLogger } from '@code-runner/shared';
 import { authMiddleware, teacherMiddleware } from '../middleware/auth.middleware';
+import { performStudentReset } from '../services/progressReset';
 
 const router = Router();
 const logger = getLogger('teacher');
@@ -22,6 +23,16 @@ async function myClassroom(req: Request, id: string) {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
   const me = new mongoose.Types.ObjectId(req.user!.userId);
   return Models.Classroom.findOne({ _id: id, teacherIds: me });
+}
+
+/** Fetch a student the current teacher owns (in one of my classrooms), or null. */
+async function myStudent(req: Request, id: string) {
+  if (!mongoose.Types.ObjectId.isValid(id)) return null;
+  const user: any = await Models.User.findById(id).select('-passwordHash').lean();
+  if (!user || user.role !== 'student' || !user.classroomId) return null;
+  const me = new mongoose.Types.ObjectId(req.user!.userId);
+  const owns = await Models.Classroom.exists({ _id: user.classroomId, teacherIds: me });
+  return owns ? user : null;
 }
 
 /** Build roster rows + chart overview for a set of student docs. */
@@ -198,21 +209,13 @@ router.post('/classrooms/:id/students', async (req: Request, res: Response) => {
 router.get('/students/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: 'Validation Error', message: 'Invalid student id' });
-    }
-    const objId = new mongoose.Types.ObjectId(id);
-    const user = (await Models.User.findById(objId).select('-passwordHash').lean()) as any;
-    if (!user || user.role !== 'student') {
-      return res.status(404).json({ error: 'Not Found', message: 'Student not found' });
-    }
-
-    // Ownership: the student must belong to a classroom I teach.
-    const me = new mongoose.Types.ObjectId(req.user!.userId);
-    const owns = user.classroomId && (await Models.Classroom.exists({ _id: user.classroomId, teacherIds: me }));
-    if (!owns) {
+    // Single ownership path (also used by the reset routes): student must be in
+    // a classroom I teach, else 403.
+    const user = await myStudent(req, id);
+    if (!user) {
       return res.status(403).json({ error: 'Forbidden', message: 'Student is not in your classroom' });
     }
+    const objId = new mongoose.Types.ObjectId(String(user._id));
 
     const progress = (await Models.UserProgress.findOne({ userId: objId }).lean()) as any;
 
@@ -275,6 +278,69 @@ router.get('/students/:id', async (req: Request, res: Response) => {
   } catch (error) {
     logger.error('Error fetching student detail', { error });
     res.status(500).json({ error: 'Failed to fetch student' });
+  }
+});
+
+/**
+ * GET /teacher/students/:id/reset-options — sessions this student has solves in,
+ * in curriculum order, for the reset dialog's "from a session" picker.
+ */
+router.get('/students/:id/reset-options', async (req: Request, res: Response) => {
+  try {
+    const student = await myStudent(req, req.params.id);
+    if (!student) return res.status(403).json({ error: 'Forbidden', message: 'Student is not in your classroom' });
+    const progress: any = await Models.UserProgress.findOne({ userId: student._id }).select('solvedProblemIds').lean();
+    const solved: number[] = progress?.solvedProblemIds || [];
+    const problems: any[] = await Models.Problem.find(
+      { problem_id: { $in: solved } }, 'session_id level_number session_title',
+    ).lean();
+    const seen = new Map<number, any>();
+    for (const p of problems) {
+      if (!seen.has(p.session_id)) {
+        seen.set(p.session_id, { session_id: p.session_id, level_number: p.level_number ?? 0, session_title: p.session_title || `Session ${p.session_id}` });
+      }
+    }
+    const sessions = Array.from(seen.values()).sort((a, b) => (a.level_number - b.level_number) || (a.session_id - b.session_id));
+    res.json({ sessions });
+  } catch (error) {
+    logger.error('Error building reset options', { error });
+    res.status(500).json({ error: 'Failed to load reset options' });
+  }
+});
+
+/**
+ * POST /teacher/students/:id/reset — reset a student's progress (full or from a session).
+ * Ownership-checked. The StudentAttempt integrity log is never modified.
+ */
+router.post('/students/:id/reset', async (req: Request, res: Response) => {
+  try {
+    const student = await myStudent(req, req.params.id);
+    if (!student) return res.status(403).json({ error: 'Forbidden', message: 'Student is not in your classroom' });
+
+    const scope = req.body?.scope;
+    if (scope !== 'full' && scope !== 'from-session') {
+      return res.status(400).json({ error: 'Validation Error', message: "scope must be 'full' or 'from-session'" });
+    }
+    let fromSessionId: number | undefined;
+    if (scope === 'from-session') {
+      fromSessionId = Number(req.body?.fromSessionId);
+      if (!Number.isFinite(fromSessionId)) {
+        return res.status(400).json({ error: 'Validation Error', message: 'fromSessionId is required for a from-session reset' });
+      }
+    }
+
+    const result = await performStudentReset({
+      studentId: String(student._id),
+      teacherId: req.user!.userId,
+      classroomId: student.classroomId ? String(student.classroomId) : null,
+      ageGroup: student.age_group,
+      scope, fromSessionId,
+    });
+    res.json({ message: 'Progress reset', ...result });
+  } catch (error: any) {
+    if (error?.statusCode === 400) return res.status(400).json({ error: 'Validation Error', message: error.message });
+    logger.error('Error resetting student progress', { error });
+    res.status(500).json({ error: 'Failed to reset progress' });
   }
 });
 

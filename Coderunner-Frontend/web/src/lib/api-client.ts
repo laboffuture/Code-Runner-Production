@@ -308,6 +308,9 @@ export const api = {
     addStudent: (classroomId: string, username: string) =>
       apiClient.post(`/teacher/classrooms/${classroomId}/students`, { username }),
     getStudent: (id: string) => apiClient.get(`/teacher/students/${id}`),
+    getResetOptions: (id: string) => apiClient.get(`/teacher/students/${id}/reset-options`),
+    resetStudent: (id: string, body: { scope: 'full' | 'from-session'; fromSessionId?: number }) =>
+      apiClient.post(`/teacher/students/${id}/reset`, body),
   },
 
   // Contests

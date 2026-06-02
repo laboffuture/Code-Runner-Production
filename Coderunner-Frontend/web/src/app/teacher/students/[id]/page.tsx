@@ -8,6 +8,7 @@ import { ProblemChart } from '@/components/profile/ProblemChart';
 import { ActivityCalendar } from '@/components/profile/ActivityCalendar';
 import { ChevronLeft, Loader2, Check, X, ShieldAlert } from 'lucide-react';
 import { activeFlags, whyText, type AttemptRecord } from '@/lib/integrity';
+import { ResetProgressDialog } from '@/components/teacher/ResetProgressDialog';
 
 // Full static class strings (Tailwind can't see interpolated color names).
 const TOPIC_COLORS = {
@@ -67,6 +68,8 @@ export default function StudentDetail() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -85,7 +88,7 @@ export default function StudentDetail() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, reloadKey]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -106,8 +109,25 @@ export default function StudentDetail() {
               Student insight{data?.age_group ? ` · ${data.age_group}` : ''}
             </p>
           </div>
+          {data && (
+            <button
+              onClick={() => setResetOpen(true)}
+              className="ml-auto rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100"
+            >
+              Reset Progress
+            </button>
+          )}
         </div>
       </header>
+
+      {resetOpen && data && (
+        <ResetProgressDialog
+          studentId={id}
+          studentUsername={data.username}
+          onClose={() => setResetOpen(false)}
+          onComplete={() => { setResetOpen(false); setReloadKey((k) => k + 1); }}
+        />
+      )}
 
       <main className="max-w-[1400px] mx-auto px-6 py-8">
         {loading ? (

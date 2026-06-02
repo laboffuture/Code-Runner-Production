@@ -181,9 +181,11 @@ UserProgressSchema.methods.updateStreak = function () {
   const lastSubmission = this.streak.lastSubmissionDate;
 
   if (!lastSubmission) {
-    // First submission
+    // First submission (also the first solve after a teacher reset, which clears
+    // lastSubmissionDate but preserves longest). longest is a monotonic
+    // high-water mark — never let it drop below a preserved value.
     this.streak.current = 1;
-    this.streak.longest = 1;
+    this.streak.longest = Math.max(this.streak.longest || 0, 1);
     this.streak.lastSubmissionDate = now;
     return;
   }
