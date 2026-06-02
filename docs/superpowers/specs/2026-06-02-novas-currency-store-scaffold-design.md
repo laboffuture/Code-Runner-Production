@@ -45,7 +45,7 @@ A single config module (`novas.config.ts` in shared, env-overridable) exposes:
 
 | Flag | Scaffold value | Meaning |
 |------|----------------|---------|
-| `NOVAS_VISIBLE` | `true` | show the Novas UI (chip, store, contest area) to students |
+| `NOVAS_VISIBLE` | `true` | show the Novas **sample** (profile "releasing soon" teaser + sample store + contest area) to students |
 | `NOVAS_EARNING_ENABLED` | `false` | the contest hook actually awards Novas |
 | `STORE_REDEMPTION_ENABLED` | `false` | the Redeem action actually spends Novas + creates an order |
 
@@ -55,9 +55,9 @@ This makes the structure real and testable while live behaviour stays off until 
 
 ### 4.1 Wallet — on `UserProgress`
 - Add top-level **`coins: number`** (default `0`), alongside `experience`/`level`/`contestRating`.
-- **Reset interaction (decision):** a teacher progress-reset does **NOT** zero `coins` — Novas map to
-  real-world merch a student genuinely earned, so they survive a learning-progress reset. (Flagged
-  for your review in §9.)
+- **Reset interaction (confirmed):** a teacher progress-reset **never touches `coins`** — teachers have
+  no Novas access at all; only a developer may assign/modify Novas. Novas (real-merch value) survive
+  any learning-progress reset.
 
 ### 4.2 `CoinTransaction` (new model — the ledger)
 Every earn/spend is recorded for audit (essential once real merch is involved).
@@ -93,10 +93,12 @@ later changes.
   `StoreOrder` + `CoinTransaction`. **Guarded by `STORE_REDEMPTION_ENABLED`** → returns a clean
   "coming soon" 503 while off.
 
-**Admin / developer (developer-gated):**
+**Developer-only (developer-gated). Teachers have NO Novas access — no teacher-facing UI or routes:**
 - `POST` / `PUT` `/admin/store/items` → manage catalog.
 - `GET /admin/store/orders` → fulfillment list (item + student name + status).
 - `POST /admin/store/orders/:id/collect` → mark **Collected** (records `fulfilledBy`, `collectedAt`).
+- `POST /admin/novas/adjust { userId, amount, reason }` → manually **assign/modify** a student's Novas
+  (atomic `$inc` + `CoinTransaction` `type:'adjust'`). This is how a developer grants/corrects Novas.
 
 **Earning service (server-side only, never a client route):**
 - `awardNovas(userId, amount, reason, refType, refId)` → atomic `$inc` on `coins` + writes a
@@ -105,7 +107,9 @@ later changes.
 
 ## 6. Frontend (`web/src`)
 
-- **Header Novas chip** — `✨ 0`, always visible (reads `/me/wallet`), respects `NOVAS_VISIBLE`.
+- **Profile "Novas — releasing soon" card** — the student-facing home for Novas at launch: shows
+  `✨ 0` with a clear *"releasing soon"* teaser. Primary entry point for the first 10 students.
+- **Header Novas chip** — `✨ 0` (reads `/me/wallet`); subtle, behind `NOVAS_VISIBLE`.
 - **`/store`** — catalog grid with price tags; **Redeem button → "Coming Soon"** (disabled).
 - **My Orders** — a section on the `/store` page — empty state ("No orders yet").
 - **Contest area** — **"Coming Soon — next contest dropping soon,"** empty leaderboard, **"No one has
@@ -131,15 +135,19 @@ No seeded balances, no fake winners, no fake participation. Counters render `0`;
 empty state. Store may show **a few clearly-labelled example items** so the page looks alive (or be
 fully empty — §9).
 
-## 9. Decisions defaulted (please confirm on review)
+## 9. Decisions (confirmed in 2026-06-02 review; #5 still open)
 
-1. **Reset:** Novas survive a teacher progress-reset (real-merch value). *Default: survive.*
-2. **Launch visibility:** the 10 launch students **see** the Coming-Soon Store/Contest; `NOVAS_VISIBLE`
-   can hide it in one place. *Default: visible (builds anticipation).*
-3. **Example items:** seed a few clearly-labelled example `StoreItem`s. *Default: yes.*
-4. **Owner:** developer/admin owns catalog + fulfillment. *Default: developer.*
-5. **Earning amounts:** base + placement bonus are **constants** (e.g. solve `+10`; 1st/2nd/3rd
-   `+50/+30/+20`), easily tuned later — not finalized now. *Default: those placeholders.*
+1. **Reset (confirmed):** Novas survive a teacher progress-reset — teachers can't touch Novas; only a
+   developer assigns/modifies them.
+2. **Launch posture (confirmed):** Novas are **not live** for the first 10 students — launch priority is
+   Coderunner running error-free. They get a **sample Store + a profile "releasing soon" teaser**
+   (clearly Coming Soon); earning + spending stay **off**. We keep building toward live.
+3. **Example items (confirmed):** seed a few clearly-labelled *sample* `StoreItem`s so the store
+   preview looks alive.
+4. **Access (confirmed):** **Developers only** — they manage the catalog + fulfillment **and can manually
+   assign/modify** a student's Novas. **Teachers have zero Novas access.**
+5. **Earning amounts (open):** base + placement bonus are **constants** (e.g. solve `+10`; 1st/2nd/3rd
+   `+50/+30/+20`), easily tuned later — not finalized. *Default: those placeholders.*
 
 ## 10. Testing
 
@@ -160,8 +168,8 @@ Each phase is independently testable, tsc-clean, and panel-gated.
 
 ## 12. Success criteria
 
-1. A student can open the app, see **✨ 0** in the header, browse the Store, and see Redeem as
-   "Coming Soon".
+1. A student can open the app, see a **profile "Novas — releasing soon"** teaser (✨ 0), browse the
+   **sample Store**, and see Redeem as "Coming Soon".
 2. The Contest area shows "Coming Soon / no one has participated yet" with an empty leaderboard.
 3. An admin can add an item and see an (empty) fulfillment list.
 4. Every flag-off path is inert; nothing awards or spends Novas yet.
