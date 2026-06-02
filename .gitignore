@@ -17,6 +17,15 @@ out/
 **/.next/
 *.tsbuildinfo
 
+# Stray compiled TypeScript output emitted BESIDE source (real build output
+# only ever lives in dist/). A `tsc`/`tsc -b` run without the right outDir can
+# litter src/ with these; they must never be committed. src/ trees are pure TS,
+# and *.map/*.d.ts are never hand-written, so these patterns can't hide source.
+*.js.map
+*.d.ts.map
+**/src/**/*.js
+**/src/**/*.d.ts
+
 # Environment variables — NEVER commit real secrets
 # (.env.local / .env hold live credentials; only *.example files are committed)
 .env
