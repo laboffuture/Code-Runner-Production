@@ -80,8 +80,8 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* ── Cards ── */}
-            <div className="max-w-7xl space-y-6">
+            {/* ── Cards (centered readable column — was left-pinned via max-w-7xl with no mx-auto) ── */}
+            <div className="max-w-5xl mx-auto space-y-6">
 
               {/* ── Character ─────────────────────────────────── */}
               <div className={cardCls} style={cardBorder}>

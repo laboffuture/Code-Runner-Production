@@ -21,6 +21,7 @@ export function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const update = () => setIsDark(document.documentElement.classList.contains('dark'));
@@ -102,6 +103,17 @@ export function Header() {
     };
   }, [isDropdownOpen]);
 
+  // Darken the header background once the page is scrolled past ~10%.
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+      setIsScrolled(pct >= 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const handleLogout = () => {
     logout();
     router.push('/login');
@@ -120,24 +132,24 @@ export function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b backdrop-blur-xl rounded-t-2xl"
+      className="sticky top-0 z-50 w-full border-b rounded-t-2xl"
       style={{
-        borderColor: accent20,
         backgroundColor: pathname?.includes('/introduction') ? 'rgba(5, 8, 18, 0.97)' : accentDark20,
       }}
     >
-      {/* HUD Frame */}
-      <>
-        <div className="absolute inset-0 rounded-t-2xl" style={{
-          background: `linear-gradient(to right, ${accent05}, transparent, ${accent05})`
-        }}></div>
-        <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 rounded-tl-2xl" style={{
-          borderColor: accent40
-        }}></div>
-        <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 rounded-tr-2xl" style={{
-          borderColor: accent40
-        }}></div>
-      </>
+      {/* Scroll-reactive header background: solid dark once scrolled, accent
+          gradient at the top. Intentionally flat — the prior backdrop-blur, the
+          accent border tint, and the HUD corner brackets were dropped for a
+          cleaner header; the never-defined header-bg-new/scrolled classes went
+          with them. */}
+      <div
+        className="absolute inset-0 rounded-t-2xl"
+        style={{
+          background: isScrolled
+            ? '#000000d1'
+            : `linear-gradient(to right, ${accent05}, transparent, ${accent05})`,
+        }}
+      ></div>
 
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between relative z-10">
         {/* Logo Section */}
@@ -316,7 +328,7 @@ export function Header() {
       <div
         className="absolute bottom-0 left-0 h-0.5 w-full opacity-60 animate-pulse"
         style={{
-          background: `linear-gradient(to right, transparent, ${accentColor}, transparent)`
+          background: accentColor
         }}
       ></div>
     </header>
