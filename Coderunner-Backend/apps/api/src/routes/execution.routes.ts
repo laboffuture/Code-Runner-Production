@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import { Models, CodeExecutionJobData, SubmissionJobData } from '@code-runner/shared';
+import { Models, CodeExecutionJobData, SubmissionJobData, isProblemUnlocked, UnlockProblem } from '@code-runner/shared';
 import { optionalAuthMiddleware, authMiddleware, developerMiddleware } from '../middleware/auth.middleware';
 import { executionLimiter, dailyExecutionLimiter } from '../middleware/rateLimit.middleware';
 import { codeExecutionQueue, codeSubmissionQueue } from '../queue/queue.config';
@@ -184,6 +185,51 @@ router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLim
         error: 'Not Found',
         message: 'Problem not found',
       });
+    }
+
+    // Is this a LEGITIMATE contest submission? Only a real, currently-active
+    // contest that actually contains this problem is exempt from sequential
+    // gating — NOT the mere presence of a client-supplied `contestId`. Without
+    // this check a student could pass any string to skip the gate and still earn
+    // a normal curriculum solve (the worker records progress regardless).
+    let isContestSubmission = false;
+    if (contestId && mongoose.Types.ObjectId.isValid(contestId)) {
+      const contest = await Models.Contest.findById(contestId)
+        .select('startTime endTime problems')
+        .lean<{ startTime: Date; endTime: Date; problems: Array<{ problemId: number }> } | null>();
+      if (contest) {
+        const now = Date.now();
+        const active =
+          now >= new Date(contest.startTime).getTime() &&
+          now <= new Date(contest.endTime).getTime();
+        const inContest = (contest.problems || []).some((p) => p.problemId === problemId);
+        isContestSubmission = active && inContest;
+      }
+    }
+
+    // Sequential progression: a curriculum problem can only be GRADED once every
+    // problem in all prior sessions is solved. Genuine contest submissions are
+    // exempt. Skip if the problem has no age band (can't scope the curriculum).
+    if (!isContestSubmission && problem.age_group) {
+      const userId = req.user!.userId;
+      const up = await Models.UserProgress.findOne({ userId })
+        .select('solvedProblemIds')
+        .lean<{ solvedProblemIds?: number[] } | null>();
+      const solved: number[] = up?.solvedProblemIds || [];
+      const curriculum = await Models.Problem.find(
+        { age_group: problem.age_group }, 'problem_id level_number session_id',
+      ).lean<UnlockProblem[]>();
+      if (!isProblemUnlocked(problemId, solved, curriculum)) {
+        return res.status(403).json({
+          error: 'Locked',
+          message: 'Complete the previous session to unlock this one.',
+        });
+      }
+    } else if (!isContestSubmission && !problem.age_group) {
+      // Fail-open is intentional (can't scope the curriculum without a band) but
+      // a curriculum problem missing age_group is a seeding regression — make the
+      // waived gate observable instead of silently ungating.
+      console.warn(`[grade] sequential gate skipped: problem ${problemId} has no age_group`);
     }
 
     // Get all test cases (including hidden ones)

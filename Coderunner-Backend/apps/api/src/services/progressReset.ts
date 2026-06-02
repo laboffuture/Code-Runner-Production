@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Models, getLogger } from '@code-runner/shared';
+import { Models, getLogger, sessionOrderKey } from '@code-runner/shared';
 
 // ── Pure recompute: derive UserProgress fields from the SURVIVING solves/attempts.
 // No I/O — fully unit-testable (see progressReset.assert.ts).
@@ -149,17 +149,17 @@ export async function performStudentReset(
   const problems: any[] = await Models.Problem.find(
     { age_group: req.ageGroup }, 'problem_id session_id level_number session_title difficulty',
   ).lean();
-  const orderKey = (p: any) => (p.level_number ?? 0) * 1_000_000 + (p.session_id ?? 0);
-
   // Keep-set = problems strictly BEFORE the boundary. Full reset = empty keep-set.
+  // Uses the SAME shared sessionOrderKey as the sequential-unlock gate, so a
+  // from-session reset re-locks exactly the sessions the gate then gates.
   let keep: Set<number>;
   if (req.scope === 'full') {
     keep = new Set();
   } else {
     const boundary = problems.find((p) => p.session_id === req.fromSessionId);
     if (!boundary) throw Object.assign(new Error('Unknown session for this reset'), { statusCode: 400 });
-    const bKey = orderKey(boundary);
-    keep = new Set(problems.filter((p) => orderKey(p) < bKey).map((p) => p.problem_id));
+    const bKey = sessionOrderKey(boundary);
+    keep = new Set(problems.filter((p) => sessionOrderKey(p) < bKey).map((p) => p.problem_id));
   }
 
   const prevSolved: number[] = progress?.solvedProblemIds || [];

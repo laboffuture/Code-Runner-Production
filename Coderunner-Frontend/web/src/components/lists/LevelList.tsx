@@ -4,6 +4,7 @@ import type { Level } from '@/lib/types';
 import Link from 'next/link';
 import { ArrowRight, Lock, Zap, Target, CheckCircle, Play } from 'lucide-react';
 import { useProgress } from '@/lib/utilities/progress';
+import { isLevelUnlocked } from '@/lib/utilities/unlock';
 import { useState, useEffect } from 'react';
 import { useGlobalAudio } from '@/contexts/AudioContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -42,7 +43,11 @@ export function LevelList({ levels }: LevelListProps) {
 
   const getStatusInfo = (level: Level) => {
     const isCompleted = progress.isLevelCompleted(level.age_group, level.level_number);
-    const isUnlocked = progress.isLevelUnlocked(level.age_group, level.level_number);
+    const isUnlocked = isLevelUnlocked(
+      levels,
+      level.level_number,
+      (pid: number) => progress.isProblemCompleted(String(pid)),
+    );
 
     if (isCompleted) {
       return {

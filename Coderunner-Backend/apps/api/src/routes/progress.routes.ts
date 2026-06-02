@@ -68,51 +68,12 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
-/**
- * POST /progress/complete
- * Called when a student completes a problem/session/level from the frontend.
- * For problems: the worker handles stats — here we just ensure solvedProblemIds
- * stays consistent if the frontend marks something done the worker missed.
- */
-router.post('/complete', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { type, id } = req.body;
-    // Derive the user from the JWT, never from the request body, so a student
-    // cannot mark problems complete on another student's account (IDOR fix).
-    const userId = req.user!.userId;
-
-    if (!type || id === undefined) {
-      return res.status(400).json({
-        error: 'Validation Error',
-        message: 'type and id are required',
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Validation Error', message: 'Invalid userId' });
-    }
-
-    if (type === 'problem') {
-      const problemId = Number(id);
-      if (isNaN(problemId)) {
-        return res.status(400).json({ error: 'Validation Error', message: 'Invalid problem id' });
-      }
-
-      const userObjectId = new mongoose.Types.ObjectId(userId);
-      await Models.UserProgress.updateOne(
-        { userId: userObjectId },
-        { $addToSet: { solvedProblemIds: problemId } },
-        { upsert: false }
-      );
-
-      logger.info('Problem marked complete via /progress/complete', { userId, problemId });
-    }
-
-    res.json({ message: `${type} ${id} marked as complete for user ${userId}` });
-  } catch (error) {
-    logger.error('Error marking complete', { error });
-    res.status(500).json({ error: 'Failed to mark as complete' });
-  }
-});
+// NOTE: a `POST /progress/complete` route used to live here. It wrote
+// solvedProblemIds directly ($addToSet) with no grading and no unlock check, so
+// any authenticated student could forge solves via direct HTTP — which would
+// also defeat the sequential-unlock gate (it reads exactly this array). It was
+// dead from the UI (no caller) and only duplicated what the grading worker does
+// authoritatively, so it was removed. The grading worker is the single writer of
+// solvedProblemIds.
 
 export default router;

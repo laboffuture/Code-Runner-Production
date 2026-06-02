@@ -16,13 +16,12 @@ export interface LevelProgress {
 // (completedProblems are preserved).
 const PROGRESS_VERSION = 'v2';
 
-// LAUNCH SETTING — every level is intentionally unlocked for the initial
-// release. Only a couple of intro levels ship, gating adds friction with little
-// benefit, and unlock state is currently client-only (localStorage) so it can't
-// be meaningfully enforced anyway. Flip to `false` to restore sequential
-// "finish the previous level to unlock the next" gating once level completion
-// is tracked server-side (see Caveat 2 in the project notes).
-const UNLOCK_ALL_LEVELS = true;
+// Sequential progression is now ENFORCED server-side (the grade route 403s a
+// problem in a locked session), and LevelList derives level locks from the
+// synced solved set via lib/utilities/unlock.ts. This flag stays false only so
+// the legacy progress.isLevelUnlocked helper (no longer rendered anywhere)
+// returns its sequential value rather than always-true, should anything read it.
+const UNLOCK_ALL_LEVELS = false;
 
 // Number of levels per age group, used only for progress-percentage helpers
 // (getChapterProgress/getOverallProgress — not currently rendered anywhere).
