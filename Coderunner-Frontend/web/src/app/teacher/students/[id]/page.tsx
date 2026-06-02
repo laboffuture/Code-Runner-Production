@@ -138,6 +138,31 @@ export default function StudentDetail() {
           <div className="text-center py-20 text-red-600 font-rajdhani">{error}</div>
         ) : data ? (
           <div className="flex flex-col gap-6">
+            {/* Teacher monitoring strip — surfaces the numbers a teacher actually
+                asks: how far through the curriculum, and how much they struggled.
+                'Failed' = graded submissions that did not pass (totalSubmissions −
+                acceptedSubmissions); it counts SUBMISSIONS, not failed test runs. */}
+            {(() => {
+              const s = data.stats || {};
+              const failed = Math.max(0, (s.totalSubmissions ?? 0) - (s.acceptedSubmissions ?? 0));
+              const cards = [
+                { label: 'SESSIONS DONE', value: `${data.sessionsCompleted ?? 0} / ${data.sessionsTotal ?? 0}`, accent: 'text-indigo-600' },
+                { label: 'ACCEPTANCE', value: `${s.acceptanceRate ?? 0}%`, accent: 'text-emerald-600' },
+                { label: 'SUBMISSIONS', value: s.totalSubmissions ?? 0, accent: 'text-gray-800' },
+                { label: 'FAILED SUBMITS', value: failed, accent: 'text-rose-600' },
+              ];
+              return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {cards.map((c) => (
+                    <div key={c.label} className="bg-white border-2 border-gray-200 rounded-xl p-4">
+                      <div className={`text-2xl font-orbitron font-black ${c.accent} leading-none`}>{c.value}</div>
+                      <div className="mt-1 text-[11px] text-gray-500 font-rajdhani tracking-wider">{c.label}</div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
               <div className="xl:col-span-3 h-full">
                 <ProfileStats data={data} section="identity" />

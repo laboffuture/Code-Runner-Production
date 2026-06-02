@@ -238,6 +238,7 @@ router.get('/students/:id', async (req: Request, res: Response) => {
     }));
     const topicProgress = (progress?.topicProgress || []).map((t: any) => ({
       topic: t.topic,
+      name: t.topic, // alias — keep teacher + student topicProgress shape identical (I1)
       solved: t.solved,
       total: t.total,
       percentage: t.total > 0 ? Math.round((t.solved / t.total) * 100) : 0,
@@ -245,6 +246,24 @@ router.get('/students/:id', async (req: Request, res: Response) => {
     const skills = topicProgress
       .filter((t: any) => t.solved > 0)
       .map((t: any) => ({ name: t.topic, problemCount: t.solved, category: 'CONCEPT' }));
+
+    // Sessions completed: of all sessions in the student's age band, how many
+    // have EVERY problem solved — a clean "X of Y sessions" progress signal that
+    // (unlike topicProgress) also accounts for sessions the student hasn't touched.
+    const solvedSet = new Set<number>(progress?.solvedProblemIds || []);
+    const bandProblems = (await Models.Problem.find(
+      { age_group: user.age_group }, 'problem_id session_id',
+    ).lean()) as any[];
+    const sessionAgg = new Map<number, { total: number; solved: number }>();
+    for (const p of bandProblems) {
+      const e = sessionAgg.get(p.session_id) || { total: 0, solved: 0 };
+      e.total += 1;
+      if (solvedSet.has(p.problem_id)) e.solved += 1;
+      sessionAgg.set(p.session_id, e);
+    }
+    const sessionsTotal = sessionAgg.size;
+    let sessionsCompleted = 0;
+    for (const e of sessionAgg.values()) if (e.total > 0 && e.solved >= e.total) sessionsCompleted += 1;
 
     res.json({
       id: user._id,
@@ -272,6 +291,8 @@ router.get('/students/:id', async (req: Request, res: Response) => {
       submissionCalendar: progress?.submissionCalendar || [],
       solvedCalendar: progress?.solvedCalendar || [],
       topicProgress,
+      sessionsCompleted,
+      sessionsTotal,
       solvedProblemIds: progress?.solvedProblemIds || [],
       attempts,
     });

@@ -130,8 +130,11 @@ router.get('/me/stats', async (req: Request, res: Response) => {
       }
     }
 
-    // Transform topicProgress: add 'name' alias and compute 'percentage'
+    // topicProgress shape MUST match the teacher endpoint's (I1): emit both
+    // `topic` (canonical) and `name` (legacy alias read by TopicProgress.tsx) so
+    // the same data renders identically wherever it's consumed.
     const topicProgress = progress.topicProgress.map((t: any) => ({
+      topic: t.topic,
       name: t.topic,
       solved: t.solved,
       total: t.total,
