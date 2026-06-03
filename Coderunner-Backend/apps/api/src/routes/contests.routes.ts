@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { Models, getLogger } from '@code-runner/shared';
+import { Models, getLogger, awardNovas } from '@code-runner/shared';
 import { authMiddleware } from '../middleware/auth.middleware';
 import mongoose from 'mongoose';
 
@@ -83,6 +83,13 @@ async function applyRatingUpdates(contestId: mongoose.Types.ObjectId): Promise<v
       { userId: entry.userId, contestRating: { $gt: 3000 } },
       { $set: { contestRating: 3000 } }
     );
+
+    // Novas (✨) for the podium — the prestige, contest-only reward (XP already covers
+    // participation/finishing). Dormant: awardNovas no-ops until NOVAS_EARNING_ENABLED.
+    const novaBonus = i === 0 ? 50 : i === 1 ? 30 : i === 2 ? 20 : 0;
+    if (novaBonus > 0) {
+      await awardNovas(entry.userId.toString(), novaBonus, `Contest placement: rank ${i + 1}`, contestId.toString());
+    }
   }
 
   // Registered but never submitted → small penalty

@@ -7,8 +7,9 @@ import { Header } from '@/components/layout/Header';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Trophy, Clock, Users, Zap, Calendar, ChevronLeft, Lock, Star } from 'lucide-react';
+import { Trophy, Clock, Users, Zap, Calendar, ChevronLeft, Lock, Star, Sparkles } from 'lucide-react';
 import FloatingParticles from '@/components/ui/FloatingParticles';
+import { NOVAS } from '@/lib/novas';
 
 type ContestStatus = 'active' | 'upcoming' | 'ended';
 
@@ -212,6 +213,16 @@ export default function ContestListPage() {
               </p>
             </div>
           </div>
+
+          {/* Novas (✨) — coming soon. Additive teaser; does not change contest behavior. */}
+          {NOVAS.VISIBLE && (
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+              <Sparkles className="w-5 h-5 shrink-0 text-amber-500" />
+              <p className="font-rajdhani text-amber-800">
+                <span className="font-orbitron font-bold">Win {NOVAS.NAME} {NOVAS.EMOJI}</span> by placing in contests — spend them in the store. Rewards coming soon!
+              </p>
+            </div>
+          )}
 
           {/* Login notice */}
           {!isAuthenticated && (
