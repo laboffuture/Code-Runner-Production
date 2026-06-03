@@ -299,6 +299,18 @@ export const api = {
     mongodbStats: () => apiClient.get('/admin/mongodb/stats'),
     mongodbAtlas: () => apiClient.get('/admin/mongodb/atlas'),
     cloudinaryStats: () => apiClient.get('/admin/cloudinary/stats'),
+    // Novas store operations (developer-only)
+    store: {
+      listItems: () => apiClient.get('/admin/store/items'),
+      createItem: (data: { name: string; description?: string; imageUrl?: string; priceCoins: number; category?: string; stock?: number | null }) =>
+        apiClient.post('/admin/store/items', data),
+      updateItem: (id: string, data: { name: string; description?: string; imageUrl?: string; priceCoins: number; category?: string; stock?: number | null; active?: boolean }) =>
+        apiClient.put(`/admin/store/items/${id}`, data),
+      listOrders: (status?: string) => apiClient.get(`/admin/store/orders${status ? `?status=${status}` : ''}`),
+      collectOrder: (id: string) => apiClient.post(`/admin/store/orders/${id}/collect`, {}),
+      adjustNovas: (data: { username: string; amount: number; reason: string }) =>
+        apiClient.post('/admin/store/adjust-novas', data),
+    },
   },
 
   // Student joins a classroom by code
