@@ -17,19 +17,31 @@ async function seedCodeConvergenceL3() {
     const codeConvergence = {
       problem_id: 181,
       session_id: 33, // Level 3, Code Convergence
-      title: 'Project COSMIC LINK – Interstellar AI Signal Processor',
+      title: 'Project COSMIC LINK - Interstellar AI Signal Processor',
       description: 'Build an intelligent signal processor to classify cosmic transmissions from VORAX-9. Combine classes, encapsulation, lists, conditionals, and functional programming to detect, classify, and respond to signals. Unlock GALACTIC COMMAND!',
       difficulty: 'Hard',
-      question: `Build a signal processing system combining all Python fundamentals:
+      question: `Build the COSMIC LINK signal processor.
 
-1. Create Signal objects with encapsulation
-2. Classify signals using conditional logic
-3. Manage data with lists and loops
-4. Generate alerts using function parameters`,
+Read 3 signals. For each signal, read 3 lines:
+1. Source name
+2. Signal strength (a whole number)
+3. Message
+
+Classify each signal by its strength:
+- strength greater than 70 -> Friendly
+- strength of 70 or less -> Unknown
+
+Then PRINT exactly these 4 lines (replace each <...> with your value):
+Total Signals Detected: <how many signals in total>
+Friendly Signals: <how many had strength greater than 70>
+Unknown Signals: <how many had strength 70 or less>
+COSMIC LINK LIVE - STREAMS CLASSIFIED
+
+Tip: you can use a class to model each signal if you like - the grader only checks what you print.`,
 
       compiler_comment: '# Write your code here\n',
       sample_input: 'Alpha-1\n85\nFriendly approach detected\nBeta-2\n60\nUnknown origin signal\nGamma-3\n95\nAllied transmission received',
-      sample_output: 'Total Signals Detected: 3\nFriendly Signals: 2\nUnknown Signals: 1\nCOSMIC LINK LIVE – STREAMS CLASSIFIED',
+      sample_output: 'Total Signals Detected: 3\nFriendly Signals: 2\nUnknown Signals: 1\nCOSMIC LINK LIVE - STREAMS CLASSIFIED',
 
       age_group: '11-14',
       level_number: 3,
@@ -49,8 +61,8 @@ async function seedCodeConvergenceL3() {
 
       // Case-specific content
       case_number: 1,
-      case_title: 'Project COSMIC LINK – Interstellar AI Signal Processor',
-      case_explanation: `Signal class needs __init__ and __str__. SignalClassifier uses private __type with getter/setter. Process 3 signals (source, strength, message), classify by strength > 70, separate into lists. Alert function uses *args. Final summary shows counts and status.`,
+      case_title: 'Project COSMIC LINK - Interstellar AI Signal Processor',
+      case_explanation: `Read 3 signals - each is 3 lines: source name, strength (a whole number), message. Count how many have strength greater than 70 (Friendly) and how many are 70 or less (Unknown). Then print the 4 result lines exactly as shown. You may model a signal with a class if you like (a good use of what you learned this level), but only your printed output is graded.`,
 
       created_at: new Date(),
       updated_at: new Date()
@@ -63,21 +75,25 @@ async function seedCodeConvergenceL3() {
     // Insert code convergence problem
     const problemResult = await problemsCollection.insertOne(codeConvergence);
     // Test cases for Code Convergence L3 (7 test cases: 2 visible, 5 hidden)
+    // Test cases use VARIED Friendly/Unknown splits (0/3, 1/2, 2/1, 3/0) and a
+    // strength-exactly-70 boundary case, so the printed counts can only be produced
+    // by actually reading the input and applying the >70 rule (no hard-coding).
+    const SUMMARY = (f) => `Total Signals Detected: 3\nFriendly Signals: ${f}\nUnknown Signals: ${3 - f}\nCOSMIC LINK LIVE - STREAMS CLASSIFIED`;
     const testCases = [
       // Visible test cases
       {
         test_case_id: 1811,
         problem_id: 181,
         input: 'Alpha-1\n85\nFriendly approach detected\nBeta-2\n60\nUnknown origin signal\nGamma-3\n95\nAllied transmission received',
-        expected_output: 'Total Signals Detected: 3\nFriendly Signals: 2\nUnknown Signals: 1\nCOSMIC LINK LIVE – STREAMS CLASSIFIED',
+        expected_output: SUMMARY(2), // 85,95 friendly; 60 unknown
         is_hidden: false,
         weight: 15
       },
       {
         test_case_id: 1812,
         problem_id: 181,
-        input: 'Nova-7\n75\nPeaceful contact initiated\nDelta-5\n50\nUnidentified frequency\nOrion-9\n80\nCooperative signal confirmed',
-        expected_output: 'Total Signals Detected: 3\nFriendly Signals: 2\nUnknown Signals: 1\nCOSMIC LINK LIVE – STREAMS CLASSIFIED',
+        input: 'Nova-7\n50\nFaint static burst\nDelta-5\n45\nUnidentified frequency\nOrion-9\n30\nWeak unknown ping',
+        expected_output: SUMMARY(0), // all <= 70 => 0 friendly
         is_hidden: false,
         weight: 15
       },
@@ -85,40 +101,40 @@ async function seedCodeConvergenceL3() {
       {
         test_case_id: 1813,
         problem_id: 181,
-        input: 'Phoenix-3\n90\nAlliance beacon active\nVega-4\n65\nCryptic transmission\nZenith-8\n71\nTrusted source verified',
-        expected_output: 'Total Signals Detected: 3\nFriendly Signals: 2\nUnknown Signals: 1\nCOSMIC LINK LIVE – STREAMS CLASSIFIED',
+        input: 'Phoenix-3\n80\nAlliance beacon active\nVega-4\n90\nClear ally channel\nZenith-8\n100\nTrusted source verified',
+        expected_output: SUMMARY(3), // all > 70 => 3 friendly
         is_hidden: true,
         weight: 15
       },
       {
         test_case_id: 1814,
         problem_id: 181,
-        input: 'Titan-2\n100\nEmergency aid provided\nSirius-6\n55\nAmbiguous message\nLunar-1\n78\nFriendly forces deployed',
-        expected_output: 'Total Signals Detected: 3\nFriendly Signals: 2\nUnknown Signals: 1\nCOSMIC LINK LIVE – STREAMS CLASSIFIED',
+        input: 'Titan-2\n70\nBorderline reading\nSirius-6\n71\nJust-friendly signal\nLunar-1\n69\nJust-unknown signal',
+        expected_output: SUMMARY(1), // boundary: 70 -> Unknown, 71 -> Friendly, 69 -> Unknown
         is_hidden: true,
         weight: 15
       },
       {
         test_case_id: 1815,
         problem_id: 181,
-        input: 'Cosmos-5\n82\nDiplomatic channel open\nNebula-3\n45\nWeakened signal detected\nAurora-7\n88\nPeaceful intentions confirmed',
-        expected_output: 'Total Signals Detected: 3\nFriendly Signals: 2\nUnknown Signals: 1\nCOSMIC LINK LIVE – STREAMS CLASSIFIED',
+        input: 'Cosmos-5\n95\nDiplomatic channel open\nNebula-3\n72\nPeaceful intentions confirmed\nAurora-7\n55\nWeakened signal detected',
+        expected_output: SUMMARY(2), // 95,72 friendly; 55 unknown
         is_hidden: true,
         weight: 10
       },
       {
         test_case_id: 1816,
         problem_id: 181,
-        input: 'Polaris-9\n92\nRescue operation confirmed\nEclipse-2\n58\nDistorted communication\nHorizon-6\n74\nCooperative mission active',
-        expected_output: 'Total Signals Detected: 3\nFriendly Signals: 2\nUnknown Signals: 1\nCOSMIC LINK LIVE – STREAMS CLASSIFIED',
+        input: 'Polaris-9\n65\nDistorted communication\nEclipse-2\n68\nFaded transmission\nHorizon-6\n71\nCooperative mission active',
+        expected_output: SUMMARY(1), // only 71 friendly
         is_hidden: true,
         weight: 15
       },
       {
         test_case_id: 1817,
         problem_id: 181,
-        input: 'Voyager-4\n98\nMedical assistance transmitted\nComet-8\n62\nUncertain broadcast\nStarlight-1\n76\nAllied support confirmed',
-        expected_output: 'Total Signals Detected: 3\nFriendly Signals: 2\nUnknown Signals: 1\nCOSMIC LINK LIVE – STREAMS CLASSIFIED',
+        input: 'Voyager-4\n100\nMedical assistance transmitted\nComet-8\n99\nAllied support confirmed\nStarlight-1\n98\nRescue beacon active',
+        expected_output: SUMMARY(3), // all > 70 => 3 friendly
         is_hidden: true,
         weight: 15
       }
