@@ -64,6 +64,7 @@ import contestsRoutes from './routes/contests.routes';
 import teacherRoutes from './routes/teacher.routes';
 import storeRoutes from './routes/store.routes';
 import adminStoreRoutes from './routes/admin-store.routes';
+import curriculumRoutes from './routes/curriculum.routes';
 import { authMiddleware, developerMiddleware } from './middleware/auth.middleware';
 
 // Import Redis and queue initializer (AFTER dotenv is loaded)
@@ -266,6 +267,7 @@ app.use('/contests', contestsRoutes);
 app.use('/teacher', teacherRoutes);
 app.use('/store', storeRoutes);
 app.use('/admin/store', adminStoreRoutes);
+app.use('/curriculum', curriculumRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

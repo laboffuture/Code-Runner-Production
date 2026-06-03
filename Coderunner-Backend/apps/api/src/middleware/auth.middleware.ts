@@ -63,6 +63,18 @@ export function teacherMiddleware(req: Request, res: Response, next: NextFunctio
   next();
 }
 
+// Staff-only middleware (must be used after authMiddleware).
+// Gates curriculum / answer-key endpoints to teacher OR developer — never students.
+export function staffMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (!req.user || (req.user.role !== 'teacher' && req.user.role !== 'developer')) {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'Staff access required',
+    });
+  }
+  next();
+}
+
 // Optional auth middleware (doesn't fail if no token)
 export function optionalAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   try {

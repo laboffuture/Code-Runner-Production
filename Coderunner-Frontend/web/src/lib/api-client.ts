@@ -331,6 +331,12 @@ export const api = {
       apiClient.post(`/teacher/students/${id}/reset`, body),
   },
 
+  // Curriculum / Answer Guide (staff-gated)
+  curriculum: {
+    getTree: (ageGroup: string = '11-14') => apiClient.get(`/curriculum/tree?ageGroup=${ageGroup}`),
+    getGuide: (problemId: number) => apiClient.get(`/curriculum/problems/${problemId}/guide`),
+  },
+
   // Contests
   contests: {
     list: (params?: { status?: string; ageGroup?: string; page?: number }) => {
