@@ -21,7 +21,7 @@ async function seedProblem241() {
       title: 'Celestial Command Interface – Enhancing Mission Control with Dynamic Inputs',
       description: 'Build a complete interactive mission control system integrating all Pygame concepts.',
       difficulty: 'Hard',
-      question: `Build the Celestial Command Interface—an interactive mission control system. With storms peaking, the team interacts rapidly with the console to trigger safe-mode, re-attempt links, and acknowledge alerts. Create interactive controls with keys to toggle modes, custom events for timed checks, text overlays for warnings, and icons for subsystem states.
+      question: `Build the Celestial Command Interface-an interactive mission control system. With storms peaking, the team interacts rapidly with the console to trigger safe-mode, re-attempt links, and acknowledge alerts. Create interactive controls with keys to toggle modes, custom events for timed checks, text overlays for warnings, and icons for subsystem states.
 
 Create a Pygame window (800x600) titled "Celestial Command Interface". Display spacecraft velocity starting at 300 km/h at position (50, 50) and system status "Normal" at position (50, 80). Use font size 30.
 
@@ -55,7 +55,7 @@ Print appropriate status messages for initialization, emergency triggers, and sy
       // Case-specific content
       case_number: 6,
       case_title: 'Celestial Command Interface – Enhancing Mission Control with Dynamic Inputs',
-      case_overview: `You are tasked with designing a Celestial Command Interface—an interactive system that will manage spacecraft operations using real-time inputs, alerts, and visuals. This system will include dynamic updates for mission parameters, control options for the spacecraft, and a real-time status dashboard.`,
+      case_overview: `You are tasked with designing a Celestial Command Interface-an interactive system that will manage spacecraft operations using real-time inputs, alerts, and visuals. This system will include dynamic updates for mission parameters, control options for the spacecraft, and a real-time status dashboard.`,
       case_explanation: `Integrate all Pygame concepts: window creation, keyboard input with arrow keys and letter keys, custom events with set_timer(), dynamic text rendering, image loading and transformation (rotate, flip, scale), real-time text input with KEYDOWN and unicode, and comprehensive event handling. This demonstrates complete mastery of Pygame for building interactive mission control interfaces.`,
 
       created_at: new Date(),

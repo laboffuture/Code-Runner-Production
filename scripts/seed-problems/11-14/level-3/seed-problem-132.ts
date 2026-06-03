@@ -21,7 +21,7 @@ async function seedProblem132() {
       title: 'Celestial Calculations – Enhancing Space Systems',
       description: 'Your space station analyzes star systems using advanced computational modules. Generate random star coordinates, calculate high-precision fuel requirements, and process radiation sensor data to ensure mission success and crew safety.',
       difficulty: 'Hard',
-      question: `The space station needs analysis operations based on input type. Can you implement: star_distance (random coords 1-100, seed 42, Euclidean distance from origin, 2 decimals), fuel_calc (distance × 0.437, Decimal precision 10, output 3 decimals), and radiation_mean (mean of sensor values, 2 decimals)?`,      sample_input: 'star_distance',
+      question: `The space station needs analysis operations based on input type. Can you implement: star_distance (random coords 1-100, seed 42, Euclidean distance from origin, 2 decimals), fuel_calc (distance * 0.437, Decimal precision 10, output 3 decimals), and radiation_mean (mean of sensor values, 2 decimals)?`,      sample_input: 'star_distance',
       sample_output: '83.36',
 
       age_group: '11-14',

@@ -21,7 +21,7 @@ async function seedProblem138() {
       title: 'Quantum Signal Decoder – Advanced Module Integration',
       description: 'Your quantum communication system processes encrypted signals using multiple advanced modules for pattern generation, calculation optimization, and data transformation.',
       difficulty: 'Hard',
-      question: `Can you process signal types: 'pattern' (cycle [1,2,3,4,5], output first 15 values), 'velocity' (sqrt(d*1000 + d²)/3.5 for comma-separated distances, 2 decimals), or 'transform' (sum × 2 for comma-separated integers)?`,      sample_input: 'pattern',
+      question: `Can you process signal types: 'pattern' (cycle [1,2,3,4,5], output first 15 values), 'velocity' (sqrt(d*1000 + d²)/3.5 for comma-separated distances, 2 decimals), or 'transform' (sum * 2 for comma-separated integers)?`,      sample_input: 'pattern',
       sample_output: '1 2 3 4 5 1 2 3 4 5 1 2 3 4 5',
 
       age_group: '11-14',

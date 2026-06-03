@@ -21,7 +21,7 @@ async function seedProblem164() {
       title: 'Multilevel Inheritance – Passing Down the Chain',
       description: 'Explore how inheritance can pass skills down through multiple levels, like a family tree of spacecraft.',
       difficulty: 'Medium',
-      question: `Can you create a three-level inheritance chain (Vehicle → Rocket → CargoRocket) with conditional prefixes for each method?`,      sample_input: 'Falcon9',
+      question: `Can you create a three-level inheritance chain (Vehicle -> Rocket -> CargoRocket) with conditional prefixes for each method?`,      sample_input: 'Falcon9',
       sample_output: 'Super: Falcon9 Moving...\nSuper: Falcon9 Rocket engines firing!\nSuper: Falcon9 Delivering satellite payload.',
 
       age_group: '11-14',

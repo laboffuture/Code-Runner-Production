@@ -21,8 +21,19 @@ async function seedProblem198() {
       title: 'Nested Try Blocks for Cascading Failures',
       description: 'Learn to handle failures inside failures using nested try-except blocks for multi-stage anomaly simulation.',
       difficulty: 'Medium',
-      question: `Create a nested exception system. Outer try prints "Main Engine Check". Inner try raises RuntimeError("Sensor glitch detected"). Inner except catches it and prints "Inner Recovery: Sensor glitch detected", then raises Exception("Mission abort initiated"). Outer except catches it and prints "Outer System Response: Mission abort initiated". Finally always prints "Mission Report Filed."`,      sample_input: '',
-      sample_output: 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.\n',
+      question: `Build a nested exception system that reacts to a sensor reading.
+
+Read one integer: the sensor reading.
+
+- Outer try: print "Main Engine Check".
+  - Inner try: if the reading is greater than 50, raise RuntimeError("Sensor glitch detected"); otherwise print "Sensors nominal".
+  - Inner except (RuntimeError): print "Inner Recovery: Sensor glitch detected", then raise Exception("Mission abort initiated").
+- Outer except: print "Outer System Response: Mission abort initiated".
+- Finally: always print "Mission Report Filed."
+
+A high reading (greater than 50) triggers the full cascade; a safe reading (50 or less) does not.`,
+      sample_input: '80',
+      sample_output: 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.',
 
       compiler_comment: `# Write your code here\n`,
 
@@ -58,66 +69,21 @@ async function seedProblem198() {
     const problemResult = await problemsCollection.insertOne(problem198);
     console.log('Problem 198 inserted');
 
-    // Test cases for Problem 198
+    // Test cases use the sensor reading to drive two distinct paths (cascade vs nominal),
+    // including the boundary at exactly 50, so the printed lines can only be produced by
+    // actually reading the input and running the nested try/except (no hard-coding).
+    const GLITCH = 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.';
+    const NOMINAL = 'Main Engine Check\nSensors nominal\nMission Report Filed.';
     const testCases = [
       // Visible test cases
-      {
-        test_case_id: 1981,
-        problem_id: 198,
-        input: '',
-        expected_output: 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.\n',
-        is_hidden: false,
-        weight: 14
-      },
-      {
-        test_case_id: 1982,
-        problem_id: 198,
-        input: '',
-        expected_output: 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.\n',
-        is_hidden: false,
-        weight: 14
-      },
+      { test_case_id: 1981, problem_id: 198, input: '80', expected_output: GLITCH, is_hidden: false, weight: 14 },
+      { test_case_id: 1982, problem_id: 198, input: '30', expected_output: NOMINAL, is_hidden: false, weight: 14 },
       // Hidden test cases
-      {
-        test_case_id: 1983,
-        problem_id: 198,
-        input: '',
-        expected_output: 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.\n',
-        is_hidden: true,
-        weight: 14
-      },
-      {
-        test_case_id: 1984,
-        problem_id: 198,
-        input: '',
-        expected_output: 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.\n',
-        is_hidden: true,
-        weight: 15
-      },
-      {
-        test_case_id: 1985,
-        problem_id: 198,
-        input: '',
-        expected_output: 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.\n',
-        is_hidden: true,
-        weight: 14
-      },
-      {
-        test_case_id: 1986,
-        problem_id: 198,
-        input: '',
-        expected_output: 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.\n',
-        is_hidden: true,
-        weight: 15
-      },
-      {
-        test_case_id: 1987,
-        problem_id: 198,
-        input: '',
-        expected_output: 'Main Engine Check\nInner Recovery: Sensor glitch detected\nOuter System Response: Mission abort initiated\nMission Report Filed.\n',
-        is_hidden: true,
-        weight: 14
-      }
+      { test_case_id: 1983, problem_id: 198, input: '51', expected_output: GLITCH, is_hidden: true, weight: 14 },  // just above boundary
+      { test_case_id: 1984, problem_id: 198, input: '50', expected_output: NOMINAL, is_hidden: true, weight: 15 }, // exactly 50 -> nominal
+      { test_case_id: 1985, problem_id: 198, input: '95', expected_output: GLITCH, is_hidden: true, weight: 14 },
+      { test_case_id: 1986, problem_id: 198, input: '10', expected_output: NOMINAL, is_hidden: true, weight: 15 },
+      { test_case_id: 1987, problem_id: 198, input: '70', expected_output: GLITCH, is_hidden: true, weight: 14 }
     ];
 
     // Insert test cases
