@@ -27,8 +27,10 @@ export function ProtectedRoute({
       // Not authenticated - redirect to login
       router.push(redirectTo);
     } else if (!isLoading && !roleOk) {
-      // Authenticated but wrong role - redirect to home
-      router.push('/home');
+      // Authenticated but wrong role for this area — send to the root router, which
+      // dispatches by role (developer→/admin/dashboard, teacher→/teacher, student→
+      // student flow). Hardcoding /home dumped staff into the student app.
+      router.push('/');
     }
   }, [isAuthenticated, isLoading, roleOk, redirectTo, router]);
 

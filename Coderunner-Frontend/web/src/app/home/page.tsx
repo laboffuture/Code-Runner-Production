@@ -27,7 +27,13 @@ function AgeSelectionPageContent() {
       return;
     }
 
-    // First-time users must finish onboarding before reaching home.
+    // Staff (teacher/developer) don't belong on the student home — route them
+    // through the root page, which dispatches to /admin or /teacher by role.
+    if (user && user.role !== 'student') {
+      router.push('/');
+      return;
+    }
+    // First-time students must finish onboarding (character selection) before home.
     if (user && !user.onboardingComplete) {
       router.push('/onboarding');
       return;

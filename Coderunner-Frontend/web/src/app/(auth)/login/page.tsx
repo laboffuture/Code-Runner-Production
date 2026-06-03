@@ -69,20 +69,28 @@ export default function LoginPage() {
   const [loginError, setLoginError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // After auth (already-authenticated or just-logged-in), honor a ?redirect=
-  // deep link if present; otherwise let the root page route by role/onboarding.
-  // Only same-origin relative paths are allowed — reject protocol-relative
-  // (//host) and backslash (/\) forms so a crafted ?redirect= can't open-redirect
-  // to an external site.
+  // After auth (already-authenticated or just-logged-in): staff (teacher/developer)
+  // route to the root page, which dispatches by role. Students honor a same-origin
+  // ?redirect= deep link if present, gated by onboarding; otherwise the root page
+  // routes them. Only same-origin relative paths are allowed — reject protocol-
+  // relative (//host) and backslash (/\) forms so a crafted ?redirect= can't
+  // open-redirect to an external site.
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
+      // Staff (teacher/developer) have no student destination. Route them through
+      // the root page (the single role-routing authority), which dispatches to
+      // /admin/dashboard or /teacher by role — never into a student ?redirect=
+      // deep link or the student onboarding flow. Checked first so a ?redirect= is
+      // never even parsed for staff.
+      if (user && user.role !== 'student') {
+        router.push('/');
+        return;
+      }
       const raw = new URLSearchParams(window.location.search).get('redirect');
       const dest = raw && raw.startsWith('/') && !raw.startsWith('//') && raw[1] !== '\\' ? raw : '/';
-      // Un-onboarded users must pick a character first. This gate previously
-      // lived on the root page, which login always routed through; honoring a
-      // deep link directly would skip it. Preserve the intended destination
-      // across onboarding via the returnAfterOnboarding handoff the onboarding
-      // page already consumes.
+      // Un-onboarded students must pick a character first. Honoring a ?redirect=
+      // deep link directly would skip this, so re-assert it here; returnAfterOnboarding
+      // hands the intended destination to the onboarding page, which consumes it.
       if (user && !user.onboardingComplete) {
         if (dest !== '/') sessionStorage.setItem('returnAfterOnboarding', dest);
         router.push('/onboarding');
