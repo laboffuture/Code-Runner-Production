@@ -70,7 +70,19 @@ router.get('/:id/test-cases', optionalAuthMiddleware, async (req: Request, res: 
 
     // Unescape special characters in test cases
     const unescapedTestCases = unescapeObject(testCases);
-    res.json(unescapedTestCases);
+
+    // Strip any internal pygame grading directive (a "__PYGAME_STATE__ ..." /
+    // "__PYGAME_EVENTS__ ..." first line) from each test-case input before it reaches
+    // the student UI. The directive is consumed server-side by the grader (see
+    // docker.executor.ts) and is NOT part of the student's stdin, so it must never be
+    // shown — this guard makes that structural, independent of the is_hidden flag.
+    const cleaned = (Array.isArray(unescapedTestCases) ? unescapedTestCases : []).map((tc: any) => {
+      if (tc && typeof tc.input === 'string') {
+        tc.input = tc.input.replace(/^__PYGAME_(STATE|EVENTS)__[^\n]*\n?/, '');
+      }
+      return tc;
+    });
+    res.json(cleaned);
   } catch (error) {
     console.error('Error fetching test cases:', error);
     res.status(500).json({ error: 'Failed to fetch test cases' });

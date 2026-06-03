@@ -44,6 +44,17 @@ export interface TestCaseResult {
   error?: string;
 }
 
+/**
+ * A pygame GRADE-mode directive parsed off the first test-input line.
+ *  - 'state': inspect the real window after the run (args = probe names like
+ *    WINDOW_SIZE, CAPTION, BG_COLOR, PIXEL@x,y).
+ *  - 'events': feed a scripted key-event sequence (args = event tokens like LEFT, UP).
+ */
+interface PygameGradeDirective {
+  kind: 'state' | 'events';
+  args: string[];
+}
+
 // =============================================================================
 // Docker Executor Class
 // =============================================================================
@@ -139,7 +150,11 @@ export class DockerExecutor {
    * Preprocess Python code for matplotlib and pygame compatibility
    * Issues #5, #11: Auto-transform plt.show() and configure backends
    */
-  private static preprocessCode(code: string): string {
+  private static preprocessCode(
+    code: string,
+    mode: 'run' | 'grade' = 'run',
+    gradeDirective: PygameGradeDirective | null = null
+  ): string {
     let processedCode = code;
 
     // Handle matplotlib
@@ -149,10 +164,36 @@ export class DockerExecutor {
 
     // Handle pygame
     if (this.usesPygame(code)) {
-      processedCode = this.preprocessPygame(processedCode);
+      processedCode = this.preprocessPygame(processedCode, mode, gradeDirective);
     }
 
     return processedCode;
+  }
+
+  /**
+   * Parse a pygame grading directive off the FIRST line of the test input.
+   *   "__PYGAME_STATE__ WINDOW_SIZE CAPTION BG_COLOR PIXEL@400,250"
+   *   "__PYGAME_EVENTS__ LEFT LEFT UP"
+   * Returns the parsed directive (or null) and the remaining input (the directive
+   * line stripped) to feed the container as the student's real stdin.
+   */
+  private static parsePygameDirective(input: string): {
+    directive: PygameGradeDirective | null;
+    remainingInput: string;
+  } {
+    const nl = input.indexOf('\n');
+    const firstLine = (nl === -1 ? input : input.slice(0, nl)).trim();
+    const rest = nl === -1 ? '' : input.slice(nl + 1);
+
+    if (firstLine.startsWith('__PYGAME_STATE__')) {
+      const args = firstLine.replace('__PYGAME_STATE__', '').trim().split(/\s+/).filter(Boolean);
+      return { directive: { kind: 'state', args }, remainingInput: rest };
+    }
+    if (firstLine.startsWith('__PYGAME_EVENTS__')) {
+      const args = firstLine.replace('__PYGAME_EVENTS__', '').trim().split(/\s+/).filter(Boolean);
+      return { directive: { kind: 'events', args }, remainingInput: rest };
+    }
+    return { directive: null, remainingInput: input };
   }
 
   private static usesMatplotlib(code: string): boolean {
@@ -207,36 +248,58 @@ matplotlib.use('Agg')
    *   3. Limit infinite game loops (while True / while running / etc.) to 5 iterations
    *   4. Append frame-capture code that saves the surface after the user code finishes
    */
-  private static preprocessPygame(code: string): string {
-    // Setup headless environment BEFORE pygame import
-    const headlessSetup = `import os
+  private static preprocessPygame(
+    code: string,
+    mode: 'run' | 'grade' = 'run',
+    gradeDirective: PygameGradeDirective | null = null
+  ): string {
+    const isEvents = mode === 'grade' && gradeDirective?.kind === 'events';
+
+    // Shared headless setup (one source of truth so the run/grade paths can't drift).
+    const sdlHeadless = `import os
 os.environ['SDL_VIDEODRIVER'] = 'dummy'
 os.environ['SDL_AUDIODRIVER'] = 'dummy'
 `;
 
-    const hasPygameImport = /^(?:import\s+pygame|from\s+pygame)/m.test(code);
+    // Student-body transforms (identical to before): defer pygame.quit() so the
+    // surface survives for inspection, and cap infinite game loops so the program
+    // terminates. Events mode needs a higher cap so every scripted event is processed.
+    const loopCap = isEvents ? gradeDirective!.args.length + 5 : 5;
+    let body = code.replace(
+      /pygame\.quit\s*\(\s*\)/g,
+      '_pygame_runner_quit_deferred = True  # pygame.quit() deferred by runner'
+    );
+    body = body.replace(
+      /while\s+(True|running|not\s+done|game_running|is_running)\s*:/g,
+      `_frame_count = 0\nwhile $1 and _frame_count < ${loopCap}:\n    _frame_count += 1`
+    );
+
+    // GRADE mode with a directive: replace the visual image-capture with a text probe
+    // (state inspection) or feed scripted events. Banner suppressed for clean matching.
+    // CONTRACT: in state mode the graded stdout is the student's output PLUS the PROBE
+    // lines appended at the end, compared exactly — so a converted "state" problem's
+    // expected_output must be exactly the PROBE lines and its reference solution must
+    // print nothing else (verify real-pass/cheat-fail per problem at conversion time).
+    if (mode === 'grade' && gradeDirective) {
+      const gradeHeadless = sdlHeadless + "os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'\n";
+      if (gradeDirective.kind === 'events') {
+        return gradeHeadless + this.buildPygameEventShim(gradeDirective.args) + '\n' + body;
+      }
+      return gradeHeadless + body + this.buildPygameStateProbe(gradeDirective.args);
+    }
+
+    // RUN mode (or grade with no directive): byte-for-byte today's behavior — inject
+    // headless before the pygame import, then append the visual image-capture block.
+    const headlessSetup = sdlHeadless;
+    const hasPygameImport = /^(?:import\s+pygame|from\s+pygame)/m.test(body);
     if (hasPygameImport) {
-      code = code.replace(
+      body = body.replace(
         /^((?:import\s+pygame|from\s+pygame)[^\n]*)/m,
         `${headlessSetup}$1`
       );
     } else {
-      code = headlessSetup + code;
+      body = headlessSetup + body;
     }
-
-    // Defer pygame.quit() so the display surface stays alive for our capture
-    code = code.replace(
-      /pygame\.quit\s*\(\s*\)/g,
-      '_pygame_runner_quit_deferred = True  # pygame.quit() deferred by runner'
-    );
-
-    // Limit infinite game loops to max 5 iterations so the code terminates quickly.
-    // The replacement adds _frame_count before the while, and _frame_count += 1
-    // as the first statement inside the loop body (4-space indent).
-    code = code.replace(
-      /while\s+(True|running|not\s+done|game_running|is_running)\s*:/g,
-      '_frame_count = 0\nwhile $1 and _frame_count < 5:\n    _frame_count += 1'
-    );
 
     // Append frame-capture code that runs after the user code finishes
     const captureCode = `
@@ -267,7 +330,71 @@ finally:
         pass
 `;
 
-    return code + captureCode;
+    return body + captureCode;
+  }
+
+  /**
+   * Build the GRADE-mode state probe: after the student code runs, read the REAL
+   * window state from the live surface and print deterministic "PROBE ..." lines.
+   * A solution that never created a window prints "PROBE: NO_WINDOW" and fails.
+   */
+  private static buildPygameStateProbe(probes: string[]): string {
+    const lines: string[] = [];
+    for (const p of probes) {
+      if (p === 'WINDOW_SIZE') {
+        lines.push('        _w,_h=_s.get_size(); print(f"PROBE WINDOW_SIZE={_w}x{_h}")');
+      } else if (p === 'CAPTION') {
+        lines.push('        print(f"PROBE CAPTION={_pg.display.get_caption()[0]}")');
+      } else if (p === 'BG_COLOR') {
+        lines.push('        _r,_g,_b=_s.get_at((1,1))[:3]; print(f"PROBE BG_COLOR={_r},{_g},{_b}")');
+      } else if (p.startsWith('PIXEL@')) {
+        const [xs, ys] = p.slice('PIXEL@'.length).split(',');
+        const x = parseInt(xs, 10) || 0;
+        const y = parseInt(ys, 10) || 0;
+        lines.push(`        _r,_g,_b=_s.get_at((${x},${y}))[:3]; print(f"PROBE PIXEL@${x},${y}={_r},{_g},{_b}")`);
+      }
+    }
+    if (lines.length === 0) lines.push('        pass');
+    return `
+
+# --- grade-mode state probe (injected by runner) ---
+try:
+    import pygame as _pg
+    _s = _pg.display.get_surface()
+    if _s is None:
+        print("PROBE: NO_WINDOW")
+    else:
+${lines.join('\n')}
+    _pg.quit()
+except Exception:
+    print("PROBE: NO_WINDOW")
+`;
+  }
+
+  /**
+   * Build the GRADE-mode event shim: monkeypatch pygame.event.get() to yield a
+   * deterministic scripted key sequence (then QUIT), so an interactive program's
+   * responses become observable on stdout. Runs before the student code.
+   */
+  private static buildPygameEventShim(tokens: string[]): string {
+    const safe = tokens.filter((t) => /^[A-Za-z0-9_]+$/.test(t));
+    const pyList = JSON.stringify(safe); // e.g. ["LEFT","LEFT","UP"] — valid Python list
+    return `import os
+os.environ.setdefault('SDL_VIDEODRIVER', 'dummy')
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+import pygame as _pg
+_pg.init()
+_KEYMAP = {"LEFT": _pg.K_LEFT, "RIGHT": _pg.K_RIGHT, "UP": _pg.K_UP, "DOWN": _pg.K_DOWN, "SPACE": _pg.K_SPACE, "RETURN": _pg.K_RETURN, "ESCAPE": _pg.K_ESCAPE}
+_script = ${pyList}
+_q = []
+for _n in _script:
+    if _n in _KEYMAP:
+        _q.append(_pg.event.Event(_pg.KEYDOWN, key=_KEYMAP[_n]))
+_q.append(_pg.event.Event(_pg.QUIT))
+def _scripted_get(*_a, **_k):
+    return [_q.pop(0)] if _q else [_pg.event.Event(_pg.QUIT)]
+_pg.event.get = _scripted_get
+`;
   }
 
   // ==========================================================================
@@ -277,7 +404,11 @@ finally:
   /**
    * Execute Python code in a sandboxed Docker container
    */
-  static async executeCode(code: string, input: string = ''): Promise<ExecutionResult> {
+  static async executeCode(
+    code: string,
+    input: string = '',
+    mode: 'run' | 'grade' = 'run'
+  ): Promise<ExecutionResult> {
     const startTime = Date.now();
 
     try {
@@ -285,14 +416,28 @@ finally:
         await this.initialize();
       }
 
+      // In GRADE mode, a pygame problem may carry a grading directive on the FIRST
+      // input line — "__PYGAME_STATE__ WINDOW_SIZE CAPTION BG_COLOR" (inspect the real
+      // window state) or "__PYGAME_EVENTS__ LEFT LEFT UP" (feed scripted key events).
+      // We parse it, strip it from the container stdin, and use it to build a grade
+      // harness instead of the visual image-capture. No directive (or RUN mode, or
+      // non-pygame) => byte-for-byte today's behavior.
+      let containerInput = input;
+      let gradeDirective: PygameGradeDirective | null = null;
+      if (mode === 'grade' && this.usesPygame(code)) {
+        const parsed = this.parsePygameDirective(input);
+        gradeDirective = parsed.directive;
+        containerInput = parsed.remainingInput;
+      }
+
       // Preprocess code for matplotlib/pygame (Issue #11)
-      const processedCode = this.preprocessCode(code);
+      const processedCode = this.preprocessCode(code, mode, gradeDirective);
 
       // Use container pool if enabled
       if (containerPool) {
-        return await this.executeWithPool(processedCode, input, startTime);
+        return await this.executeWithPool(processedCode, containerInput, startTime);
       } else {
-        return await this.executeWithFreshContainer(processedCode, input, startTime);
+        return await this.executeWithFreshContainer(processedCode, containerInput, startTime);
       }
 
     } catch (error) {
@@ -456,7 +601,9 @@ finally:
         // executeCode() owns preprocessing (matplotlib/pygame). Pass the RAW
         // code so it is preprocessed exactly once per run — preprocessing the
         // already-processed code here doubled the pygame capture block.
-        const execution = await this.executeCode(code, testCase.input);
+        // GRADE mode: a pygame problem's test input may carry a __PYGAME_STATE__ /
+        // __PYGAME_EVENTS__ directive that swaps the visual capture for a text probe.
+        const execution = await this.executeCode(code, testCase.input, 'grade');
 
         const actualOutput   = this.normalizeOutput(execution.stdout);
         const expectedOutput = this.normalizeOutput(testCase.expected_output);
