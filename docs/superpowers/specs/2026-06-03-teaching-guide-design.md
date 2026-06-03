@@ -5,11 +5,17 @@
 
 ## 1. Purpose
 Give teachers, inside the teacher portal (the same area where they track student data), a
-**detailed, explained answer key for every problem, browsable by session**. A teacher opens a
-session, sees its problems, and reads each problem's canonical solution **plus a clear,
-step-by-step explanation** they can read and relay to a student. Today no answer key exists
-anywhere — `case_code` is a student-facing teaching snippet (sometimes incomplete), and
-`expected_output` is the output, not the solving code.
+**detailed, explained answer key browsable by session and case**. A session has 5 cases (plus a
+final challenge). When a teacher opens a case, they see — in one place, ready to teach from:
+1. **The question** — what the case asks (shown for context).
+2. **The answer** — the canonical solution code.
+3. **The logic breakdown** — the solution explained step by step.
+4. **An easy, kid-friendly explanation** — plain words the teacher can relay to the student.
+5. **A worked example** — a concrete "if the input is X, the program does Y → prints Z" to show.
+The goal: opening a case makes explaining it to a student effortless.
+
+Today no answer key exists anywhere — `case_code` is a student-facing teaching snippet (sometimes
+incomplete), and `expected_output` is the output, not the solving code.
 
 ## 2. The one hard rule (security)
 A student must **never** reach the answer key by any path. Precedent: the removed
@@ -18,27 +24,44 @@ sensitive. Therefore the answer key lives in its **own collection**, behind a
 **teacher+developer role gate**, and is **never** included in any student-facing query/response.
 
 ## 3. Data model — `Solution` (new collection `solutions`, `packages/shared`)
-One record per problem, keyed by `problem_id` (unique). A structured object so it reads as a
-guide, not a code dump:
+One record per problem (= per case), keyed by `problem_id` (unique). Structured so it reads as a
+teaching guide, not a code dump. The five teacher-facing parts map to fields as below — note **the
+question is NOT stored here**: it already lives on the `Problem` doc and is joined into the guide
+response (single source of truth), so the teacher sees it without duplication/drift.
 ```
 interface ISolution {
-  problem_id: number;          // unique, links to Problem
-  level_number: number;        // 1-4  (for browsing)
-  session_id: number;          // for browsing by session
-  solution_code: string;       // canonical, verified Python (the real answer)
-  approach: string;            // 1-2 sentences: the strategy in plain English
-  walkthrough: Array<{         // the logic in ordered, labelled steps
+  problem_id: number;          // unique, links to Problem (the case)
+  level_number: number;        // 1-4  (browse)
+  session_id: number;          // browse by session
+  case_number: number;         // browse by case within a session (1-5, + final)
+
+  // (1) question  -> joined from Problem.question at read time, not stored here.
+
+  // (2) THE ANSWER
+  solution_code: string;       // canonical, verified Python
+
+  // (3) LOGIC BREAKDOWN — the solution explained step by step
+  walkthrough: Array<{
     label: string;             //   "Read the input"
     code_snippet: string;      //   "n = int(input())"
     explanation: string;       //   "We read the first line and turn it into a number with int()."
   }>;
+
+  // (4) EASY EXPLANATION — plain, kid-friendly words a teacher relays to the student
+  student_explanation: string;
+
+  // (5) WORKED EXAMPLE — a concrete walked example to show the student
+  worked_example: string;      //   "If the student types 5, the loop counts 1, 2, 3, 4, 5 and prints each."
+
+  // supporting (optional, teacher-helpful)
   key_concepts: string[];      // ["input()", "int() conversion", "for loop"]
-  common_mistakes: string[];   // teacher gold: "Forgot int() -> joins text instead of adding"
+  common_mistakes: string[];   // "Forgot int() -> joins text instead of adding"
+
   verified: boolean;           // set true by the verifier when solution_code passes all test cases
   created_at: Date; updated_at: Date;
 }
 ```
-Indexes: unique `problem_id`; `{ level_number, session_id }` for the browser.
+Indexes: unique `problem_id`; `{ level_number, session_id, case_number }` for the browser.
 
 ## 4. Source of truth + the auto-verifier (the quality win)
 - **Authored in version control** under `scripts/solutions/11-14/level-<n>/` (one source file per
@@ -61,7 +84,9 @@ this cleanly separate from the teacher-only classroom routes.) Routes:
 - `GET /curriculum/tree` → the browse tree: levels → sessions → problems (id, title, difficulty,
   case_number, `hasGuide` boolean). Sourced from `problems` + a presence check on `solutions`.
   No solution content in this list.
-- `GET /curriculum/problems/:problemId/guide` → the full `Solution` for one problem (the 5 parts).
+- `GET /curriculum/problems/:problemId/guide` → the full guide for one case: the `Solution`
+  (answer / walkthrough / student_explanation / worked_example / concepts / mistakes) **plus the
+  `question`** joined from the `Problem` doc, so the teacher gets all 5 parts in one payload.
   404 / `{ available: false }` when no guide exists yet (graceful during the wave rollout).
 Both behind `authMiddleware` + `staffMiddleware`; neither is reachable by a student token. The
 student problem route (`problems.routes.ts`) is unchanged and never touches `solutions`. The
@@ -70,14 +95,18 @@ frontend page that consumes these lives in the teacher portal (§6).
 ## 6. Frontend surface — teacher portal, by session
 A new page in the existing teacher area (sibling to classrooms / students):
 `/teacher/curriculum` (the "Answer Guide").
-- **Browse:** Level (11-14: 1-4) → Session → the session's problems (6 per lesson session).
-- **Guide panel** for a selected problem renders the 5 parts cleanly:
-  - `solution_code` in a syntax-styled code block,
-  - `approach` as a lead sentence,
-  - `walkthrough` as numbered steps (label + its code snippet + plain explanation),
-  - `key_concepts` as chips,
-  - `common_mistakes` as a callout list.
-- A problem without a guide shows "Detailed guide coming soon."
+- **Browse:** Level (11-14: 1-4) → Session → the session's **cases** (the 5 cases + the final
+  challenge), each a clickable row.
+- **Guide panel** for a selected case renders the 5 teaching parts top-to-bottom, in the order a
+  teacher would use them:
+  1. **The Question** — the case's `question` (so the teacher has the task in front of them),
+  2. **The Answer** — `solution_code` in a syntax-styled code block,
+  3. **How it works (Logic Breakdown)** — `walkthrough` as numbered steps (label + code snippet +
+     plain explanation),
+  4. **Explain it simply** — `student_explanation`, the kid-friendly script to relay,
+  5. **Example** — `worked_example`, a concrete walked example to show the student.
+  Plus, below, supporting chips for `key_concepts` and a `common_mistakes` callout.
+- A case without a guide yet shows "Detailed guide coming soon."
 - Inherits the teacher gate from the teacher `layout`/`ProtectedRoute requireRole="teacher"`.
 Uses static Tailwind classes / the existing teacher-portal styling. (Inline "View guide" links
 from a student's failed problems in the deep-dive are a v2 enhancement, out of scope here.)
@@ -98,8 +127,11 @@ from a student's failed problems in the deep-dive are a v2 enhancement, out of s
   correctness, real-env, simplicity, architecture (no contract drift on the student path).
 
 ## 9. Decisions (confirmed in conversation)
-1. Surface: in the teacher portal, **browse by session** (a sibling teacher page). ✓
-2. Structure: the **5-part** guide (code / approach / walkthrough / key_concepts / common_mistakes). ✓
+1. Surface: in the teacher portal, **browse by session → case** (a sibling teacher page); a
+   session has 5 cases + a final challenge. ✓
+2. Structure per case (the 5 teaching parts, in order): **question** (joined from the Problem) →
+   **answer** (solution_code) → **logic breakdown** (walkthrough) → **easy student explanation** →
+   **worked example**; with supporting key_concepts + common_mistakes. ✓
 3. Storage: **separate `solutions` collection**, role-gated; **version-controlled source** that
    also drives the verifier. ✓
 4. Rollout: system for all 4 levels, **L1 content first**. ✓
