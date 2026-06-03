@@ -41,9 +41,14 @@ judge-panel → commit.
 | Phase | What | Status |
 |-------|------|--------|
 | **N1 — Wallet** | `coins` on UserProgress + `CoinTransaction` ledger + `GET /me/wallet` + header chip + profile teaser | ✅ **shipped (740af2f)** |
-| **N2 — Store** | `StoreItem` + `StoreOrder` models, catalog/orders APIs, `/store` page + My Orders (Redeem = "Coming Soon") | 🔜 next |
-| **N3 — Admin** | developer-only: catalog mgmt + school-pickup fulfillment list + **assign/modify Novas** tool | 🔜 |
-| **N4 — Contest hook** | dormant `awardNovas` + call-site in contest grading + contest "Coming Soon" area | 🔜 |
+| **N2 — Store** | `StoreItem` + `StoreOrder` models, catalog/orders APIs, `/store` page + My Orders (Redeem = "Coming Soon") | ✅ **shipped (041137c)** |
+| **N3 — Admin** | developer-only: catalog mgmt + school-pickup fulfillment list + **assign/modify Novas** tool | ✅ **shipped (5ddfb3f)** |
+| **N4 — Contest hook** | dormant `awardNovas` + podium call-site in contest finalization + contest "Coming Soon" banner | ✅ **shipped (91e602b)** |
+
+**Scaffold complete.** Everything is wired and clickable; live behavior stays off behind flags
+(`NOVAS_EARNING_ENABLED`, `STORE_REDEMPTION_ENABLED` both default false). **Go-live = flip those two
+flags** (after weekly contests exist + the store is stocked). A developer can seed/test Novas anytime
+via `/admin/store` (the adjust tool is live).
 
 Spec: `docs/superpowers/specs/2026-06-02-novas-currency-store-scaffold-design.md`
 
