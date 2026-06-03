@@ -39,6 +39,7 @@ Then print: Commander Ray is leading the Lunar Orbiter 1`,
       case_title: 'Using Variables in Output',
       case_overview: `Learn to store values in variables and use them in print statements. Variables make your code reusable and dynamic!`,
       case_code: `# Combine variables with text:
+name = "Alice"
 age = 25
 print("My name is", name, "and I am", age, "years old")
 
