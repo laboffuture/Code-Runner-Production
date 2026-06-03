@@ -15,10 +15,27 @@ async function seedCodeConvergenceL2() {
       problem_id: 1000,
       session_id: 22, 
       title: 'Project ORBITRON - Mission Control Dashboard',
-      description: `NOVA-12 is caught in a massive storm. Systems are failing and signals are fragmenting. You must build ORBITRON—a unified Mission Control Dashboard that processes spacecraft telemetry in real-time. Integrate power monitoring, signal filtering, and event tracking to stabilize the spacecraft and decode an urgent message hidden in the chaos.`,
+      description: `NOVA-12 is caught in a massive storm. Systems are failing and signals are fragmenting. You must build ORBITRON -a unified Mission Control Dashboard that processes spacecraft telemetry in real-time. Integrate power monitoring, signal filtering, and event tracking to stabilize the spacecraft and decode an urgent message hidden in the chaos.`,
 
       difficulty: 'Hard',
-      question: `Build the ORBITRON Mission Control Dashboard. Accept a mission name, fuel level readings (space-separated integers), signal codes (space-separated strings), and mission events (comma-separated). Create a mission_dashboard() function that finds the maximum fuel level, counts unique signals, identifies the most recent event, and returns a status message. Display all individual readings and the complete mission summary.`,
+      question: `Build the ORBITRON Mission Control Dashboard.
+
+Read 4 lines of input:
+1. Mission name
+2. Fuel level readings - space-separated integers (e.g. 85 92 78 95 88)
+3. Signal codes - space-separated words (e.g. ALPHA BETA GAMMA ALPHA DELTA)
+4. Mission events - separated by a comma and a space (e.g. Launch, Orbit Achieved, Storm Detected). An event can contain spaces, so strip the space after each comma.
+
+Then PRINT exactly these 5 lines (replace each <...> with your value):
+Mission Name: <name>
+Maximum Fuel Level: <the highest fuel reading>
+Number of Signals: <the number of DIFFERENT signal codes>
+Most Recent Event: <the last event in the list>
+Mission <name> is active with max fuel level <max> and <count> signals received.
+
+Note: "different signal codes" means repeats count once - so ALPHA BETA GAMMA ALPHA DELTA has 4 different codes.
+
+Tip: you may organise your code with a function if you like - the grader only checks what you print.`,
 
       example_code: '# Project ORBITRON - Mission Control Dashboard\n# Write your code here\n',
       sample_input: 'NOVA-12\n85 92 78 95 88\nALPHA BETA GAMMA ALPHA DELTA\nLaunch, Orbit Achieved, Storm Detected, Filters Applied',
@@ -63,11 +80,11 @@ Mission NOVA-12 is active with max fuel level 95 and 4 signals received.`,
       },
 
       session_title: 'Code Convergence: Project ORBITRON',
-      session_introduction: `The ultimate test of your Python mastery. Project ORBITRON demands you integrate every concept learned across Level 2—from basic variables to complex data structures, from simple loops to sophisticated functions. This is where theory becomes practice, where individual skills converge into a unified system that can save lives in the depths of space. ORBITRON must process real-time data, filter noise, and decode critical messages while managing spacecraft systems under extreme conditions.`,
+      session_introduction: `The ultimate test of your Python mastery. Project ORBITRON demands you integrate every concept learned across Level 2 -from basic variables to complex data structures, from simple loops to sophisticated functions. This is where theory becomes practice, where individual skills converge into a unified system that can save lives in the depths of space. ORBITRON must process real-time data, filter noise, and decode critical messages while managing spacecraft systems under extreme conditions.`,
 
       case_number: 6,
       case_title: 'Project ORBITRON - Mission Control Dashboard',
-      case_explanation: `Define mission_dashboard() function with 4 parameters. Use max() for fuel_levels, len() for signals count, and events[-1] for last event. For input processing: split fuel_input and map to int for list, split signal_input into set for unique values, split events_input by comma and strip whitespace. Call the function and print its return value.`,
+      case_explanation: `Read the 4 input lines. Fuel: fuels = list(map(int, input().split())) then max(fuels). Signals: count DIFFERENT codes with len(set(input().split())). Events: split on the comma and strip the spaces - events = [e.strip() for e in input().split(",")] - then the last event is events[-1]. PRINT the 5 lines exactly as shown (a function is optional; only your printed output is graded).`,
 
       created_at: new Date(),
       updated_at: new Date()
