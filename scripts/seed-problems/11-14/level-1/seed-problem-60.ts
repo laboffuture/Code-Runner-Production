@@ -32,9 +32,9 @@ Your program should execute the drilling sequence:
 - Create a for loop using range(0, 120, 20) to drill from 0 to 100 meters in steps of 20
 - Inside the loop, print "Drilling depth: [depth] meters" for each depth
 - Add conditional checks:
-  - When depth equals 60: print "Mineral layer detected – slowing rotation speed."
-  - When depth equals 100: print "Core reached – collecting samples."
-- After the loop completes, print "Extraction complete – returning to orbit."
+  - When depth equals 60: print "Mineral layer detected - slowing rotation speed."
+  - When depth equals 100: print "Core reached - collecting samples."
+- After the loop completes, print "Extraction complete - returning to orbit."
 
 This demonstrates range() with start, stop, and step parameters combined with conditionals.`,
 
@@ -48,11 +48,11 @@ Drilling depth: 0 meters
 Drilling depth: 20 meters
 Drilling depth: 40 meters
 Drilling depth: 60 meters
-Mineral layer detected – slowing rotation speed.
+Mineral layer detected - slowing rotation speed.
 Drilling depth: 80 meters
 Drilling depth: 100 meters
-Core reached – collecting samples.
-Extraction complete – returning to orbit.`,
+Core reached - collecting samples.
+Extraction complete - returning to orbit.`,
       age_group: '11-14',
       level_number: 1,
 
@@ -66,7 +66,7 @@ Extraction complete – returning to orbit.`,
       // Case-specific content (Final Task)
       case_number: 6,
       case_title: 'Asteroid Mining Drill Simulation - Interval Extraction System',
-      case_explanation: `Use range(0, 120, 20) to create drilling intervals from 0 to 100 in steps of 20. The third parameter (20) is the step size, which controls how much to increment each iteration. range(0, 120, 20) generates: 0, 20, 40, 60, 80, 100 (stops before 120). Print "Starting asteroid drilling sequence..." before the loop. Inside the loop: for depth in range(0, 120, 20):. Print "Drilling depth:", depth, "meters" for each iteration. Use if depth == 60: to check for mineral layer, then print "Mineral layer detected – slowing rotation speed." Use if depth == 100: to check for core, then print "Core reached – collecting samples." After the loop completes, print "Extraction complete – returning to orbit." This combines range() step control with conditional logic for event detection at specific depths.`
+      case_explanation: `Use range(0, 120, 20) to create drilling intervals from 0 to 100 in steps of 20. The third parameter (20) is the step size, which controls how much to increment each iteration. range(0, 120, 20) generates: 0, 20, 40, 60, 80, 100 (stops before 120). Print "Starting asteroid drilling sequence..." before the loop. Inside the loop: for depth in range(0, 120, 20):. Print "Drilling depth:", depth, "meters" for each iteration. Use if depth == 60: to check for mineral layer, then print "Mineral layer detected - slowing rotation speed." Use if depth == 100: to check for core, then print "Core reached - collecting samples." After the loop completes, print "Extraction complete - returning to orbit." This combines range() step control with conditional logic for event detection at specific depths.`
     };
 
     await problemsCollection.deleteOne({ problem_id: 60 });
@@ -84,11 +84,11 @@ Drilling depth: 0 meters
 Drilling depth: 20 meters
 Drilling depth: 40 meters
 Drilling depth: 60 meters
-Mineral layer detected – slowing rotation speed.
+Mineral layer detected - slowing rotation speed.
 Drilling depth: 80 meters
 Drilling depth: 100 meters
-Core reached – collecting samples.
-Extraction complete – returning to orbit.`,
+Core reached - collecting samples.
+Extraction complete - returning to orbit.`,
         is_hidden: false,
         weight: 1.0
       },
@@ -101,11 +101,11 @@ Drilling depth: 0 meters
 Drilling depth: 20 meters
 Drilling depth: 40 meters
 Drilling depth: 60 meters
-Mineral layer detected – slowing rotation speed.
+Mineral layer detected - slowing rotation speed.
 Drilling depth: 80 meters
 Drilling depth: 100 meters
-Core reached – collecting samples.
-Extraction complete – returning to orbit.`,
+Core reached - collecting samples.
+Extraction complete - returning to orbit.`,
         is_hidden: true,
         weight: 1.0
       }

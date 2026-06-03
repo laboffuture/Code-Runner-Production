@@ -25,10 +25,10 @@ async function seedProblem50() {
 Use input() to get the number of systems (convert to integer).
 Use nested for loops: outer loop with range(1, stages + 1) and inner loop with range(1, systems + 1).
 In the outer loop, print "Stage " followed by the stage number.
-In the inner loop, print " → Checking system " followed by the system number.`,
+In the inner loop, print " -> Checking system " followed by the system number.`,
       example_code: '# Write your code here\n',
       sample_input: '3\n2',
-      sample_output: 'Stage 1\n → Checking system 1\n → Checking system 2\nStage 2\n → Checking system 1\n → Checking system 2\nStage 3\n → Checking system 1\n → Checking system 2',
+      sample_output: 'Stage 1\n -> Checking system 1\n -> Checking system 2\nStage 2\n -> Checking system 1\n -> Checking system 2\nStage 3\n -> Checking system 1\n -> Checking system 2',
       age_group: '11-14',
       level_number: 1,
 
@@ -66,7 +66,7 @@ for stage in range(1, stages + 1):
     print("Stage", stage)
     # Inner loop for systems
     for system in range(1, systems + 1):
-        print(" → Checking system", system)`,
+        print(" -> Checking system", system)`,
 
       case_explanation: `- Nested loops with \`range()\` create hierarchical iterations where the inner loop completes fully for each outer loop iteration
 - The outer loop runs for each stage, and the inner loop runs completely for each stage iteration
@@ -74,8 +74,8 @@ for stage in range(1, stages + 1):
 - Outer loop: \`for stage in range(1, stages + 1):\`
 - Print in outer: \`print("Stage", stage)\`
 - Inner loop: \`for system in range(1, systems + 1):\`
-- Print in inner: \`print(" → Checking system", system)\`
-- Note the arrow symbol (→) and leading space in the system print
+- Print in inner: \`print(" -> Checking system", system)\`
+- Note the arrow symbol (->) and leading space in the system print
 - The inner loop executes fully for each outer iteration`,
 
       created_at: new Date(),
@@ -88,7 +88,7 @@ for stage in range(1, stages + 1):
         problem_id: 50,
         test_case_id: 1,
         input: '3\n2',
-        expected_output: 'Stage 1\n → Checking system 1\n → Checking system 2\nStage 2\n → Checking system 1\n → Checking system 2\nStage 3\n → Checking system 1\n → Checking system 2',
+        expected_output: 'Stage 1\n -> Checking system 1\n -> Checking system 2\nStage 2\n -> Checking system 1\n -> Checking system 2\nStage 3\n -> Checking system 1\n -> Checking system 2',
         is_hidden: false,
         is_sample: true,
         weight: 1.0,
@@ -98,7 +98,7 @@ for stage in range(1, stages + 1):
         problem_id: 50,
         test_case_id: 2,
         input: '2\n3',
-        expected_output: 'Stage 1\n → Checking system 1\n → Checking system 2\n → Checking system 3\nStage 2\n → Checking system 1\n → Checking system 2\n → Checking system 3',
+        expected_output: 'Stage 1\n -> Checking system 1\n -> Checking system 2\n -> Checking system 3\nStage 2\n -> Checking system 1\n -> Checking system 2\n -> Checking system 3',
         is_hidden: true,
         weight: 1.0,
         created_at: new Date()
@@ -107,7 +107,7 @@ for stage in range(1, stages + 1):
         problem_id: 50,
         test_case_id: 3,
         input: '4\n2',
-        expected_output: 'Stage 1\n → Checking system 1\n → Checking system 2\nStage 2\n → Checking system 1\n → Checking system 2\nStage 3\n → Checking system 1\n → Checking system 2\nStage 4\n → Checking system 1\n → Checking system 2',
+        expected_output: 'Stage 1\n -> Checking system 1\n -> Checking system 2\nStage 2\n -> Checking system 1\n -> Checking system 2\nStage 3\n -> Checking system 1\n -> Checking system 2\nStage 4\n -> Checking system 1\n -> Checking system 2',
         is_hidden: true,
         weight: 1.0,
         created_at: new Date()
@@ -116,7 +116,7 @@ for stage in range(1, stages + 1):
         problem_id: 50,
         test_case_id: 4,
         input: '2\n4',
-        expected_output: 'Stage 1\n → Checking system 1\n → Checking system 2\n → Checking system 3\n → Checking system 4\nStage 2\n → Checking system 1\n → Checking system 2\n → Checking system 3\n → Checking system 4',
+        expected_output: 'Stage 1\n -> Checking system 1\n -> Checking system 2\n -> Checking system 3\n -> Checking system 4\nStage 2\n -> Checking system 1\n -> Checking system 2\n -> Checking system 3\n -> Checking system 4',
         is_hidden: true,
         weight: 1.0,
         created_at: new Date()
