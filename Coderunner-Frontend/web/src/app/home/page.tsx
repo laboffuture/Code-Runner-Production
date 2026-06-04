@@ -208,17 +208,14 @@ function AgeSelectionPageContent() {
               onMouseLeave={(e) => handleCardHover(e, false)}
               onClick={(e) => handleCardClick(e, group.href, group.cardType)}
             >
-              {/* Simple Image Card - Clickable. Image is themed per character +
-                  age group (view-backgrounds); falls back to the default card art
-                  for characters/age groups not yet themed. */}
+              {/* Clickable themed Mission-Card image. The art IS the card, so no
+                  CSS frame/shadow — just the image (themed per character + age
+                  group; falls back to the default art when not yet themed). */}
               <div className="relative transition-all duration-500 hover:scale-105 cursor-pointer">
                 <img
                   src={getMissionCardImage(theme.id, group.ageGroup)}
                   alt={group.title || "Mission Card"}
-                  className="w-full h-auto rounded-lg shadow-2xl"
-                  style={{
-                    filter: `drop-shadow(0 10px 30px ${theme.colors.glow})`
-                  }}
+                  className="w-full h-auto"
                 />
               </div>
             </Link>
