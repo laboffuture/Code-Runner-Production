@@ -51,6 +51,10 @@ export interface IUserProgress extends Document {
   }>;
   solvedProblemIds: number[];
   unlockedCharacters: string[];
+  // TEST/DEV ONLY: when true, the sequential-unlock gate is skipped for this account
+  // (all levels/sessions/cases open). Set per-account by staff/script, never by the
+  // student. Remove this field together with the Teja test account at production.
+  unlockAllLevels: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -130,6 +134,12 @@ const UserProgressSchema = new Schema<IUserProgress>(
     unlockedCharacters: {
       type: [String],
       default: ['astra'],
+    },
+    // TEST/DEV ONLY per-account gate bypass (see interface note). Default false so
+    // every real student is fully gated. Remove with the Teja test account at prod.
+    unlockAllLevels: {
+      type: Boolean,
+      default: false,
     },
   },
   {

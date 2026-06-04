@@ -24,7 +24,7 @@ interface ProblemListProps {
 export function ProblemList({ problems, sessionId }: ProblemListProps) {
   const { playProjectTextSound } = useGlobalAudio();
   const { accentColor, theme } = useTheme();
-  const { isProblemCompleted } = useProgress();
+  const { isProblemCompleted, unlockAll } = useProgress();
 
   const hexToRgba = (hex: string, opacity: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -47,8 +47,9 @@ export function ProblemList({ problems, sessionId }: ProblemListProps) {
             const isFinalTask = index === 5;
             // Case-by-case gate: a task is locked until every EARLIER task in this
             // session is solved — mirrors the server's isProblemUnlocked rule so the
-            // UI never offers a task the grader would reject with 403 Locked.
-            const locked = ordered
+            // UI never offers a task the grader would reject with 403 Locked. The
+            // TEST/DEV per-account bypass (Teja only) opens everything.
+            const locked = !unlockAll && ordered
               .slice(0, index)
               .some((p) => !isProblemCompleted(String(p.problem_id)));
 

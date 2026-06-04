@@ -214,17 +214,22 @@ router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLim
     if (!isContestSubmission && problem.age_group) {
       const userId = req.user!.userId;
       const up = await Models.UserProgress.findOne({ userId })
-        .select('solvedProblemIds')
-        .lean<{ solvedProblemIds?: number[] } | null>();
-      const solved: number[] = up?.solvedProblemIds || [];
-      const curriculum = await Models.Problem.find(
-        { age_group: problem.age_group }, 'problem_id level_number session_id case_number',
-      ).lean<UnlockProblem[]>();
-      if (!isProblemUnlocked(problemId, solved, curriculum)) {
-        return res.status(403).json({
-          error: 'Locked',
-          message: 'Complete the previous task to unlock this one.',
-        });
+        .select('solvedProblemIds unlockAllLevels')
+        .lean<{ solvedProblemIds?: number[]; unlockAllLevels?: boolean } | null>();
+      // TEST/DEV ONLY: a per-account flag (set by staff/script, never the student)
+      // skips sequential gating for that account. Strict `!== true` so only a literal
+      // boolean true bypasses the gate. Remove with the Teja test account.
+      if (up?.unlockAllLevels !== true) {
+        const solved: number[] = up?.solvedProblemIds || [];
+        const curriculum = await Models.Problem.find(
+          { age_group: problem.age_group }, 'problem_id level_number session_id case_number',
+        ).lean<UnlockProblem[]>();
+        if (!isProblemUnlocked(problemId, solved, curriculum)) {
+          return res.status(403).json({
+            error: 'Locked',
+            message: 'Complete the previous task to unlock this one.',
+          });
+        }
       }
     } else if (!isContestSubmission && !problem.age_group) {
       // Fail-open is intentional (can't scope the curriculum without a band) but

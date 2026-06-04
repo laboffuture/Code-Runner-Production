@@ -197,6 +197,8 @@ router.get('/me/stats', async (req: Request, res: Response) => {
       topicProgress,
       solvedProblemIds: progress.solvedProblemIds || [],
       unlockedCharacters: allCharacters, // All characters unlocked
+      // TEST/DEV per-account gate bypass (Teja only) — frontend gates honor it. Remove with Teja at prod.
+      unlockAllLevels: (progress as any).unlockAllLevels === true,
     });
   } catch (error) {
     logger.error('Error fetching user stats', { error });

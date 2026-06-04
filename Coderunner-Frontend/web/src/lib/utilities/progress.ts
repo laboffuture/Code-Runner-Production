@@ -35,9 +35,19 @@ const LEVELS_PER_AGE_GROUP: Record<string, number> = {
 class ProgressManager {
   private static instance: ProgressManager;
   private progress: UserProgress;
+  // TEST/DEV ONLY: per-account gate bypass, synced from the server each session
+  // (never persisted — server is authoritative). True only for the Teja test
+  // account; makes the level/session/case gates report everything unlocked.
+  // Remove with the Teja test account at production.
+  private unlockAllLevels = false;
 
   private constructor() {
     this.progress = this.loadProgress();
+  }
+
+  /** TEST/DEV: is this account's sequential gate bypassed? (Teja only.) */
+  isUnlockAll(): boolean {
+    return this.unlockAllLevels;
   }
 
   static getInstance(): ProgressManager {
@@ -161,6 +171,9 @@ class ProgressManager {
     // Launch posture: everything unlocked (see UNLOCK_ALL_LEVELS note above).
     if (UNLOCK_ALL_LEVELS) return true;
 
+    // TEST/DEV per-account bypass (Teja only).
+    if (this.unlockAllLevels) return true;
+
     // Otherwise a level is unlocked once the previous one is completed.
     return this.isLevelCompleted(ageGroup, levelNumber - 1);
   }
@@ -211,7 +224,9 @@ class ProgressManager {
     };
   }
 
-  syncFromServer(solvedProblemIds: number[]): void {
+  syncFromServer(solvedProblemIds: number[], unlockAllLevels = false): void {
+    // Server is authoritative for the gate-bypass flag; refresh it each sync.
+    this.unlockAllLevels = unlockAllLevels;
     let changed = false;
     for (const id of solvedProblemIds) {
       const key = String(id);
@@ -252,7 +267,7 @@ export async function syncProgressFromServer(): Promise<void> {
     const { api } = await import('@/lib/api-client');
     const stats = await api.users.getStats() as any;
     if (Array.isArray(stats?.solvedProblemIds)) {
-      progressManager.syncFromServer(stats.solvedProblemIds as number[]);
+      progressManager.syncFromServer(stats.solvedProblemIds as number[], stats.unlockAllLevels === true);
     }
   } catch {
     // Non-critical — localStorage data is the fallback
@@ -265,6 +280,7 @@ export function useProgress() {
     markProblemComplete: (problemId: string) => progressManager.markProblemComplete(problemId),
     markLevelComplete: (ageGroup: string, levelNumber: number) => progressManager.markLevelComplete(ageGroup, levelNumber),
     isProblemCompleted: (problemId: string) => progressManager.isProblemCompleted(problemId),
+    unlockAll: progressManager.isUnlockAll(),
     isLevelCompleted: (ageGroup: string, levelNumber: number) => progressManager.isLevelCompleted(ageGroup, levelNumber),
     isLevelUnlocked: (ageGroup: string, levelNumber: number) => progressManager.isLevelUnlocked(ageGroup, levelNumber),
     getLevelProgress: (ageGroup: string, levelNumber: number) => progressManager.getLevelProgress(ageGroup, levelNumber),

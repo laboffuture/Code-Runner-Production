@@ -3,7 +3,7 @@
 import type { Level } from '@/lib/types';
 import Link from 'next/link';
 import { ArrowRight, Lock, Zap, Target, CheckCircle, Play } from 'lucide-react';
-import { useProgress } from '@/lib/utilities/progress';
+import { useProgress, syncProgressFromServer } from '@/lib/utilities/progress';
 import { isLevelUnlocked } from '@/lib/utilities/unlock';
 import { useState, useEffect } from 'react';
 import { useGlobalAudio } from '@/contexts/AudioContext';
@@ -16,6 +16,7 @@ interface LevelListProps {
 export function LevelList({ levels }: LevelListProps) {
   const progress = useProgress();
   const [mounted, setMounted] = useState(false);
+  const [, forceSync] = useState(0);
   const { playProjectTextSound, playCardHover } = useGlobalAudio();
   const { accentColor } = useTheme();
 
@@ -28,6 +29,9 @@ export function LevelList({ levels }: LevelListProps) {
 
   useEffect(() => {
     setMounted(true);
+    // Pull the latest solved set + per-account unlock flag, then re-render so level
+    // locks (and the Teja test bypass) reflect server truth on a cold load.
+    syncProgressFromServer().then(() => forceSync((n) => n + 1));
   }, []);
 
   if (!mounted) {
@@ -43,7 +47,8 @@ export function LevelList({ levels }: LevelListProps) {
 
   const getStatusInfo = (level: Level) => {
     const isCompleted = progress.isLevelCompleted(level.age_group, level.level_number);
-    const isUnlocked = isLevelUnlocked(
+    // TEST/DEV per-account bypass (Teja only) opens every level.
+    const isUnlocked = progress.unlockAll || isLevelUnlocked(
       levels,
       level.level_number,
       (pid: number) => progress.isProblemCompleted(String(pid)),

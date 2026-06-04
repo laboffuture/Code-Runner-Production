@@ -26,7 +26,7 @@ interface SessionListProps {
 export function SessionList({ sessions, level }: SessionListProps) {
   const [openSession, setOpenSession] = useState<string | undefined>(undefined);
   const { accentColor, theme } = useTheme();
-  const { isProblemCompleted } = useProgress();
+  const { isProblemCompleted, unlockAll } = useProgress();
   const [, forceSync] = useState(0);
 
   // Pull the latest solved set from the server so unlock state is accurate.
@@ -81,15 +81,16 @@ export function SessionList({ sessions, level }: SessionListProps) {
     session.session_number !== 11 && session.session_number !== 12
   );
 
-  // The final challenge unlocks only after every session is complete.
+  // The final challenge unlocks only after every session is complete (or the
+  // TEST/DEV per-account bypass is on — Teja only).
   const allSessionsComplete =
-    filteredSessions.length > 0 && filteredSessions.every(isSessionComplete);
+    unlockAll || (filteredSessions.length > 0 && filteredSessions.every(isSessionComplete));
 
   return (
     <div className="max-w-5xl mx-auto">
       <div className="w-full space-y-6">
         {filteredSessions.map((session, index) => {
-          const locked = index > 0 && !isSessionComplete(filteredSessions[index - 1]);
+          const locked = !unlockAll && index > 0 && !isSessionComplete(filteredSessions[index - 1]);
           return (
           <div key={session.session_id} id={`session-${session.session_id}`} className={`relative ${locked ? 'opacity-70' : ''}`}>
             {/* SVG Filter Definition */}
