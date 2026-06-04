@@ -13,7 +13,7 @@ interface StudentRow {
   userId: string;
   username: string;
   age_group: string;
-  level: number;
+  curriculumLevel: number;
   totalSolved: number;
   solvedToday: number;
   acceptanceRate: number;
@@ -280,7 +280,7 @@ export default function ClassroomDashboard() {
                             )}
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-gray-700">L{s.level}</td>
+                        <td className="px-5 py-3 text-gray-700">L{s.curriculumLevel}</td>
                         <td className="px-5 py-3 text-gray-700">{s.solvedToday}</td>
                         <td className="px-5 py-3 font-bold text-indigo-600">{s.totalSolved}</td>
                         <td className="px-5 py-3 text-gray-700">{s.acceptanceRate}%</td>

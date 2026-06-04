@@ -35,12 +35,60 @@ async function myStudent(req: Request, id: string) {
   return owns ? user : null;
 }
 
+interface BandProblem { problem_id: number; level_number: number; session_id: number; difficulty: string; }
+
+/**
+ * Single source of truth for every teacher-facing COMPLETION number: derive them
+ * fresh from the student's solvedProblemIds (the same write-once source the unlock
+ * gate uses), NOT from the stored stats copies on UserProgress. This keeps the
+ * roster and the student profile in lock-step and immune to any legacy/stored drift
+ * (e.g. pre-solvedProblemIds test data). Gamification (xp/coins/rank/streak) stays
+ * stored — only completion truth is derived here. `level` here means CURRICULUM
+ * level reached (1–4), not the XP level.
+ */
+function deriveCompletion(solvedIds: number[], bandProblems: BandProblem[]) {
+  const solvedSet = new Set(solvedIds);
+  let easySolved = 0, mediumSolved = 0, hardSolved = 0, totalSolved = 0, level = 1;
+  const agg = new Map<number, { total: number; solved: number }>();
+  for (const p of bandProblems) {
+    const e = agg.get(p.session_id) || { total: 0, solved: 0 };
+    e.total += 1;
+    if (solvedSet.has(p.problem_id)) {
+      e.solved += 1;
+      totalSolved += 1;
+      if (p.level_number > level) level = p.level_number;
+      const d = (p.difficulty || '').toLowerCase();
+      if (d === 'hard') hardSolved += 1; else if (d === 'medium') mediumSolved += 1; else easySolved += 1; // intro counts as easy
+    }
+    agg.set(p.session_id, e);
+  }
+  let sessionsCompleted = 0;
+  for (const e of agg.values()) if (e.total > 0 && e.solved >= e.total) sessionsCompleted += 1;
+  level = Math.max(1, Math.min(4, level)); // curriculum is 4 levels; guard against stray level_number
+  return { totalSolved, easySolved, mediumSolved, hardSolved, sessionsCompleted, sessionsTotal: agg.size, level };
+}
+
 /** Build roster rows + chart overview for a set of student docs. */
 async function buildClassData(students: any[]) {
   const ids = students.map((s) => s._id);
   const progressDocs = await Models.UserProgress.find({ userId: { $in: ids } }).lean();
   const byUser = new Map<string, any>(progressDocs.map((p: any) => [String(p.userId), p]));
   const todayStr = new Date().toISOString().split('T')[0];
+
+  // Load the curriculum for the bands present once, then derive completion per
+  // student from their solved set (see deriveCompletion).
+  const ageGroups = Array.from(new Set(students.map((s: any) => s.age_group).filter(Boolean)));
+  const bandProblems = (await Models.Problem.find(
+    { age_group: { $in: ageGroups } }, 'problem_id level_number session_id difficulty age_group',
+  ).lean()) as any[];
+  const problemsByBand = new Map<string, BandProblem[]>();
+  for (const ag of ageGroups) problemsByBand.set(String(ag), []);
+  for (const p of bandProblems) problemsByBand.get(String(p.age_group))?.push(p);
+  const completionByUser = new Map<string, ReturnType<typeof deriveCompletion>>();
+  for (const s of students) {
+    const p = byUser.get(String(s._id));
+    completionByUser.set(String(s._id), deriveCompletion(p?.solvedProblemIds || [], problemsByBand.get(String(s.age_group)) || []));
+  }
 
   // Integrity: count of flagged attempts per student (any flag set).
   const flaggedAgg = await Models.StudentAttempt.aggregate([
@@ -60,6 +108,7 @@ async function buildClassData(students: any[]) {
 
   const roster = students.map((s: any) => {
     const p = byUser.get(String(s._id));
+    const c = completionByUser.get(String(s._id))!;
     const solvedToday =
       p?.solvedCalendar?.find((d: any) => new Date(d.date).toISOString().split('T')[0] === todayStr)?.count || 0;
     const lastActive = p?.recentActivity?.[0]?.timestamp || p?.updatedAt || null;
@@ -68,12 +117,14 @@ async function buildClassData(students: any[]) {
       username: s.username,
       age_group: s.age_group,
       joinedAt: s.createdAt,
-      level: p?.level ?? 1,
+      curriculumLevel: c.level, // derived curriculum level reached (1–4), not the XP level
       rank: p?.rank ?? 'NOVICE',
-      totalSolved: p?.stats?.totalSolved ?? 0,
-      easySolved: p?.stats?.easySolved ?? 0,
-      mediumSolved: p?.stats?.mediumSolved ?? 0,
-      hardSolved: p?.stats?.hardSolved ?? 0,
+      totalSolved: c.totalSolved,
+      easySolved: c.easySolved,
+      mediumSolved: c.mediumSolved,
+      hardSolved: c.hardSolved,
+      sessionsCompleted: c.sessionsCompleted,
+      sessionsTotal: c.sessionsTotal,
       solvedToday,
       totalSubmissions: p?.stats?.totalSubmissions ?? 0,
       acceptanceRate: p?.stats?.acceptanceRate ?? 0,
@@ -89,11 +140,11 @@ async function buildClassData(students: any[]) {
   const dayMap: Record<string, number> = {};
   for (const s of students) {
     const p = byUser.get(String(s._id));
-    const lvl = p?.level ?? 1;
-    levelCounts[lvl] = (levelCounts[lvl] || 0) + 1;
-    difficulty.easy += p?.stats?.easySolved || 0;
-    difficulty.medium += p?.stats?.mediumSolved || 0;
-    difficulty.hard += p?.stats?.hardSolved || 0;
+    const c = completionByUser.get(String(s._id))!;
+    levelCounts[c.level] = (levelCounts[c.level] || 0) + 1; // derived curriculum level
+    difficulty.easy += c.easySolved;
+    difficulty.medium += c.mediumSolved;
+    difficulty.hard += c.hardSolved;
     for (const d of (p?.solvedCalendar || [])) {
       const key = new Date(d.date).toISOString().split('T')[0];
       dayMap[key] = (dayMap[key] || 0) + (d.count || 0);
@@ -247,23 +298,13 @@ router.get('/students/:id', async (req: Request, res: Response) => {
       .filter((t: any) => t.solved > 0)
       .map((t: any) => ({ name: t.topic, problemCount: t.solved, category: 'CONCEPT' }));
 
-    // Sessions completed: of all sessions in the student's age band, how many
-    // have EVERY problem solved — a clean "X of Y sessions" progress signal that
-    // (unlike topicProgress) also accounts for sessions the student hasn't touched.
-    const solvedSet = new Set<number>(progress?.solvedProblemIds || []);
+    // Completion (sessions done + solved counts + curriculum level) — derived from
+    // the solved set via the SAME deriveCompletion the roster uses, so the profile
+    // and the roster can never disagree and stored-stat drift never shows.
     const bandProblems = (await Models.Problem.find(
-      { age_group: user.age_group }, 'problem_id session_id',
+      { age_group: user.age_group }, 'problem_id level_number session_id difficulty',
     ).lean()) as any[];
-    const sessionAgg = new Map<number, { total: number; solved: number }>();
-    for (const p of bandProblems) {
-      const e = sessionAgg.get(p.session_id) || { total: 0, solved: 0 };
-      e.total += 1;
-      if (solvedSet.has(p.problem_id)) e.solved += 1;
-      sessionAgg.set(p.session_id, e);
-    }
-    const sessionsTotal = sessionAgg.size;
-    let sessionsCompleted = 0;
-    for (const e of sessionAgg.values()) if (e.total > 0 && e.solved >= e.total) sessionsCompleted += 1;
+    const c = deriveCompletion(progress?.solvedProblemIds || [], bandProblems);
 
     res.json({
       id: user._id,
@@ -277,12 +318,19 @@ router.get('/students/:id', async (req: Request, res: Response) => {
       selectedCharacter: user.selectedCharacter,
       onboardingComplete: user.onboardingComplete,
       rank: progress?.rank || 'NOVICE',
-      level: progress?.level || 1,
+      level: progress?.level || 1, // XP level — ProfileStats' XP-progress bar reads this; keep stored
+      curriculumLevel: c.level, // highest curriculum level reached (1–4), derived — for "how far through"
       experience: progress?.experience || 0,
       streak: progress?.streak || { current: 0, longest: 0, lastSubmissionDate: null },
-      stats: progress?.stats || {
-        totalSolved: 0, easySolved: 0, mediumSolved: 0, hardSolved: 0,
-        totalSubmissions: 0, acceptedSubmissions: 0, acceptanceRate: 0, failedRuns: 0,
+      // Completion counts (totalSolved + difficulty breakdown) DERIVED from the
+      // solved set; submission-quality counts (submissions/acceptance/failedRuns)
+      // kept from stored stats — they track attempts, not curriculum completion.
+      stats: {
+        totalSolved: c.totalSolved, easySolved: c.easySolved, mediumSolved: c.mediumSolved, hardSolved: c.hardSolved,
+        totalSubmissions: progress?.stats?.totalSubmissions ?? 0,
+        acceptedSubmissions: progress?.stats?.acceptedSubmissions ?? 0,
+        acceptanceRate: progress?.stats?.acceptanceRate ?? 0,
+        failedRuns: progress?.stats?.failedRuns ?? 0,
       },
       contestRating: progress?.contestRating || 1000,
       achievements: progress?.achievements || [],
@@ -291,8 +339,8 @@ router.get('/students/:id', async (req: Request, res: Response) => {
       submissionCalendar: progress?.submissionCalendar || [],
       solvedCalendar: progress?.solvedCalendar || [],
       topicProgress,
-      sessionsCompleted,
-      sessionsTotal,
+      sessionsCompleted: c.sessionsCompleted,
+      sessionsTotal: c.sessionsTotal,
       solvedProblemIds: progress?.solvedProblemIds || [],
       attempts,
     });
