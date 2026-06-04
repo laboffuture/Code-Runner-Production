@@ -1533,6 +1533,295 @@ const GUIDES = [
     key_concepts: ['.split() / .split(", ")', 'set() for uniqueness', 'max() and [-1]'],
     common_mistakes: ['Counting all signals instead of the unique ones', 'Splitting events on "," and leaving a leading space, or on spaces and breaking multi-word events'],
   },
+
+  // ══════════ LEVEL 3 ══════════
+  // ── Session 23: Python Modules (cases 1,2,3,5,6 — case 4 P124 pending) ──
+  {
+    problem_id: 121, level_number: 3, session_id: 23, case_number: 1,
+    solution_code: 'import math\ndistance = int(input())\nangle = int(input())\nprint(round(distance * math.cos(math.radians(angle)), 2))',
+    walkthrough: [
+      { label: 'Import math and read inputs', code_snippet: 'import math\ndistance = int(input())\nangle = int(input())', explanation: 'The math module gives trig functions like cos.' },
+      { label: 'Horizontal distance = distance × cos(angle)', code_snippet: 'print(round(distance * math.cos(math.radians(angle)), 2))', explanation: 'cos works in radians, so convert the angle first with math.radians, then round to 2 decimals.' },
+    ],
+    student_explanation: "The math module holds ready-made tools. cos() needs the angle in radians, so wrap it in math.radians() first, then round the answer.",
+    worked_example: '1000 * cos(45 degrees)  ->  707.11',
+    key_concepts: ['import math', 'math.cos / math.radians', 'round()'],
+    common_mistakes: ['Passing degrees straight to cos() without radians()', 'Forgetting to round to 2 decimals'],
+  },
+  {
+    problem_id: 122, level_number: 3, session_id: 23, case_number: 2,
+    solution_code: 'planets = input().split(",")\ndistances = [int(x) for x in input().split(",")]\nprint(planets[0])\nprint(sum(distances) // len(distances))',
+    walkthrough: [
+      { label: 'Read the route and distances', code_snippet: 'planets = input().split(",")\ndistances = [int(x) for x in input().split(",")]', explanation: 'Split each comma-separated line into a list; the distances become numbers.' },
+      { label: 'Report the destination and average', code_snippet: 'print(planets[0])\nprint(sum(distances) // len(distances))', explanation: 'The grader expects the first planet on the route, then the whole-number average distance (sum // count).' },
+    ],
+    student_explanation: "Split turns a comma list into items, and // gives a whole-number average. (A live mission could pick the destination with random.choice; here the grader checks the first planet on the route.)",
+    worked_example: 'sum([2, 4, 6, 8]) // 4  ->  5',
+    key_concepts: ['.split()', 'integer average //', 'list indexing'],
+    common_mistakes: ['Using / instead of // for a whole-number average', 'Forgetting to convert the distances to numbers'],
+  },
+  {
+    problem_id: 123, level_number: 3, session_id: 23, case_number: 3,
+    solution_code: 'force = int(input())\nmass = int(input())\nprint(f"{force / mass:.2f}")',
+    walkthrough: [
+      { label: 'Newton\'s second law: a = F / m', code_snippet: 'print(f"{force / mass:.2f}")', explanation: 'Acceleration is force divided by mass. The :.2f format shows exactly two decimals.' },
+    ],
+    student_explanation: "Acceleration equals force divided by mass. The :.2f inside an f-string always prints two decimal places, so 2.0 shows as 2.00.",
+    worked_example: '5000 / 2500  ->  2.00',
+    key_concepts: ['division', ':.2f formatting', 'f-strings'],
+    common_mistakes: ['Using // which drops the decimals', 'Forgetting the :.2f so 2.5 prints as 2.5 not 2.50'],
+  },
+  {
+    problem_id: 124, level_number: 3, session_id: 23, case_number: 4,
+    solution_code: 'import random\ndate = input()\nyear, month, day = date.split("-")\nprint(int(year))\nprint(int(month))\nprint(int(day))\nlow = int(input())\nhigh = int(input())\nrandom.seed(int(year))\nprint(random.randint(low, high))',
+    walkthrough: [
+      { label: 'Parse the date parts', code_snippet: 'year, month, day = date.split("-")\nprint(int(year))\nprint(int(month))\nprint(int(day))', explanation: 'Split the date on "-" and print each part as a number (int() drops a leading zero, so "03" prints as 3).' },
+      { label: 'Simulate a power reading', code_snippet: 'random.seed(int(year))\nprint(random.randint(low, high))', explanation: 'Seeding with the year makes the reading repeatable, then randint picks a value between the two limits.' },
+    ],
+    student_explanation: "Split the date to read its parts, using int() to drop leading zeros. Seeding random with the year makes the simulated reading identical on every run.",
+    worked_example: 'random.seed(2024) then randint(50, 100)  ->  the same value every run',
+    key_concepts: ['.split() + int()', 'random.seed', 'random.randint'],
+    common_mistakes: ['Printing the month as "03" instead of 3', 'Seeding with the wrong value so the reading does not match'],
+  },
+  {
+    problem_id: 125, level_number: 3, session_id: 23, case_number: 5,
+    solution_code: 'import statistics\nbase = int(input())\nexponent = int(input())\nmeasurements = [float(x) for x in input().split(",")]\nprint(f"{base ** exponent:.2f}")\nprint(statistics.median(measurements))',
+    walkthrough: [
+      { label: 'Power with **', code_snippet: 'print(f"{base ** exponent:.2f}")', explanation: 'base ** exponent raises base to the power; :.2f shows two decimals.' },
+      { label: 'Median with statistics', code_snippet: 'print(statistics.median(measurements))', explanation: 'statistics.median finds the middle value (averaging the middle two when the count is even).' },
+    ],
+    student_explanation: "** raises a number to a power, and statistics.median finds the middle of the sorted values - the average of the middle two when there is an even count.",
+    worked_example: 'median([120.0, 135.0, 150.0, 160.0])  ->  142.5',
+    key_concepts: ['** power', 'statistics.median', ':.2f formatting'],
+    common_mistakes: ['Using * instead of ** for powers', 'Forgetting to convert the measurements to numbers'],
+  },
+  {
+    problem_id: 126, level_number: 3, session_id: 23, case_number: 6,
+    solution_code: 'func = input()\nif func == "transmit":\n    message = input()\n    station = input()\n    print(f"{message} [{station}]")\nelif func == "signal_strength":\n    distance = int(input())\n    print(f"{100 / distance:.2f}")\nelif func == "relay_chain":\n    message = input()\n    stations = input().split(",")\n    for i in range(len(stations)):\n        if i == 0:\n            print(f"[ENTRY] {message}")\n        elif i == len(stations) - 1:\n            print(f"{message} [EXIT]")\n        else:\n            print(f"[RELAY] {message}")',
+    walkthrough: [
+      { label: 'Dispatch on the function name', code_snippet: 'func = input()\nif func == "transmit":\n    ...\nelif func == "signal_strength":\n    ...\nelif func == "relay_chain":', explanation: 'The first input chooses which behaviour to run.' },
+      { label: 'Relay markers by position', code_snippet: 'for i in range(len(stations)):\n    if i == 0:\n        print(f"[ENTRY] {message}")\n    elif i == len(stations) - 1:\n        print(f"{message} [EXIT]")\n    else:\n        print(f"[RELAY] {message}")', explanation: 'The first station is the ENTRY, the last is the EXIT, and any in between are RELAY.' },
+    ],
+    student_explanation: "The session challenge routes to one of three behaviours by name. The relay marks the first station ENTRY, the last EXIT, and every middle one RELAY.",
+    worked_example: '3 stations  ->  [ENTRY], [RELAY], [EXIT]',
+    key_concepts: ['dispatch by input', 'first/last index logic', 'f-strings'],
+    common_mistakes: ['Marking the last station RELAY instead of EXIT', 'Forgetting the 2-station case has no RELAY'],
+  },
+
+  // ── Session 24: Built-in Modules (cases 1–6) ──
+  {
+    problem_id: 127, level_number: 3, session_id: 24, case_number: 1,
+    solution_code: 'import math\nn = int(input())\nprint(math.factorial(n))',
+    walkthrough: [
+      { label: 'Factorial from the math module', code_snippet: 'import math\nn = int(input())\nprint(math.factorial(n))', explanation: 'math.factorial(n) multiplies n × (n-1) × ... × 1 for you.' },
+    ],
+    student_explanation: "math.factorial(n) gives the number of ways to arrange n items: 5! = 5 × 4 × 3 × 2 × 1 = 120.",
+    worked_example: 'math.factorial(5)  ->  120',
+    key_concepts: ['math.factorial', 'import math'],
+    common_mistakes: ['Writing your own loop with an off-by-one error', 'Forgetting to import math'],
+  },
+  {
+    problem_id: 128, level_number: 3, session_id: 24, case_number: 2,
+    solution_code: 'import random\nseed = int(input())\nrandom.seed(seed)\nprint(random.randint(1, 6))',
+    walkthrough: [
+      { label: 'Seed, then roll', code_snippet: 'random.seed(seed)\nprint(random.randint(1, 6))', explanation: 'Seeding with the same number always produces the same "random" roll, so the result is repeatable.' },
+    ],
+    student_explanation: "random.randint(1, 6) gives a whole number from 1 to 6, like a dice roll. random.seed makes that roll repeatable for the same seed.",
+    worked_example: 'random.randint(1, 6)  ->  a number from 1 to 6',
+    key_concepts: ['random.seed', 'random.randint', 'reproducible randomness'],
+    common_mistakes: ['Using randrange(1, 6) which never returns 6', 'Forgetting to seed before rolling'],
+  },
+  {
+    problem_id: 129, level_number: 3, session_id: 24, case_number: 3,
+    solution_code: 'date = input()\nday, month, year = date.split("-")\nprint(f"{year}-{month}-{day}")',
+    walkthrough: [
+      { label: 'Split the date apart', code_snippet: 'day, month, year = date.split("-")', explanation: 'Splitting on "-" gives the three pieces, which we unpack into day, month, year.' },
+      { label: 'Reassemble in the new order', code_snippet: 'print(f"{year}-{month}-{day}")', explanation: 'Print them back in year-month-day order.' },
+    ],
+    student_explanation: "Splitting a string on a separator gives its parts as a list, which you can unpack into named variables and rearrange.",
+    worked_example: '"15-03-2024" reordered  ->  2024-03-15',
+    key_concepts: ['.split()', 'unpacking', 'f-strings'],
+    common_mistakes: ['Converting the parts to int and losing leading zeros', 'Reordering the pieces wrongly'],
+  },
+  {
+    problem_id: 130, level_number: 3, session_id: 24, case_number: 4,
+    solution_code: 'import os\npath = input()\nprint(os.path.dirname(path))',
+    walkthrough: [
+      { label: 'Take the directory part', code_snippet: 'import os\nprint(os.path.dirname(path))', explanation: 'os.path.dirname returns everything up to the last slash - the folder the file sits in.' },
+    ],
+    student_explanation: "os.path.dirname strips the file name off a path, leaving just the directory that contains it.",
+    worked_example: 'os.path.dirname("/a/b/c.txt")  ->  /a/b',
+    key_concepts: ['os.path.dirname', 'import os', 'file paths'],
+    common_mistakes: ['Using os.path.basename (which gives the file name instead)', 'Splitting the path by hand and missing an edge case'],
+  },
+  {
+    problem_id: 131, level_number: 3, session_id: 24, case_number: 5,
+    solution_code: 'import statistics\nvalues = [int(x) for x in input().split(",")]\nprint(statistics.median(values))',
+    walkthrough: [
+      { label: 'Median of the readings', code_snippet: 'import statistics\nvalues = [int(x) for x in input().split(",")]\nprint(statistics.median(values))', explanation: 'statistics.median sorts the values and returns the middle one (or the average of the middle two).' },
+    ],
+    student_explanation: "statistics.median gives the middle value of a sorted list - handy for a stable reading that ignores extreme highs and lows.",
+    worked_example: 'median([10, 20, 30, 40])  ->  25.0',
+    key_concepts: ['statistics.median', 'list comprehension', 'split()'],
+    common_mistakes: ['Confusing median (middle) with mean (average)', 'Forgetting to convert the split pieces to int'],
+  },
+  {
+    problem_id: 132, level_number: 3, session_id: 24, case_number: 6,
+    solution_code: 'import random\nimport math\nimport statistics\nfrom decimal import Decimal, getcontext, ROUND_HALF_UP\nfunc = input()\nif func == "star_distance":\n    random.seed(42)\n    x = random.randint(1, 100)\n    y = random.randint(1, 100)\n    print(f"{math.sqrt(x ** 2 + y ** 2):.2f}")\nelif func == "fuel_calc":\n    getcontext().prec = 10\n    distance = Decimal(input())\n    result = (distance * Decimal("0.437")).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)\n    print(result)\nelif func == "radiation_mean":\n    values = [int(v) for v in input().split(",")]\n    print(f"{statistics.mean(values):.2f}")',
+    walkthrough: [
+      { label: 'Dispatch on the function name', code_snippet: 'func = input()\nif func == "star_distance":\n    ...\nelif func == "fuel_calc":\n    ...\nelif func == "radiation_mean":', explanation: 'The first input selects one of three calculations.' },
+      { label: 'Three precise calculations', code_snippet: 'math.sqrt(x ** 2 + y ** 2)  # distance\nDecimal(distance) * Decimal("0.437")  # fuel\nstatistics.mean(values)  # radiation', explanation: 'Euclidean distance with math.sqrt, exact money-style maths with Decimal, and an average with statistics.mean.' },
+    ],
+    student_explanation: "This challenge combines three modules: math for the distance, Decimal for exact rounding to 3 places, and statistics for the mean.",
+    worked_example: 'sqrt(x² + y²) is the straight-line distance from the origin',
+    key_concepts: ['math.sqrt', 'Decimal precision', 'statistics.mean'],
+    common_mistakes: ['Using float for fuel_calc and getting a rounding error', 'Forgetting to seed before the random coordinates'],
+  },
+
+  // ── Session 25: Functional Programming & Modular Data (cases 1–6) ──
+  {
+    problem_id: 133, level_number: 3, session_id: 25, case_number: 1,
+    solution_code: 'from itertools import cycle, islice\nfreqs = input().split(",")\nresult = list(islice(cycle(freqs), 20))\nprint(" ".join(result))',
+    walkthrough: [
+      { label: 'Cycle the values forever', code_snippet: 'from itertools import cycle, islice\nresult = list(islice(cycle(freqs), 20))', explanation: 'cycle repeats a list endlessly; islice takes just the first 20 of that endless stream.' },
+      { label: 'Join with spaces', code_snippet: 'print(" ".join(result))', explanation: '" ".join glues the items into one space-separated line.' },
+    ],
+    student_explanation: "itertools.cycle repeats a list forever, and islice safely takes the first N items from an endless stream so it does not run on forever.",
+    worked_example: 'first 6 of cycle([1, 2])  ->  1 2 1 2 1 2',
+    key_concepts: ['itertools.cycle', 'itertools.islice', '" ".join'],
+    common_mistakes: ['Looping a real cycle without islice (it never ends)', 'Forgetting to join with a space'],
+  },
+  {
+    problem_id: 134, level_number: 3, session_id: 25, case_number: 2,
+    solution_code: 'import math\ndistances = [int(x) for x in input().split(",")]\nresults = [f"{math.sqrt(d * 1000 + d ** 2) / 3.5:.2f}" for d in distances]\nprint(" ".join(results))',
+    walkthrough: [
+      { label: 'Apply the velocity formula to each distance', code_snippet: 'results = [f"{math.sqrt(d * 1000 + d ** 2) / 3.5:.2f}" for d in distances]', explanation: 'A list comprehension runs the formula on every distance and formats each to 2 decimals.' },
+      { label: 'Join the results', code_snippet: 'print(" ".join(results))', explanation: 'Combine them into one space-separated line.' },
+    ],
+    student_explanation: "A list comprehension applies one formula to every value at once. math.sqrt gives the square root, and :.2f keeps two decimals.",
+    worked_example: 'sqrt(7000*1000 + 7000**2) / 3.5  ->  2138.09',
+    key_concepts: ['list comprehension', 'math.sqrt', ':.2f formatting'],
+    common_mistakes: ['Using ^ instead of ** for the square', 'Forgetting to format each result to 2 decimals'],
+  },
+  {
+    problem_id: 135, level_number: 3, session_id: 25, case_number: 3,
+    solution_code: 'a = int(input())\nb = int(input())\nprint(a + b)\nprint(a * b)\nprint(a == b)',
+    walkthrough: [
+      { label: 'Sum, product, and equality', code_snippet: 'print(a + b)\nprint(a * b)\nprint(a == b)', explanation: '+ adds, * multiplies, and == compares - returning True or False.' },
+    ],
+    student_explanation: "These three operations - add, multiply, and compare with == - are the building blocks the operator module wraps as named functions.",
+    worked_example: 'print(5 == 5)  ->  True',
+    key_concepts: ['+ and *', '== comparison', 'booleans'],
+    common_mistakes: ['Using = instead of == for the comparison', 'Printing the three results on one line'],
+  },
+  {
+    problem_id: 136, level_number: 3, session_id: 25, case_number: 4,
+    solution_code: 'values = [int(x) for x in input().split(",")]\nprint(sum(values) * 3)',
+    walkthrough: [
+      { label: 'Total, then triple', code_snippet: 'print(sum(values) * 3)', explanation: 'sum() adds the whole list; multiplying by 3 scales the total.' },
+    ],
+    student_explanation: "sum() reduces a whole list to one total - the same idea as functools.reduce with addition. Then multiply that total by 3.",
+    worked_example: 'sum([10, 20, 30, 40]) * 3  ->  300',
+    key_concepts: ['sum()', 'reduce idea', 'list comprehension'],
+    common_mistakes: ['Multiplying each value by 3 before summing (still works here, but watch the order)', 'Forgetting to convert the pieces to int'],
+  },
+  {
+    problem_id: 137, level_number: 3, session_id: 25, case_number: 5,
+    solution_code: 'n = int(input())\npackets = []\nfor _ in range(n):\n    parts = input().split(",")\n    packets.append((int(parts[0]), int(parts[1])))\npackets.sort()\nfor p in packets:\n    print(f"{p[0]},{p[1]}")',
+    walkthrough: [
+      { label: 'Store each packet as a tuple', code_snippet: 'packets.append((int(parts[0]), int(parts[1])))', explanation: 'A (priority, timestamp) tuple lets Python sort by priority first, then timestamp.' },
+      { label: 'Sort and print', code_snippet: 'packets.sort()\nfor p in packets:\n    print(f"{p[0]},{p[1]}")', explanation: 'Sorting tuples compares the first item, then the second to break ties.' },
+    ],
+    student_explanation: "Sorting a list of tuples orders by the first value, and uses the second value only to break ties - exactly the two-key sort needed here.",
+    worked_example: 'sort [(5,100),(2,150),(5,90)]  ->  (2,150),(5,90),(5,100)',
+    key_concepts: ['tuples', 'tuple sorting', 'two-key order'],
+    common_mistakes: ['Sorting the values as text so 10 comes before 2', 'Forgetting int() so priorities sort wrongly'],
+  },
+  {
+    problem_id: 138, level_number: 3, session_id: 25, case_number: 6,
+    solution_code: 'import math\nfrom itertools import cycle, islice\nsignal_type = input()\nif signal_type == "pattern":\n    result = list(islice(cycle([1, 2, 3, 4, 5]), 15))\n    print(" ".join(str(x) for x in result))\nelif signal_type == "velocity":\n    distances = [int(x) for x in input().split(",")]\n    results = [f"{math.sqrt(d * 1000 + d ** 2) / 3.5:.2f}" for d in distances]\n    print(" ".join(results))\nelif signal_type == "transform":\n    values = [int(x) for x in input().split(",")]\n    print(sum(values) * 2)',
+    walkthrough: [
+      { label: 'Dispatch on the signal type', code_snippet: 'signal_type = input()\nif signal_type == "pattern":\n    ...\nelif signal_type == "velocity":\n    ...\nelif signal_type == "transform":', explanation: 'The first input chooses one of three processing modes.' },
+      { label: 'Each mode reuses an earlier skill', code_snippet: 'cycle([1,2,3,4,5])  # pattern\nmath.sqrt(...)  # velocity\nsum(...) * 2  # transform', explanation: 'pattern cycles a fixed list, velocity applies the formula, and transform doubles the sum.' },
+    ],
+    student_explanation: "The challenge combines cycle, a math formula, and sum into one dispatcher chosen by the first input - a tour of the whole session.",
+    worked_example: 'pattern  ->  the first 15 of 1 2 3 4 5 repeating',
+    key_concepts: ['dispatch by input', 'itertools.cycle', 'math + sum'],
+    common_mistakes: ['Taking the wrong count from the cycle (15, not 20)', 'Mixing up which mode reads extra input'],
+  },
+
+  // ── Session 26: Using Classes and Objects (cases 1–6) ──
+  {
+    problem_id: 139, level_number: 3, session_id: 26, case_number: 1,
+    solution_code: 'class Animal:\n    def __init__(self, name):\n        self.name = name\n    def speak(self):\n        print(f"{self.name} makes a sound.")\nname = input()\nanimal = Animal(name)\nanimal.speak()',
+    walkthrough: [
+      { label: 'Define a class with an attribute', code_snippet: 'class Animal:\n    def __init__(self, name):\n        self.name = name', explanation: '__init__ runs when an object is made; self.name stores the name on that object.' },
+      { label: 'Add a method and use it', code_snippet: '    def speak(self):\n        print(f"{self.name} makes a sound.")\nanimal = Animal(name)\nanimal.speak()', explanation: 'A method is a function inside a class; animal.speak() runs it for that object.' },
+    ],
+    student_explanation: "A class is a blueprint. __init__ sets up each object's data (self.name), and methods are actions the object can do. Animal(name) builds one.",
+    worked_example: 'Animal("Tiger").speak()  ->  Tiger makes a sound.',
+    key_concepts: ['class', '__init__ / self', 'methods'],
+    common_mistakes: ['Forgetting self in the method definitions', 'Calling speak() without first making an object'],
+  },
+  {
+    problem_id: 140, level_number: 3, session_id: 26, case_number: 2,
+    solution_code: 'class Student:\n    def __init__(self, name, grade):\n        self.name = name\n        self.grade = grade\n    def introduce(self):\n        print(f"My name is {self.name} and I am in grade {self.grade}.")\n    def study(self, subject):\n        print(f"{self.name} is studying {subject}.")\nname = input()\ngrade = input()\nsubject = input()\nstudent = Student(name, grade)\nstudent.introduce()\nstudent.study(subject)',
+    walkthrough: [
+      { label: 'Store two attributes', code_snippet: 'def __init__(self, name, grade):\n    self.name = name\n    self.grade = grade', explanation: 'Each object remembers its own name and grade.' },
+      { label: 'Two methods, one takes input', code_snippet: 'def introduce(self):\n    ...\ndef study(self, subject):\n    print(f"{self.name} is studying {subject}.")', explanation: 'study takes an extra parameter (the subject) beyond self.' },
+    ],
+    student_explanation: "A class can hold several attributes and several methods. A method can take its own parameters in addition to self.",
+    worked_example: 'student.study("Math")  ->  Anita is studying Math.',
+    key_concepts: ['multiple attributes', 'multiple methods', 'method parameters'],
+    common_mistakes: ['Forgetting self when reading self.name inside a method', 'Passing the subject to __init__ instead of study'],
+  },
+  {
+    problem_id: 141, level_number: 3, session_id: 26, case_number: 3,
+    solution_code: 'class Product:\n    def __init__(self, name, price):\n        self.name = name\n        self.price = price\n    def show(self):\n        print(f"{self.name} costs ${self.price}.")\nn = int(input())\nfor _ in range(n):\n    parts = input().split()\n    product = Product(parts[0], parts[1])\n    product.show()',
+    walkthrough: [
+      { label: 'Define the class once', code_snippet: 'class Product:\n    def __init__(self, name, price):\n        self.name = name\n        self.price = price', explanation: 'One blueprint is reused for every product.' },
+      { label: 'Make many objects in a loop', code_snippet: 'for _ in range(n):\n    parts = input().split()\n    product = Product(parts[0], parts[1])\n    product.show()', explanation: 'Each loop pass builds a fresh Product and shows it.' },
+    ],
+    student_explanation: "One class can create as many objects as you like. Each call to Product(...) makes a separate object with its own data.",
+    worked_example: 'Product("Pen", "1.2").show()  ->  Pen costs $1.2.',
+    key_concepts: ['reusing a class', 'many objects', 'objects in a loop'],
+    common_mistakes: ['Reusing one object instead of making a new one each pass', 'Splitting the line wrongly so name and price swap'],
+  },
+  {
+    problem_id: 142, level_number: 3, session_id: 26, case_number: 4,
+    solution_code: 'class Computer:\n    def __init__(self, brand, status):\n        self.brand = brand\n        self.status = status\n    def update_status(self, new_status):\n        self.status = new_status\n        print(f"{self.brand} computer is now: {self.status}")\nbrand = input()\nstatus = input()\nnew_status = input()\ncomputer = Computer(brand, status)\ncomputer.update_status(new_status)',
+    walkthrough: [
+      { label: 'A method that changes an attribute', code_snippet: 'def update_status(self, new_status):\n    self.status = new_status\n    print(f"{self.brand} computer is now: {self.status}")', explanation: 'Assigning to self.status updates the object, then we print the new value.' },
+    ],
+    student_explanation: "A method can change an object's own data by assigning to self.something. The object remembers the new value afterwards.",
+    worked_example: 'update_status("Online")  ->  the status attribute becomes Online',
+    key_concepts: ['updating self attributes', 'methods', 'objects'],
+    common_mistakes: ['Making a new local variable instead of setting self.status', 'Printing the old status before updating it'],
+  },
+  {
+    problem_id: 143, level_number: 3, session_id: 26, case_number: 5,
+    solution_code: 'class Rectangle:\n    def __init__(self, length, width):\n        self.length = length\n        self.width = width\n    def area(self):\n        return self.length * self.width\nlength = int(input())\nwidth = int(input())\nrectangle = Rectangle(length, width)\nprint(f"The area of the rectangle is: {rectangle.area()}")',
+    walkthrough: [
+      { label: 'A method that returns a value', code_snippet: 'def area(self):\n    return self.length * self.width', explanation: 'area() multiplies the stored length and width, then returns the result.' },
+      { label: 'Use the returned value', code_snippet: 'print(f"The area of the rectangle is: {rectangle.area()}")', explanation: 'Call area() inside the print to show the number it returns.' },
+    ],
+    student_explanation: "A method can use the object's stored data to calculate and return a value, which the caller then uses or prints.",
+    worked_example: 'Rectangle(8, 4).area()  ->  32',
+    key_concepts: ['methods that return', 'using self attributes', 'objects'],
+    common_mistakes: ['Printing inside area() instead of returning', 'Forgetting int() so the sides are text and cannot multiply'],
+  },
+  {
+    problem_id: 144, level_number: 3, session_id: 26, case_number: 6,
+    solution_code: 'class AIAssistant:\n    def __init__(self, name, purpose):\n        self.name = name\n        self.purpose = purpose\n    def introduce(self):\n        print(f"My name is {self.name} and my purpose is {self.purpose}.")\n    def perform_task(self, task):\n        if self.purpose == "defense":\n            print("Alert: Security protocol activated!")\n        elif self.purpose == "medical":\n            print("Health check: All systems normal.")\n        print(f"{self.name} is performing: {task}")\nname = input()\npurpose = input()\ntask = input()\nassistant = AIAssistant(name, purpose)\nassistant.introduce()\nassistant.perform_task(task)',
+    walkthrough: [
+      { label: 'Store name and purpose', code_snippet: 'def __init__(self, name, purpose):\n    self.name = name\n    self.purpose = purpose', explanation: 'The purpose decides the extra line later.' },
+      { label: 'Conditional logic inside a method', code_snippet: 'def perform_task(self, task):\n    if self.purpose == "defense":\n        print("Alert: Security protocol activated!")\n    elif self.purpose == "medical":\n        print("Health check: All systems normal.")\n    print(f"{self.name} is performing: {task}")', explanation: 'A defense or medical purpose prints a special line BEFORE the task line; other purposes print only the task.' },
+    ],
+    student_explanation: "Methods can hold if-else logic that reads the object's own attributes - here the purpose decides whether an extra alert line appears before the task.",
+    worked_example: 'purpose "defense"  ->  an Alert line is printed first',
+    key_concepts: ['conditional logic in methods', 'reading self attributes', 'classes'],
+    common_mistakes: ['Printing the special line after the task instead of before', 'Comparing purpose to the wrong text'],
+  },
 ];
 
 async function seed() {
