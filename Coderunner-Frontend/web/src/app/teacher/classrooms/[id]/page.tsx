@@ -3,9 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api-client';
-import Link from 'next/link';
-import { ChevronLeft, Loader2, Users, Flame, CheckCircle2, Trophy, UserPlus, KeyRound, X, ShieldAlert } from 'lucide-react';
-import { activeFlags, whyText, type AttemptRecord } from '@/lib/integrity';
+import { ChevronLeft, Loader2, Users, Flame, CheckCircle2, Trophy, UserPlus, KeyRound, ShieldAlert } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -71,9 +69,6 @@ export default function ClassroomDashboard() {
   const [addName, setAddName] = useState('');
   const [adding, setAdding] = useState(false);
   const [addMsg, setAddMsg] = useState<string | null>(null);
-  const [selId, setSelId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<any>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -91,23 +86,6 @@ export default function ClassroomDashboard() {
   useEffect(() => {
     load();
   }, [id]);
-
-  useEffect(() => {
-    if (!selId) {
-      setDetail(null);
-      return;
-    }
-    let active = true;
-    setDetailLoading(true);
-    api.teacher
-      .getStudent(selId)
-      .then((d) => active && setDetail(d))
-      .catch(() => active && setDetail(null))
-      .finally(() => active && setDetailLoading(false));
-    return () => {
-      active = false;
-    };
-  }, [selId]);
 
   const addStudent = async () => {
     if (!addName.trim()) return;
@@ -286,8 +264,8 @@ export default function ClassroomDashboard() {
                     {students.map((s) => (
                       <tr
                         key={s.userId}
-                        onClick={() => setSelId(s.userId)}
-                        className={`border-b border-gray-100 hover:bg-indigo-50/40 transition-colors font-rajdhani cursor-pointer ${selId === s.userId ? 'bg-indigo-50' : ''}`}
+                        onClick={() => router.push(`/teacher/students/${s.userId}`)}
+                        className="border-b border-gray-100 hover:bg-indigo-50/40 transition-colors font-rajdhani cursor-pointer"
                       >
                         <td className="px-5 py-3 font-bold text-gray-900">
                           <span className="flex items-center gap-2">
@@ -318,127 +296,6 @@ export default function ClassroomDashboard() {
         )}
       </main>
 
-      {/* Master-detail: student slide-over */}
-      {selId && (
-        <>
-          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setSelId(null)} />
-          <aside className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-5">
-                <div className="min-w-0">
-                  <h2 className="font-orbitron font-black text-xl text-gray-900 truncate">{detail?.username || 'Student'}</h2>
-                  <p className="text-xs text-gray-500 font-fira">{detail ? `Level ${detail.level} · ${detail.rank}` : ''}</p>
-                </div>
-                <button onClick={() => setSelId(null)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {detailLoading || !detail ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
-                      <div className="text-xl font-orbitron font-black text-indigo-600">{detail.stats?.totalSolved ?? 0}</div>
-                      <div className="text-[11px] text-gray-500 font-rajdhani">Total solved</div>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
-                      <div className="text-xl font-orbitron font-black text-gray-900">{detail.stats?.acceptanceRate ?? 0}%</div>
-                      <div className="text-[11px] text-gray-500 font-rajdhani">Acceptance</div>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
-                      <div className="text-xl font-orbitron font-black text-amber-600">{detail.streak?.current ?? 0} 🔥</div>
-                      <div className="text-[11px] text-gray-500 font-rajdhani">Streak</div>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
-                      <div className="text-xl font-orbitron font-black text-gray-900">{detail.experience ?? 0}</div>
-                      <div className="text-[11px] text-gray-500 font-rajdhani">XP</div>
-                    </div>
-                  </div>
-
-                  <h3 className="font-orbitron text-[11px] font-bold text-gray-400 tracking-[0.2em] mb-2">WEAK AREAS</h3>
-                  {(detail.topicProgress || []).length ? (
-                    <div className="space-y-2 mb-6">
-                      {[...detail.topicProgress]
-                        .sort((a: any, b: any) => a.percentage - b.percentage)
-                        .slice(0, 4)
-                        .map((t: any, i: number) => (
-                          <div key={i}>
-                            <div className="flex justify-between text-xs font-rajdhani mb-1">
-                              <span className="text-gray-700 truncate pr-2">{t.topic}</span>
-                              <span className="text-gray-400">{t.percentage}%</span>
-                            </div>
-                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${t.percentage}%` }} />
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-400 font-rajdhani mb-6">No topic activity yet.</p>
-                  )}
-
-                  <h3 className="font-orbitron text-[11px] font-bold text-gray-400 tracking-[0.2em] mb-2">RECENT</h3>
-                  {(detail.recentActivity || []).length ? (
-                    <ul className="space-y-1.5 mb-6">
-                      {detail.recentActivity.slice(0, 6).map((a: any, i: number) => (
-                        <li key={i} className="flex items-center gap-2 text-xs font-rajdhani">
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${a.status === 'ACCEPTED' ? 'bg-emerald-500' : 'bg-rose-400'}`} />
-                          <span className="truncate flex-1 text-gray-700">{a.problemTitle || `Problem ${a.problemId}`}</span>
-                          <span className="text-gray-400 shrink-0">{a.difficulty}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-xs text-gray-400 font-rajdhani mb-6">No recent activity.</p>
-                  )}
-
-                  <h3 className="font-orbitron text-[11px] font-bold text-gray-400 tracking-[0.2em] mb-2 flex items-center gap-1.5">
-                    <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> INTEGRITY SIGNALS
-                  </h3>
-                  {(() => {
-                    const flagged = ((detail.attempts || []) as AttemptRecord[]).filter(
-                      (a) => activeFlags(a.flags).length > 0
-                    );
-                    return flagged.length ? (
-                      <div className="space-y-2 mb-6">
-                        {flagged.slice(0, 6).map((a, i) => (
-                          <div key={i} className="rounded-lg border border-amber-100 bg-amber-50/60 p-2.5">
-                            <div className="flex items-center justify-between gap-2 text-xs font-rajdhani">
-                              <span className="font-bold text-gray-700 truncate">Problem {String(a.problemId)}</span>
-                              <span className="flex items-center gap-1 shrink-0">
-                                {activeFlags(a.flags).map((f) => (
-                                  <span key={f.key} title={f.label}>{f.icon}</span>
-                                ))}
-                              </span>
-                            </div>
-                            <div className="text-[11px] text-gray-500 font-fira mt-0.5">{whyText(a)}</div>
-                          </div>
-                        ))}
-                        <p className="text-[10px] text-gray-400 font-rajdhani leading-snug">
-                          Heuristics, not proof — worth a quick chat, not an accusation.
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-gray-400 font-rajdhani mb-6">No integrity signals. 🎉</p>
-                    );
-                  })()}
-
-                  <Link
-                    href={`/teacher/students/${selId}`}
-                    className="block text-center px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-orbitron font-bold text-xs tracking-wider"
-                  >
-                    OPEN FULL PROFILE →
-                  </Link>
-                </>
-              )}
-            </div>
-          </aside>
-        </>
-      )}
     </div>
   );
 }

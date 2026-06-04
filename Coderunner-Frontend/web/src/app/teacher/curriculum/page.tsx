@@ -456,12 +456,13 @@ function SessionCard({
         open ? 'border-indigo-300' : 'border-gray-200 hover:border-indigo-300'
       }`}
     >
-      {/* Header row — whole row is the accordion toggle. Sticky so it stays
-          visible while scrolling a long, expanded case list. */}
+      {/* Header row — whole row is the accordion toggle. NOT sticky: a sticky
+          header here would scroll over (hide) the first case row when expanded,
+          making the list look like it starts at Case 2. */}
       <button
         onClick={onToggle}
         aria-expanded={open}
-        className={`sticky top-[73px] z-10 flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors ${
+        className={`flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors ${
           open ? 'bg-white' : 'bg-white hover:bg-gray-50'
         }`}
       >

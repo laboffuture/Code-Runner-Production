@@ -95,7 +95,7 @@ export default function StudentDetail() {
       <header className="bg-white border-b-2 border-gray-200 sticky top-0 z-40">
         <div className="px-6 py-4 flex items-center gap-3">
           <button
-            onClick={() => router.push('/teacher')}
+            onClick={() => router.back()}
             className="p-2 rounded-lg border-2 border-gray-200 hover:bg-gray-50 text-gray-700"
             title="Back to classroom"
           >
