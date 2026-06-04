@@ -17,20 +17,25 @@ router.get('/tree', async (req: Request, res: Response) => {
     const problems = await Models.Problem
       // require level/session/case so a legacy row missing them can't render a "Level NaN" bucket
       .find({ age_group: ageGroup, level_number: { $ne: null }, session_id: { $ne: null }, case_number: { $ne: null } })
-      .select('problem_id title difficulty level_number session_id case_number')
+      .select('problem_id title difficulty level_number session_id case_number session_title')
       .sort({ level_number: 1, session_id: 1, case_number: 1 })
-      .lean<Array<{ problem_id: number; title: string; difficulty: string; level_number: number; session_id: number; case_number: number }>>();
+      .lean<Array<{ problem_id: number; title: string; difficulty: string; level_number: number; session_id: number; case_number: number; session_title?: string }>>();
 
     const withGuide = new Set(
       (await Models.Solution.find({}).select('problem_id').lean<Array<{ problem_id: number }>>())
         .map((s) => s.problem_id)
     );
 
-    // Group: level -> session -> cases[]
+    // Group: level -> session -> cases[]; capture each session's display title.
     const levels: Record<number, Record<number, any[]>> = {};
+    const sessionTitles: Record<number, string> = {};
     for (const p of problems) {
       (levels[p.level_number] ??= {});
       (levels[p.level_number][p.session_id] ??= []);
+      if (sessionTitles[p.session_id] === undefined) {
+        // Drop the redundant "Session N:" prefix — the UI shows the number separately.
+        sessionTitles[p.session_id] = String(p.session_title || '').replace(/^Session\s*\d+:\s*/i, '').trim();
+      }
       levels[p.level_number][p.session_id].push({
         problem_id: p.problem_id,
         title: p.title,
@@ -43,6 +48,7 @@ router.get('/tree', async (req: Request, res: Response) => {
       level_number: Number(lvl),
       sessions: Object.keys(levels[Number(lvl)]).map((sid) => ({
         session_id: Number(sid),
+        title: sessionTitles[Number(sid)] || `Session ${sid}`,
         cases: levels[Number(lvl)][Number(sid)],
       })),
     }));
@@ -68,13 +74,16 @@ router.get('/problems/:problemId/guide', async (req: Request, res: Response) => 
     ]);
     if (!problem) return res.status(404).json({ error: 'Not Found', message: 'Problem not found' });
     if (!solution) {
-      return res.json({ available: false, problem_id: problemId, title: problem.title, question: problem.question });
+      return res.json({ available: false, problem_id: problemId, title: problem.title, difficulty: problem.difficulty, level_number: problem.level_number, session_id: problem.session_id, case_number: problem.case_number, question: problem.question });
     }
     res.json({
       available: true,
       problem_id: problemId,
       title: problem.title,
       difficulty: problem.difficulty,
+      level_number: problem.level_number,
+      session_id: problem.session_id,
+      case_number: problem.case_number,
       question: problem.question,
       solution_code: solution.solution_code,
       walkthrough: solution.walkthrough,
