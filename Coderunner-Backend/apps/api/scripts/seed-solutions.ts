@@ -1822,6 +1822,452 @@ const GUIDES = [
     key_concepts: ['conditional logic in methods', 'reading self attributes', 'classes'],
     common_mistakes: ['Printing the special line after the task instead of before', 'Comparing purpose to the wrong text'],
   },
+
+  // ── Session 27: Classes with Attributes and Methods (cases 1–6) ──
+  {
+    problem_id: 145, level_number: 3, session_id: 27, case_number: 1,
+    solution_code: 'class Student:\n    def __init__(self, name, grade):\n        self.name = name\n        self.grade = grade\n    def display(self):\n        number = int(self.grade[:-2])\n        if number % 2 == 0:\n            print(f"Even Grade: {self.name} - {self.grade}")\n        else:\n            print(f"Odd Grade: {self.name} - {self.grade}")\nname = input()\ngrade = input()\nstudent = Student(name, grade)\nstudent.display()',
+    walkthrough: [
+      { label: 'Pull the number out of the grade', code_snippet: 'number = int(self.grade[:-2])', explanation: 'self.grade[:-2] drops the last two letters ("th"), so "7th" becomes "7", then int() makes it a number.' },
+      { label: 'Branch on even or odd', code_snippet: 'if number % 2 == 0:\n    print(f"Even Grade: {self.name} - {self.grade}")\nelse:\n    print(f"Odd Grade: {self.name} - {self.grade}")', explanation: 'number % 2 == 0 tests for even.' },
+    ],
+    student_explanation: "Slicing with [:-2] removes the last two characters of a string. Here it strips 'th' off a grade so the number can be tested for even or odd.",
+    worked_example: 'int("7th"[:-2])  ->  7',
+    key_concepts: ['string slicing [:-2]', '% even/odd test', 'methods'],
+    common_mistakes: ['Forgetting to strip the "th" before int()', 'Swapping the even and odd messages'],
+  },
+  {
+    problem_id: 146, level_number: 3, session_id: 27, case_number: 2,
+    solution_code: 'class Student:\n    def __init__(self, name, grade):\n        self.name = name\n        self.grade = grade\n    def update_grade(self, new_grade):\n        total = int(self.grade[:-2]) + int(new_grade[:-2])\n        if total % 2 == 0:\n            prefix = "Level Up: "\n        else:\n            prefix = "Promotion: "\n        print(f"{prefix}{self.name} is in grade {self.grade}.")\n        print(f"{prefix}{self.name} is now in grade {new_grade}.")\nname = input()\ngrade = input()\nnew_grade = input()\nstudent = Student(name, grade)\nstudent.update_grade(new_grade)',
+    walkthrough: [
+      { label: 'Add the two grade numbers', code_snippet: 'total = int(self.grade[:-2]) + int(new_grade[:-2])', explanation: 'Strip the "th" off each grade, convert to numbers, and add them.' },
+      { label: 'Choose the prefix by parity', code_snippet: 'if total % 2 == 0:\n    prefix = "Level Up: "\nelse:\n    prefix = "Promotion: "', explanation: 'An even total uses "Level Up: ", an odd total uses "Promotion: ".' },
+    ],
+    student_explanation: "Store the chosen prefix in a variable, then reuse it on both lines. The parity of the SUM of the two grade numbers decides which prefix to use.",
+    worked_example: '7 + 8 = 15 (odd)  ->  Promotion:',
+    key_concepts: ['string slicing', '% parity', 'reusing a prefix variable'],
+    common_mistakes: ['Testing one grade instead of the sum', 'Forgetting the trailing space in the prefix'],
+  },
+  {
+    problem_id: 147, level_number: 3, session_id: 27, case_number: 3,
+    solution_code: 'class Student:\n    def __init__(self, name, grade):\n        self.name = name\n        self.grade = grade\n    def display(self):\n        print(f"Student: {self.name}, Grade: {self.grade}")\nn = int(input())\nfor _ in range(n):\n    parts = input().split()\n    student = Student(parts[0], parts[1])\n    student.display()',
+    walkthrough: [
+      { label: 'One class, many objects', code_snippet: 'for _ in range(n):\n    parts = input().split()\n    student = Student(parts[0], parts[1])\n    student.display()', explanation: 'Each loop pass splits a line, builds a Student, and displays it.' },
+    ],
+    student_explanation: "Build a fresh object from each input line inside a loop, so one class serves a whole roster of students.",
+    worked_example: 'Student("Anya", "7th").display()  ->  Student: Anya, Grade: 7th',
+    key_concepts: ['objects in a loop', '.split()', 'methods'],
+    common_mistakes: ['Reusing one object instead of making a new one', 'Splitting name and grade incorrectly'],
+  },
+  {
+    problem_id: 148, level_number: 3, session_id: 27, case_number: 4,
+    solution_code: 'class Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\n    def check_pass(self):\n        if self.score % 2 == 0 and self.score >= 50:\n            print(f"Success: {self.name} has passed.")\n        elif self.score % 2 == 1 and self.score >= 50:\n            print(f"Victory: {self.name} has passed.")\n        elif self.score % 2 == 0 and self.score < 50:\n            print(f"Failure: {self.name} has failed.")\n        else:\n            print(f"Defeat: {self.name} has failed.")\nname = input()\nscore = int(input())\nstudent = Student(name, score)\nstudent.check_pass()',
+    walkthrough: [
+      { label: 'Four cases from two questions', code_snippet: 'if self.score % 2 == 0 and self.score >= 50:\n    ...Success...\nelif self.score % 2 == 1 and self.score >= 50:\n    ...Victory...', explanation: 'Two yes/no questions (even? passed?) give four combinations, each with its own message.' },
+    ],
+    student_explanation: "Combining a parity check and a threshold check with and gives a 2x2 grid - four outcomes from two simple tests.",
+    worked_example: '45 is odd and below 50  ->  Defeat: ... has failed.',
+    key_concepts: ['combined and conditions', 'parity + threshold', 'methods'],
+    common_mistakes: ['Mixing up which combination gets which word', 'Using > 50 instead of >= 50 (50 should pass)'],
+  },
+  {
+    problem_id: 149, level_number: 3, session_id: 27, case_number: 5,
+    solution_code: 'class AICrewMember:\n    def __init__(self, name, role, energy):\n        self.name = name\n        self.role = role\n        self.energy = energy\n    def show_status(self):\n        print(f"Name: {self.name} | Role: {self.role} | Energy: {self.energy}")\n    def perform_task(self, task):\n        if self.energy >= 50:\n            print(f"{self.name} is performing task: {task}")\n            self.energy -= 30\n        else:\n            print(f"{self.name} does not have enough energy to perform {task}!")\nname = input()\nrole = input()\nenergy = int(input())\ntask = input()\nmember = AICrewMember(name, role, energy)\nmember.show_status()\nmember.perform_task(task)\nmember.show_status()',
+    walkthrough: [
+      { label: 'A method that spends energy', code_snippet: 'def perform_task(self, task):\n    if self.energy >= 50:\n        print(f"{self.name} is performing task: {task}")\n        self.energy -= 30\n    else:\n        print(f"{self.name} does not have enough energy to perform {task}!")', explanation: 'If there is enough energy, do the task and subtract 30; otherwise report the shortage and change nothing.' },
+      { label: 'Status before and after', code_snippet: 'member.show_status()\nmember.perform_task(task)\nmember.show_status()', explanation: 'Showing status twice makes the energy change visible.' },
+    ],
+    student_explanation: "A method can read AND change the object's energy. When the task runs it costs 30; when it cannot run, the energy stays the same.",
+    worked_example: 'energy 80, do task  ->  energy becomes 50',
+    key_concepts: ['updating self.energy', 'guard with >=', 'methods'],
+    common_mistakes: ['Subtracting energy even when the task fails', 'Using > 50 so exactly 50 cannot act'],
+  },
+  {
+    problem_id: 150, level_number: 3, session_id: 27, case_number: 6,
+    solution_code: 'class AICrewMember:\n    def __init__(self, name, role, energy):\n        self.name = name\n        self.role = role\n        self.energy = energy\n    def show_status(self):\n        print(f"Name: {self.name} | Role: {self.role} | Energy: {self.energy}")\n    def perform_task(self, task):\n        if self.energy >= 50:\n            print(f"{self.name} is performing task: {task}")\n            self.energy -= 30\n        else:\n            print(f"{self.name} does not have enough energy to perform {task}!")\nn = int(input())\nfor _ in range(n):\n    name = input()\n    role = input()\n    energy = int(input())\n    task = input()\n    member = AICrewMember(name, role, energy)\n    member.show_status()\n    member.perform_task(task)\n    member.show_status()',
+    walkthrough: [
+      { label: 'Manage a whole crew in a loop', code_snippet: 'for _ in range(n):\n    name = input()\n    role = input()\n    energy = int(input())\n    task = input()\n    member = AICrewMember(name, role, energy)\n    member.show_status()\n    member.perform_task(task)\n    member.show_status()', explanation: 'Each crew member is a separate object, built and run through the same status-task-status sequence.' },
+    ],
+    student_explanation: "The challenge reuses the AICrewMember class for many objects, each with its own energy that changes independently.",
+    worked_example: 'each member  ->  status, task attempt, status again',
+    key_concepts: ['many objects', 'per-object state', 'methods'],
+    common_mistakes: ['Sharing energy across members by reusing one object', 'Reading the four inputs in the wrong order'],
+  },
+
+  // ── Session 28: Magic Methods (cases 1–6) ──
+  {
+    problem_id: 151, level_number: 3, session_id: 28, case_number: 1,
+    solution_code: 'class Person:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\nname = input()\nage = int(input())\nperson = Person(name, age)\nif person.age >= 12 and person.age % 2 == 0:\n    prefix = "Senior:"\nelif person.age >= 12 and person.age % 2 == 1:\n    prefix = "Cadet:"\nelif person.age < 12 and person.age % 2 == 0:\n    prefix = "Junior:"\nelse:\n    prefix = "Recruit:"\nprint(f"{prefix} Name: {person.name}, Age: {person.age}")',
+    walkthrough: [
+      { label: '__init__ sets up the object', code_snippet: 'class Person:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age', explanation: '__init__ is the magic method that runs automatically when Person(...) is called.' },
+      { label: 'Rank from age and parity', code_snippet: 'if person.age >= 12 and person.age % 2 == 0:\n    prefix = "Senior:"\n...', explanation: 'A 2x2 grid of age threshold and even/odd picks the rank word.' },
+    ],
+    student_explanation: "__init__ is the magic method that builds an object. The rank is chosen from two tests: age 12-or-over versus under, and even versus odd.",
+    worked_example: 'age 12 (>=12, even)  ->  Senior:',
+    key_concepts: ['__init__', 'threshold + parity grid', 'objects'],
+    common_mistakes: ['Forgetting __init__ runs on its own at object creation', 'Mixing up the four rank words'],
+  },
+  {
+    problem_id: 152, level_number: 3, session_id: 28, case_number: 2,
+    solution_code: 'class Book:\n    def __init__(self, title, author):\n        self.title = title\n        self.author = author\n    def __str__(self):\n        length = len(self.title)\n        if length >= 10 and length % 2 == 0:\n            prefix = "Long Title:"\n        elif length >= 10 and length % 2 == 1:\n            prefix = "Extended:"\n        elif length < 10 and length % 2 == 0:\n            prefix = "Short Title:"\n        else:\n            prefix = "Brief:"\n        return f"{prefix} {self.title} by {self.author}"\ntitle = input()\nauthor = input()\nbook = Book(title, author)\nprint(book)',
+    walkthrough: [
+      { label: 'Define __str__', code_snippet: 'def __str__(self):\n    ...\n    return f"{prefix} {self.title} by {self.author}"', explanation: '__str__ decides what print(object) shows. It must RETURN a string, not print one.' },
+      { label: 'print triggers it', code_snippet: 'print(book)', explanation: 'print(book) automatically calls __str__ behind the scenes.' },
+    ],
+    student_explanation: "__str__ is the magic method print() uses to turn an object into text. It returns a string; print does the showing.",
+    worked_example: 'print(book)  ->  runs __str__ and shows the returned text',
+    key_concepts: ['__str__', 'return vs print', 'len()'],
+    common_mistakes: ['Printing inside __str__ instead of returning', 'Measuring the author length instead of the title'],
+  },
+  {
+    problem_id: 153, level_number: 3, session_id: 28, case_number: 3,
+    solution_code: 'class Notebook:\n    def __init__(self, pages):\n        self.pages = pages\n    def __len__(self):\n        return self.pages\npages = int(input())\nnotebook = Notebook(pages)\nif len(notebook) >= 100 and len(notebook) % 2 == 0:\n    prefix = "Large Notebook:"\nelif len(notebook) >= 100 and len(notebook) % 2 == 1:\n    prefix = "Extended Notebook:"\nelif len(notebook) < 100 and len(notebook) % 2 == 0:\n    prefix = "Small Notebook:"\nelse:\n    prefix = "Compact Notebook:"\nprint(f"{prefix} {len(notebook)}")',
+    walkthrough: [
+      { label: 'Define __len__', code_snippet: 'def __len__(self):\n    return self.pages', explanation: '__len__ decides what len(object) returns - here the page count.' },
+      { label: 'len() triggers it', code_snippet: 'if len(notebook) >= 100 and len(notebook) % 2 == 0:', explanation: 'Calling len(notebook) runs __len__ and gives back the pages.' },
+    ],
+    student_explanation: "__len__ is the magic method len() uses. Once defined, len(notebook) returns whatever number you choose - here the pages.",
+    worked_example: 'len(Notebook(150))  ->  150',
+    key_concepts: ['__len__', 'len() hook', 'threshold + parity'],
+    common_mistakes: ['Returning text from __len__ (it must return a number)', 'Forgetting to define __len__ before calling len()'],
+  },
+  {
+    problem_id: 154, level_number: 3, session_id: 28, case_number: 4,
+    solution_code: 'class Printer:\n    def __init__(self, name):\n        self.name = name\n    def __call__(self, document):\n        length = len(self.name)\n        if length >= 5 and length % 2 == 0:\n            prefix = "Professional Printer:"\n        elif length >= 5 and length % 2 == 1:\n            prefix = "Advanced Printer:"\n        elif length < 5 and length % 2 == 0:\n            prefix = "Basic Printer:"\n        else:\n            prefix = "Quick Printer:"\n        print(f"{prefix} {self.name} is printing: {document}")\nname = input()\ndocument = input()\nprinter = Printer(name)\nprinter(document)',
+    walkthrough: [
+      { label: 'Define __call__', code_snippet: 'def __call__(self, document):\n    ...', explanation: '__call__ lets you use the OBJECT like a function: printer(document).' },
+      { label: 'Call the object', code_snippet: 'printer(document)', explanation: 'Because __call__ is defined, printer(document) runs it.' },
+    ],
+    student_explanation: "__call__ is the magic method that makes an object callable. After defining it, printer(document) runs like a function call on the object.",
+    worked_example: 'printer("report.pdf")  ->  runs __call__ on the object',
+    key_concepts: ['__call__', 'callable objects', 'threshold + parity'],
+    common_mistakes: ['Calling a named method instead of the object itself', 'Forgetting __call__ takes self plus its own argument'],
+  },
+  {
+    problem_id: 155, level_number: 3, session_id: 28, case_number: 5,
+    solution_code: 'class Movie:\n    def __init__(self, title, duration):\n        self.title = title\n        self.duration = duration\n    def __str__(self):\n        if self.duration >= 120 and self.duration % 2 == 0:\n            prefix = "Epic Movie:"\n        elif self.duration >= 120 and self.duration % 2 == 1:\n            prefix = "Long Film:"\n        elif self.duration < 120 and self.duration % 2 == 0:\n            prefix = "Short Movie:"\n        else:\n            prefix = "Quick Film:"\n        return f"{prefix} {self.title}"\n    def __len__(self):\n        return self.duration\n    def __call__(self, action):\n        print(f"Now {action} the movie: {self.title}")\ntitle = input()\nduration = int(input())\naction = input()\nmovie = Movie(title, duration)\nprint(movie)\nprint(len(movie))\nmovie(action)',
+    walkthrough: [
+      { label: 'Three magic methods in one class', code_snippet: 'def __str__(self): ...\ndef __len__(self): return self.duration\ndef __call__(self, action): ...', explanation: '__str__ for print, __len__ for len, and __call__ for using the object like a function.' },
+      { label: 'Trigger each one', code_snippet: 'print(movie)\nprint(len(movie))\nmovie(action)', explanation: 'Each line fires a different magic method.' },
+    ],
+    student_explanation: "One class can define several magic methods at once. print uses __str__, len uses __len__, and calling the object uses __call__.",
+    worked_example: 'print(movie), len(movie), movie("playing")  ->  three magic methods',
+    key_concepts: ['__str__ / __len__ / __call__', 'magic methods', 'classes'],
+    common_mistakes: ['Returning from __call__ instead of printing', 'Mixing up which magic method each line triggers'],
+  },
+  {
+    problem_id: 156, level_number: 3, session_id: 28, case_number: 6,
+    solution_code: 'class Movie:\n    def __init__(self, title, duration):\n        self.title = title\n        self.duration = duration\n    def __str__(self):\n        return f"Movie: {self.title}"\n    def __len__(self):\n        return self.duration\n    def __call__(self, action):\n        print(f"Now {action} the movie: {self.title}")\nn = int(input())\nfor _ in range(n):\n    title = input()\n    duration = int(input())\n    action = input()\n    movie = Movie(title, duration)\n    print(movie)\n    print(len(movie))\n    movie(action)',
+    walkthrough: [
+      { label: 'A full magic-method class', code_snippet: 'def __str__(self):\n    return f"Movie: {self.title}"\ndef __len__(self):\n    return self.duration\ndef __call__(self, action):\n    print(f"Now {action} the movie: {self.title}")', explanation: 'A clean media object: printable, measurable, and callable.' },
+      { label: 'Run it for every movie', code_snippet: 'for _ in range(n):\n    ...\n    print(movie)\n    print(len(movie))\n    movie(action)', explanation: 'Each movie object uses all three magic methods in turn.' },
+    ],
+    student_explanation: "The challenge builds a small media library where every movie object is printable (__str__), measurable (__len__), and callable (__call__).",
+    worked_example: 'each movie  ->  Movie: title, duration, Now action the movie: title',
+    key_concepts: ['magic methods together', 'many objects', 'classes'],
+    common_mistakes: ['Adding the conditional prefix (this version uses a plain "Movie:")', 'Reading the three inputs out of order'],
+  },
+
+  // ── Session 29: Encapsulation & Access Modifiers (cases 1–6) ──
+  {
+    problem_id: 157, level_number: 3, session_id: 29, case_number: 1,
+    solution_code: 'class CrewMember:\n    def __init__(self, name, email, password):\n        self.name = name\n        self._email = email\n        self.__password = password\nname = input()\nemail = input()\npassword = input()\ncrew = CrewMember(name, email, password)\nlength = len(crew.name)\nif length >= 10 and length % 2 == 0:\n    prefix = "Senior Crew:"\nelif length >= 10 and length % 2 == 1:\n    prefix = "Lead Crew:"\nelif length < 10 and length % 2 == 0:\n    prefix = "Crew:"\nelse:\n    prefix = "New Crew:"\nprint(f"{prefix} {crew.name}")\nprint(crew._email)',
+    walkthrough: [
+      { label: 'Three access levels', code_snippet: 'self.name = name        # public\nself._email = email      # protected (one underscore)\nself.__password = password  # private (two underscores)', explanation: 'One underscore signals "internal use"; two underscores hide a name from outside the class.' },
+      { label: 'Public and protected can still be read here', code_snippet: 'print(f"{prefix} {crew.name}")\nprint(crew._email)', explanation: 'name and _email are reachable; the private __password is not meant to be.' },
+    ],
+    student_explanation: "Underscores signal intent: public (no underscore), protected (_one), private (__two). They guide how data is meant to be accessed.",
+    worked_example: 'self._email is protected; self.__password is private',
+    key_concepts: ['public / protected / private', 'naming conventions', 'classes'],
+    common_mistakes: ['Reading __password from outside the class', 'Mixing up one underscore and two'],
+  },
+  {
+    problem_id: 158, level_number: 3, session_id: 29, case_number: 2,
+    solution_code: 'class FuelTank:\n    def __init__(self, fuel):\n        self.__fuel = fuel\n    def get_fuel(self):\n        return self.__fuel\n    def set_fuel(self, amount):\n        if amount >= 0:\n            self.__fuel = amount\nfuel = int(input())\nnew_fuel = int(input())\ntank = FuelTank(fuel)\nprint(tank.get_fuel())\ntank.set_fuel(new_fuel)\nprint(tank.get_fuel())',
+    walkthrough: [
+      { label: 'Private data with a guarded setter', code_snippet: 'def set_fuel(self, amount):\n    if amount >= 0:\n        self.__fuel = amount', explanation: 'The setter only stores the new amount when it is valid (non-negative), protecting the private fuel.' },
+    ],
+    student_explanation: "Encapsulation means hiding data behind methods. A setter can VALIDATE a value before storing it, so the object never holds something invalid.",
+    worked_example: 'set_fuel(-50)  ->  rejected, the fuel stays unchanged',
+    key_concepts: ['private attribute', 'getter / setter', 'validation'],
+    common_mistakes: ['Storing the value before checking it', 'Allowing negative fuel through'],
+  },
+  {
+    problem_id: 159, level_number: 3, session_id: 29, case_number: 3,
+    solution_code: 'class SecurityModule:\n    def __init__(self, pin):\n        self.__pin = pin\n    def get_pin(self):\n        return self.__pin\npin = input()\nmodule = SecurityModule(pin)\nprint(module.get_pin())',
+    walkthrough: [
+      { label: 'Hide the PIN, expose a getter', code_snippet: 'self.__pin = pin\n...\ndef get_pin(self):\n    return self.__pin', explanation: 'The PIN is private; the only way out is through the get_pin method.' },
+    ],
+    student_explanation: "Keeping data private and offering a getter means the value can only be read through a controlled method, not poked at directly.",
+    worked_example: 'module.get_pin()  ->  the stored PIN',
+    key_concepts: ['private attribute', 'getter method', 'encapsulation'],
+    common_mistakes: ['Reading __pin directly from outside', 'Converting the PIN to int and losing leading zeros'],
+  },
+  {
+    problem_id: 160, level_number: 3, session_id: 29, case_number: 4,
+    solution_code: 'class SecureVault:\n    def __init__(self, pin, key):\n        self.__pin = pin\n        self.__key = key\n    def access(self, pin, key):\n        if pin == self.__pin and key == self.__key:\n            return "Access Granted"\n        return "Access Denied"\nstored_pin = input()\nstored_key = input()\nentered_pin = input()\nentered_key = input()\nvault = SecureVault(stored_pin, stored_key)\nprint(vault.access(entered_pin, entered_key))',
+    walkthrough: [
+      { label: 'Two-factor check', code_snippet: 'def access(self, pin, key):\n    if pin == self.__pin and key == self.__key:\n        return "Access Granted"\n    return "Access Denied"', explanation: 'Both the PIN AND the key must match for access - that is the and.' },
+    ],
+    student_explanation: "Two-factor security needs BOTH secrets to match. The and operator grants access only when neither check fails.",
+    worked_example: 'right PIN but wrong key  ->  Access Denied',
+    key_concepts: ['private attributes', 'and condition', 'encapsulation'],
+    common_mistakes: ['Using or so one correct factor is enough', 'Comparing to the wrong stored value'],
+  },
+  {
+    problem_id: 161, level_number: 3, session_id: 29, case_number: 5,
+    solution_code: 'class AccessControl:\n    def __init__(self, pin):\n        self.__pin = pin\n    def access(self, role, entered_pin):\n        if role == "Commander":\n            if entered_pin == self.__pin:\n                return "Access Granted: Commander"\n            return "Access Denied"\n        elif role == "User":\n            return "Access Granted: User - Limited View"\n        else:\n            return "Access Denied"\nrole = input()\nstored_pin = input()\nentered_pin = input()\ncontrol = AccessControl(stored_pin)\nprint(control.access(role, entered_pin))',
+    walkthrough: [
+      { label: 'Role decides the access path', code_snippet: 'if role == "Commander":\n    if entered_pin == self.__pin:\n        return "Access Granted: Commander"\n    return "Access Denied"\nelif role == "User":\n    return "Access Granted: User - Limited View"\nelse:\n    return "Access Denied"', explanation: 'A Commander needs the right PIN; a User gets limited access; anyone else is denied.' },
+    ],
+    student_explanation: "Role-based access gives each role a different rule. Only the Commander path checks the PIN; Users get a limited view; Guests are turned away.",
+    worked_example: 'role User  ->  Access Granted: User - Limited View (no PIN needed)',
+    key_concepts: ['role-based access', 'nested conditions', 'encapsulation'],
+    common_mistakes: ['Checking the PIN for a User too', 'Forgetting the else that denies a Guest'],
+  },
+  {
+    problem_id: 162, level_number: 3, session_id: 29, case_number: 6,
+    solution_code: 'class Vault:\n    def __init__(self, pin_code, access_level, vault_id):\n        self.__pin_code = pin_code\n        self._access_level = access_level\n        self.vault_id = vault_id\n    def get_pin(self):\n        return self.__pin_code\n    def set_pin(self, new_pin):\n        if len(new_pin) == 4 and new_pin.isdigit():\n            self.__pin_code = new_pin\n            print("PIN updated successfully.")\n        else:\n            print("Invalid PIN! Must be 4 digits.")\n    def unlock_vault(self, entered_pin):\n        if entered_pin == self.__pin_code:\n            return "Access Granted"\n        return "Access Denied"\npin_code = input()\naccess_level = input()\nvault_id = input()\nnew_pin = input()\nunlock_pin = input()\nvault1 = Vault(pin_code, access_level, vault_id)\nvault2 = vault1\nvault2.set_pin(new_pin)\nprint(f"Vault1 PIN: {vault1.get_pin()}")\nprint(f"Vault2 PIN: {vault2.get_pin()}")\nprint(vault1.unlock_vault(unlock_pin))',
+    walkthrough: [
+      { label: 'Validate the new PIN', code_snippet: 'def set_pin(self, new_pin):\n    if len(new_pin) == 4 and new_pin.isdigit():\n        self.__pin_code = new_pin\n        print("PIN updated successfully.")\n    else:\n        print("Invalid PIN! Must be 4 digits.")', explanation: 'Only a 4-character, all-digit PIN is accepted.' },
+      { label: 'Two names, one object', code_snippet: 'vault2 = vault1\nvault2.set_pin(new_pin)', explanation: 'vault2 = vault1 does NOT copy; both names point to the SAME vault, so a change through one shows in the other.' },
+    ],
+    student_explanation: "The challenge combines a validated setter with a key idea: assigning an object (vault2 = vault1) shares it, so both names see the same updated PIN.",
+    worked_example: 'set_pin("999")  ->  Invalid PIN! Must be 4 digits.',
+    key_concepts: ['validated setter', 'shared object reference', 'encapsulation'],
+    common_mistakes: ['Thinking vault2 = vault1 makes a copy', 'Skipping the 4-digit validation'],
+  },
+
+  // ── Session 30: Inheritance (Beginner) (cases 1–6) ──
+  {
+    problem_id: 163, level_number: 3, session_id: 30, case_number: 1,
+    solution_code: 'class Spacecraft:\n    def __init__(self, name):\n        self.name = name\n        length = len(name)\n        if length >= 7 and length % 2 == 0:\n            self.prefix = "Advanced"\n        elif length >= 7 and length % 2 == 1:\n            self.prefix = "Elite"\n        elif length < 7 and length % 2 == 0:\n            self.prefix = "Basic"\n        else:\n            self.prefix = "Swift"\n    def launch(self):\n        print(f"{self.prefix}: {self.name} Launching into space!")\nclass Satellite(Spacecraft):\n    def transmit(self):\n        print(f"{self.prefix}: {self.name} Transmitting data to Earth.")\nname = input()\nsat = Satellite(name)\nsat.launch()\nsat.transmit()',
+    walkthrough: [
+      { label: 'Child inherits the parent', code_snippet: 'class Satellite(Spacecraft):\n    def transmit(self):\n        ...', explanation: 'Satellite(Spacecraft) means Satellite gets all of Spacecraft - including launch() and the prefix set in __init__.' },
+      { label: 'Use both inherited and new methods', code_snippet: 'sat.launch()    # inherited\nsat.transmit()  # new', explanation: 'The object uses the parent method and its own method, both sharing the same prefix.' },
+    ],
+    student_explanation: "Inheritance lets a child class reuse everything from its parent. Satellite gets launch() and the prefix for free, then adds transmit().",
+    worked_example: 'a name of length 6 (even, < 7)  ->  prefix Basic',
+    key_concepts: ['inheritance', 'child(Parent)', 'shared attributes'],
+    common_mistakes: ['Re-writing launch() in the child instead of inheriting', 'Getting the length threshold wrong'],
+  },
+  {
+    problem_id: 164, level_number: 3, session_id: 30, case_number: 2,
+    solution_code: 'class Vehicle:\n    def __init__(self, name):\n        self.name = name\n        length = len(name)\n        if length >= 8 and length % 2 == 0:\n            self.prefix = "Heavy"\n        elif length >= 8 and length % 2 == 1:\n            self.prefix = "Super"\n        elif length < 8 and length % 2 == 0:\n            self.prefix = "Fast"\n        else:\n            self.prefix = "Quick"\n    def move(self):\n        print(f"{self.prefix}: {self.name} Moving...")\nclass Rocket(Vehicle):\n    def fire(self):\n        print(f"{self.prefix}: {self.name} Rocket engines firing!")\nclass CargoRocket(Rocket):\n    def deliver(self):\n        print(f"{self.prefix}: {self.name} Delivering satellite payload.")\nname = input()\ncargo = CargoRocket(name)\ncargo.move()\ncargo.fire()\ncargo.deliver()',
+    walkthrough: [
+      { label: 'A three-level chain', code_snippet: 'class Vehicle: ...\nclass Rocket(Vehicle): ...\nclass CargoRocket(Rocket): ...', explanation: 'CargoRocket inherits from Rocket, which inherits from Vehicle - so CargoRocket has all three methods.' },
+      { label: 'Use methods from every level', code_snippet: 'cargo.move()     # Vehicle\ncargo.fire()     # Rocket\ncargo.deliver()  # CargoRocket', explanation: 'The grandchild object can call methods defined anywhere up the chain.' },
+    ],
+    student_explanation: "Multilevel inheritance passes features down a chain. CargoRocket gets move() from Vehicle, fire() from Rocket, and adds deliver() itself.",
+    worked_example: 'a name of length 8 (even, >= 8)  ->  prefix Heavy',
+    key_concepts: ['multilevel inheritance', 'inheritance chain', 'shared prefix'],
+    common_mistakes: ['Breaking the chain by inheriting from the wrong class', 'Getting the length threshold wrong'],
+  },
+  {
+    problem_id: 165, level_number: 3, session_id: 30, case_number: 3,
+    solution_code: 'class Sensor:\n    def __init__(self, name):\n        self.name = name\n        length = len(name)\n        if length >= 6 and length % 2 == 0:\n            self.prefix = "Alpha"\n        elif length >= 6 and length % 2 == 1:\n            self.prefix = "Beta"\n        elif length < 6 and length % 2 == 0:\n            self.prefix = "Gamma"\n        else:\n            self.prefix = "Delta"\n    def record(self, duration=None):\n        if duration is None:\n            print(f"{self.prefix}: {self.name} Recording data indefinitely.")\n        else:\n            print(f"{self.prefix}: {self.name} Recording data for {duration} seconds.")\nname = input()\nsensor = Sensor(name)\nsensor.record()\nsensor.record(10)',
+    walkthrough: [
+      { label: 'One flexible method', code_snippet: 'def record(self, duration=None):\n    if duration is None:\n        ...indefinitely...\n    else:\n        ...for {duration} seconds...', explanation: 'A default of None lets the same method work with OR without a duration.' },
+      { label: 'Call it both ways', code_snippet: 'sensor.record()\nsensor.record(10)', explanation: 'No argument uses the None branch; an argument uses the other.' },
+    ],
+    student_explanation: "Python fakes method overloading with a default argument. record() and record(10) call the same method, which checks whether the duration was given.",
+    worked_example: 'record()  ->  indefinitely;  record(10)  ->  for 10 seconds',
+    key_concepts: ['default argument', 'is None check', 'flexible methods'],
+    common_mistakes: ['Defining record twice (the second hides the first)', 'Getting the length threshold wrong'],
+  },
+  {
+    problem_id: 166, level_number: 3, session_id: 30, case_number: 4,
+    solution_code: 'class Rover:\n    def __init__(self, name):\n        self.name = name\n        length = len(name)\n        if length % 2 == 1:\n            self.prefix = "Elite Rover"\n        elif length >= 6:\n            self.prefix = "Advanced Rover"\n        else:\n            self.prefix = "Base Rover"\n    def identify(self):\n        print(f"{self.prefix}: Generic Rover")\nclass MarsRover(Rover):\n    def identify(self):\n        super().identify()\n        print(f"{self.prefix}: Mars Exploration Rover")\nname = input()\nrover = MarsRover(name)\nrover.identify()',
+    walkthrough: [
+      { label: 'Override and extend with super()', code_snippet: 'class MarsRover(Rover):\n    def identify(self):\n        super().identify()\n        print(f"{self.prefix}: Mars Exploration Rover")', explanation: 'The child redefines identify(), but super().identify() still runs the parent version first.' },
+    ],
+    student_explanation: "Overriding replaces a parent method in the child. Calling super().identify() lets the child run the parent's version AND add its own line.",
+    worked_example: 'identify()  ->  the Generic line, then the Mars line',
+    key_concepts: ['method overriding', 'super()', 'inheritance'],
+    common_mistakes: ['Forgetting super() so the Generic line is lost', 'Getting the prefix rule wrong'],
+  },
+  {
+    problem_id: 167, level_number: 3, session_id: 30, case_number: 5,
+    solution_code: 'class NavBase:\n    def __init__(self, name):\n        self.name = name\n        length = len(name)\n        if length >= 8 and length % 2 == 0:\n            self.prefix = "NavSys"\n        elif length >= 8 and length % 2 == 1:\n            self.prefix = "AutoSys"\n        elif length < 8 and length % 2 == 0:\n            self.prefix = "Sys"\n        else:\n            self.prefix = "Core"\n    def enable(self):\n        print(f"{self.prefix}: Precision mode enabled")\nclass NavSystem(NavBase):\n    def calibrate(self):\n        print(f"{self.prefix}: Calibrating star tracker...")\nname = input()\nnav = NavSystem(name)\nnav.enable()\nnav.calibrate()',
+    walkthrough: [
+      { label: 'Base sets the prefix and one method', code_snippet: 'class NavBase:\n    def __init__(self, name):\n        ...sets self.prefix...\n    def enable(self):\n        print(f"{self.prefix}: Precision mode enabled")', explanation: 'The base computes the prefix once and offers enable().' },
+      { label: 'Child adds another method', code_snippet: 'class NavSystem(NavBase):\n    def calibrate(self):\n        print(f"{self.prefix}: Calibrating star tracker...")', explanation: 'The child reuses the inherited prefix in its own method.' },
+    ],
+    student_explanation: "A base class can compute a shared value (the prefix) that every child method reuses, keeping the rule in one place.",
+    worked_example: 'a name of length 8 (even, >= 8)  ->  prefix NavSys',
+    key_concepts: ['inheritance', 'shared base logic', 'reused attributes'],
+    common_mistakes: ['Recomputing the prefix in the child', 'Getting the length threshold wrong'],
+  },
+  {
+    problem_id: 168, level_number: 3, session_id: 30, case_number: 6,
+    solution_code: 'class AIAssistant:\n    def __init__(self, name):\n        self.name = name\n    def diagnostics(self):\n        print("Running technical diagnostics...")\nclass MissionAI(AIAssistant):\n    def decide(self):\n        print("Making mission-level decision...")\nclass ExplorerAI(MissionAI):\n    def scan(self, planet):\n        print(f"ExplorerAI is scanning {planet} for life signs...")\n    def execute(self, task):\n        if task == "Collect Sample":\n            print("Sample collection initiated.")\n        else:\n            print(f"Executing task: {task}")\nname = input()\nmission = input()\nplanet = input()\ntask = input()\nai = ExplorerAI(name)\nai.diagnostics()\nai.decide()\nai.scan(planet)\nai.execute(task)',
+    walkthrough: [
+      { label: 'Evolve a class down three levels', code_snippet: 'class AIAssistant: ... diagnostics()\nclass MissionAI(AIAssistant): ... decide()\nclass ExplorerAI(MissionAI): ... scan(), execute()', explanation: 'ExplorerAI inherits diagnostics and decide, then adds scanning and task execution.' },
+      { label: 'Branch on the task', code_snippet: 'def execute(self, task):\n    if task == "Collect Sample":\n        print("Sample collection initiated.")\n    else:\n        print(f"Executing task: {task}")', explanation: 'A "Collect Sample" task gets a special line; any other task is just executed.' },
+    ],
+    student_explanation: "The challenge builds a three-level AI: each level adds a behaviour, and the final class also branches on the task it is given.",
+    worked_example: 'task "Collect Sample"  ->  Sample collection initiated.',
+    key_concepts: ['multilevel inheritance', 'added behaviour per level', 'conditional method'],
+    common_mistakes: ['Calling a method the object did not inherit', 'Forgetting the special Collect Sample case'],
+  },
+
+  // ── Session 31: Inheritance (Advanced) (cases 1–6) ──
+  {
+    problem_id: 169, level_number: 3, session_id: 31, case_number: 1,
+    solution_code: 'class Navigator:\n    def navigate(self):\n        print(f"{self.prefix}: Navigating space.")\nclass Communicator:\n    def signal(self):\n        print(f"{self.prefix}: Sending signal.")\nclass MissionAI(Navigator, Communicator):\n    def __init__(self, name):\n        self.name = name\n        length = len(name)\n        if length >= 6 and length % 2 == 0:\n            self.prefix = "MultiAI"\n        elif length >= 6 and length % 2 == 1:\n            self.prefix = "ComboAI"\n        elif length < 6 and length % 2 == 0:\n            self.prefix = "DualAI"\n        else:\n            self.prefix = "MixAI"\nname = input()\nai = MissionAI(name)\nai.navigate()\nai.signal()',
+    walkthrough: [
+      { label: 'Inherit from two parents', code_snippet: 'class MissionAI(Navigator, Communicator):', explanation: 'Listing two classes in the brackets means MissionAI gets methods from BOTH.' },
+      { label: 'Use a method from each parent', code_snippet: 'ai.navigate()  # from Navigator\nai.signal()    # from Communicator', explanation: 'The single object can call methods from either parent.' },
+    ],
+    student_explanation: "Multiple inheritance lists more than one parent. The child gains the methods of all of them - here navigate from one and signal from the other.",
+    worked_example: 'class C(A, B)  ->  C has methods from both A and B',
+    key_concepts: ['multiple inheritance', 'child(A, B)', 'combined methods'],
+    common_mistakes: ['Listing only one parent', 'Getting the length threshold wrong'],
+  },
+  {
+    problem_id: 170, level_number: 3, session_id: 31, case_number: 2,
+    solution_code: 'class BaseAI:\n    def boot(self):\n        print(f"{self.prefix}: Booting AI system...")\nclass MedicalAI(BaseAI):\n    def scan_medical(self):\n        print(f"{self.prefix}: Scanning medical data...")\nclass ResearchAI(BaseAI):\n    def analyze(self):\n        print(f"{self.prefix}: Analyzing research results...")\nclass LabAI(MedicalAI, ResearchAI):\n    def __init__(self, name):\n        self.name = name\n        length = len(name)\n        if length >= 7 and length % 2 == 0:\n            self.prefix = "HybridSys"\n        elif length >= 7 and length % 2 == 1:\n            self.prefix = "MergedSys"\n        elif length < 7 and length % 2 == 0:\n            self.prefix = "LabSys"\n        else:\n            self.prefix = "MixSys"\nname = input()\nai = LabAI(name)\nai.boot()\nai.scan_medical()\nai.analyze()',
+    walkthrough: [
+      { label: 'Combine multilevel and multiple', code_snippet: 'class MedicalAI(BaseAI): ...\nclass ResearchAI(BaseAI): ...\nclass LabAI(MedicalAI, ResearchAI): ...', explanation: 'LabAI inherits from two classes that each inherit from BaseAI - a hybrid hierarchy.' },
+    ],
+    student_explanation: "Hybrid inheritance mixes multilevel and multiple inheritance. LabAI reaches boot (from BaseAI), scan_medical, and analyze through its two parents.",
+    worked_example: 'a name of length 7 (odd, >= 7)  ->  prefix MergedSys',
+    key_concepts: ['hybrid inheritance', 'diamond shape', 'shared base'],
+    common_mistakes: ['Wiring the parents up wrongly', 'Getting the length threshold wrong'],
+  },
+  {
+    problem_id: 171, level_number: 3, session_id: 31, case_number: 3,
+    solution_code: 'class Sensor:\n    def __init__(self, name):\n        self.name = name\n        length = len(name)\n        if length >= 7:\n            self.prefix = "TempSensor"\n        elif length == 6:\n            self.prefix = "HeatSensor"\n        else:\n            self.prefix = "Thermal"\n    def status(self):\n        print(f"{self.prefix}: Sensor active.")\nclass ThermalSensor(Sensor):\n    def status(self):\n        print(f"{self.prefix}: Thermal sensor activated.")\nname = input()\nsensor = ThermalSensor(name)\nsensor.status()',
+    walkthrough: [
+      { label: 'Override the parent method', code_snippet: 'class ThermalSensor(Sensor):\n    def status(self):\n        print(f"{self.prefix}: Thermal sensor activated.")', explanation: 'The child defines status() again, so its version replaces the parent one when called on a ThermalSensor.' },
+    ],
+    student_explanation: "When a child defines a method with the same name as the parent, the child's version wins. This is method overriding.",
+    worked_example: 'ThermalSensor.status()  ->  the child version runs, not the parent',
+    key_concepts: ['method overriding', 'inheritance', 'length bands'],
+    common_mistakes: ['Giving the child method a different name (then it does not override)', 'Getting the length bands wrong'],
+  },
+  {
+    problem_id: 172, level_number: 3, session_id: 31, case_number: 4,
+    solution_code: 'class SystemCheck:\n    def __init__(self, name):\n        self.name = name\n        length = len(name)\n        if length >= 8 and length % 2 == 0:\n            self.prefix = "SuperCheck"\n        elif length >= 8 and length % 2 == 1:\n            self.prefix = "ExtendCheck"\n        elif length < 8 and length % 2 == 0:\n            self.prefix = "Check"\n        else:\n            self.prefix = "Scan"\n    def run(self):\n        print(f"{self.prefix}: Running system diagnostics.")\nclass AdvancedCheck(SystemCheck):\n    def run(self):\n        super().run()\n        print(f"{self.prefix}: All systems functional.")\nname = input()\ncheck = AdvancedCheck(name)\ncheck.run()',
+    walkthrough: [
+      { label: 'Extend, do not replace', code_snippet: 'def run(self):\n    super().run()\n    print(f"{self.prefix}: All systems functional.")', explanation: 'super().run() runs the parent version first, then the child adds its own line.' },
+    ],
+    student_explanation: "super() lets a child build ON TOP of a parent method instead of throwing it away - run the parent first, then add more.",
+    worked_example: 'run()  ->  the parent diagnostics line, then the child line',
+    key_concepts: ['super()', 'extending a method', 'inheritance'],
+    common_mistakes: ['Forgetting super() so the parent line disappears', 'Getting the length threshold wrong'],
+  },
+  {
+    problem_id: 173, level_number: 3, session_id: 31, case_number: 5,
+    solution_code: 'class ScannerAI:\n    def report(self):\n        print("Scanner reporting: All clear.")\nclass LoggerAI:\n    def report(self):\n        print("Logger reporting: Saved.")\nclass CommanderAI(ScannerAI, LoggerAI):\n    pass\nname = input()\ncommander = CommanderAI()\ncommander.report()\nprint(CommanderAI.__mro__)',
+    walkthrough: [
+      { label: 'Two parents with the same method', code_snippet: 'class CommanderAI(ScannerAI, LoggerAI):\n    pass', explanation: 'Both parents have report(). Python must decide which one wins.' },
+      { label: 'MRO decides the winner', code_snippet: 'commander.report()\nprint(CommanderAI.__mro__)', explanation: 'The Method Resolution Order checks ScannerAI before LoggerAI (left to right), so Scanner wins. __mro__ shows the full search order.' },
+    ],
+    student_explanation: "When two parents share a method name, Python follows the Method Resolution Order (MRO) - left to right - to choose which one runs. __mro__ prints that order.",
+    worked_example: 'class C(A, B)  ->  A is searched before B',
+    key_concepts: ['MRO', '__mro__', 'multiple inheritance'],
+    common_mistakes: ['Expecting the second parent to win', 'Forgetting the search goes left to right'],
+  },
+  {
+    problem_id: 174, level_number: 3, session_id: 31, case_number: 6,
+    solution_code: 'class NavAI:\n    def navigate(self):\n        print(f"Navigating through space: {self.name}")\nclass DataAI:\n    def analyze(self):\n        print(f"Analyzing data streams: {self.name}")\nclass BaseAI:\n    def boot(self):\n        print("Booting base AI system...")\nclass PilotAI(NavAI, BaseAI):\n    def pilot(self, zone):\n        print(f"Pilot mode: Flying through {zone}")\nclass ScienceAI(DataAI, BaseAI):\n    def research(self, subject):\n        print(f"Science mode: Researching {subject}")\nclass HybridAI(PilotAI, ScienceAI):\n    def __init__(self, name):\n        self.name = name\n    def report(self):\n        print("HybridAI Report: Multi-stream analysis complete.")\n    def initialize(self):\n        print("Initializing systems...")\n        print("Advanced protocols loaded.")\nname = input()\nzone = input()\nsubject = input()\nai = HybridAI(name)\nai.navigate()\nai.analyze()\nai.boot()\nai.pilot(zone)\nai.research(subject)\nai.report()\nai.initialize()',
+    walkthrough: [
+      { label: 'A composite hierarchy', code_snippet: 'class PilotAI(NavAI, BaseAI): ...\nclass ScienceAI(DataAI, BaseAI): ...\nclass HybridAI(PilotAI, ScienceAI): ...', explanation: 'HybridAI pulls together navigation, data, piloting, and science through several parents.' },
+      { label: 'Run the whole pipeline', code_snippet: 'ai.navigate()\nai.analyze()\nai.boot()\nai.pilot(zone)\nai.research(subject)\nai.report()\nai.initialize()', explanation: 'Each call reaches a method somewhere in the inheritance web.' },
+    ],
+    student_explanation: "The challenge stitches several inheritance styles into one capable class, then calls a method from each layer in sequence.",
+    worked_example: 'HybridAI gathers methods from NavAI, DataAI, BaseAI, PilotAI, ScienceAI',
+    key_concepts: ['composite inheritance', 'multiple + multilevel', 'method pipeline'],
+    common_mistakes: ['Calling a method not reachable in the hierarchy', 'Printing the lines in the wrong order'],
+  },
+
+  // ── Session 32: Polymorphism (cases 1–6) ──
+  {
+    problem_id: 175, level_number: 3, session_id: 32, case_number: 1,
+    solution_code: 'class Animal:\n    def speak(self):\n        print("Some sound.")\nclass Dog(Animal):\n    def speak(self):\n        print("The dog barks.")\nclass Cat(Animal):\n    def speak(self):\n        print("The cat meows.")\nfor _ in range(2):\n    kind = input()\n    if kind == "Dog":\n        animal = Dog()\n    else:\n        animal = Cat()\n    animal.speak()',
+    walkthrough: [
+      { label: 'Each child overrides speak()', code_snippet: 'class Dog(Animal):\n    def speak(self):\n        print("The dog barks.")\nclass Cat(Animal):\n    def speak(self):\n        print("The cat meows.")', explanation: 'Dog and Cat give their own version of the shared speak() method.' },
+      { label: 'Same call, different result', code_snippet: 'animal.speak()', explanation: 'The same line animal.speak() does a different thing depending on the object type - that is polymorphism.' },
+    ],
+    student_explanation: "Polymorphism means one method name behaves differently per class. animal.speak() barks for a Dog and meows for a Cat.",
+    worked_example: 'Dog().speak() vs Cat().speak()  ->  barks vs meows',
+    key_concepts: ['polymorphism', 'method overriding', 'inheritance'],
+    common_mistakes: ['Forgetting to override speak() in a child', 'Building the wrong object for the input'],
+  },
+  {
+    problem_id: 176, level_number: 3, session_id: 32, case_number: 2,
+    solution_code: 'class Book:\n    def __init__(self, title, pages):\n        self.title = title\n        self.pages = pages\n    def __add__(self, other):\n        return Book(self.title + "-" + other.title, self.pages + other.pages)\n    def __str__(self):\n        return f"{self.title} Book with {self.pages} pages"\ntitle1 = input()\npages1 = int(input())\ntitle2 = input()\npages2 = int(input())\nbook1 = Book(title1, pages1)\nbook2 = Book(title2, pages2)\ncombined = book1 + book2\nprint(combined)',
+    walkthrough: [
+      { label: 'Redefine + for objects', code_snippet: 'def __add__(self, other):\n    return Book(self.title + "-" + other.title, self.pages + other.pages)', explanation: '__add__ controls what book1 + book2 does - here join the titles and add the pages.' },
+      { label: 'Use the + operator', code_snippet: 'combined = book1 + book2\nprint(combined)', explanation: 'book1 + book2 calls __add__ and returns a new Book.' },
+    ],
+    student_explanation: "Operator overloading lets you give + a meaning for your own objects. __add__ defines what happens when two Books are added.",
+    worked_example: 'Book("A",150) + Book("B",100)  ->  A-B Book with 250 pages',
+    key_concepts: ['__add__', 'operator overloading', '__str__'],
+    common_mistakes: ['Returning text from __add__ instead of a new Book', 'Forgetting __str__ so the result prints oddly'],
+  },
+  {
+    problem_id: 177, level_number: 3, session_id: 32, case_number: 3,
+    solution_code: 'class Student:\n    def __init__(self, name, marks):\n        self.name = name\n        self.marks = marks\n    def __gt__(self, other):\n        return self.marks > other.marks\nstudents = []\nfor _ in range(3):\n    name = input()\n    marks = int(input())\n    students.append(Student(name, marks))\nhighest = students[0]\nfor student in students[1:]:\n    if student > highest:\n        highest = student\nprint(highest.name)',
+    walkthrough: [
+      { label: 'Redefine > with __gt__', code_snippet: 'def __gt__(self, other):\n    return self.marks > other.marks', explanation: '__gt__ decides what student_a > student_b means - here compare their marks.' },
+      { label: 'Find the highest', code_snippet: 'highest = students[0]\nfor student in students[1:]:\n    if student > highest:\n        highest = student', explanation: 'Because > is defined, you can compare Student objects directly.' },
+    ],
+    student_explanation: "Overloading > with __gt__ lets you compare your own objects with a plain >. Here it compares marks to find the top scorer.",
+    worked_example: 'student_a > student_b  ->  compares their marks',
+    key_concepts: ['__gt__', 'operator overloading', 'finding a maximum'],
+    common_mistakes: ['Comparing the objects without defining __gt__', 'Comparing names instead of marks'],
+  },
+  {
+    problem_id: 178, level_number: 3, session_id: 32, case_number: 4,
+    solution_code: 'class SystemCheck:\n    def __init__(self, name):\n        self.name = name\n    def run(self):\n        print(f"{self.name}: Running diagnostics.")\nclass AdvancedCheck(SystemCheck):\n    def run(self):\n        super().run()\n        print(f"{self.name}: Advanced check complete.")\nname = input()\ncheck = AdvancedCheck(name)\ncheck.run()',
+    walkthrough: [
+      { label: 'Extend with super()', code_snippet: 'class AdvancedCheck(SystemCheck):\n    def run(self):\n        super().run()\n        print(f"{self.name}: Advanced check complete.")', explanation: 'super().run() runs the parent line, then the child adds its own.' },
+    ],
+    student_explanation: "super() calls the parent version of an overridden method, so the child can add to it rather than replace it entirely.",
+    worked_example: 'run()  ->  the diagnostics line, then the advanced line',
+    key_concepts: ['super()', 'overriding', 'polymorphism'],
+    common_mistakes: ['Forgetting super() so the first line is lost', 'Printing in the wrong order'],
+  },
+  {
+    problem_id: 179, level_number: 3, session_id: 32, case_number: 5,
+    solution_code: 'class Fan:\n    def start(self):\n        print("Fan is spinning.")\nclass Car:\n    def start(self):\n        print("Car engine started.")\nclass Computer:\n    def start(self):\n        print("Computer booting up.")\nfor _ in range(3):\n    kind = input()\n    if kind == "Fan":\n        obj = Fan()\n    elif kind == "Car":\n        obj = Car()\n    else:\n        obj = Computer()\n    obj.start()',
+    walkthrough: [
+      { label: 'Unrelated classes, same method name', code_snippet: 'class Fan:\n    def start(self): ...\nclass Car:\n    def start(self): ...\nclass Computer:\n    def start(self): ...', explanation: 'Three classes that share NO parent each define start() differently.' },
+      { label: 'Call start() on whichever object', code_snippet: 'obj.start()', explanation: 'The same call works on any of them, each doing its own thing.' },
+    ],
+    student_explanation: "Polymorphism does not need inheritance. Any objects that share a method name can be used the same way - obj.start() works on a Fan, Car, or Computer.",
+    worked_example: 'Fan().start() vs Car().start()  ->  spinning vs engine started',
+    key_concepts: ['duck typing', 'shared method name', 'polymorphism'],
+    common_mistakes: ['Thinking polymorphism requires a common parent', 'Building the wrong object for the input'],
+  },
+  {
+    problem_id: 180, level_number: 3, session_id: 32, case_number: 6,
+    solution_code: 'class AI:\n    def __init__(self, name, power):\n        self.name = name\n        self.power = power\n    def __add__(self, other):\n        return f"{self.name}-{other.name} with power {self.power + other.power}"\nclass Scout(AI):\n    def respond(self):\n        print("Scout responding: Scanning area.")\nclass Engineer(AI):\n    def respond(self):\n        print("Engineer responding: Building structures.")\nclass Commander(AI):\n    def respond(self):\n        print("Commander responding: Leading the team.")\ndef make(kind, power):\n    if kind == "Scout":\n        return Scout(kind, power)\n    elif kind == "Engineer":\n        return Engineer(kind, power)\n    else:\n        return Commander(kind, power)\ntype1 = input()\npower1 = int(input())\ntype2 = input()\npower2 = int(input())\nai1 = make(type1, power1)\nai2 = make(type2, power2)\nai1.respond()\nai2.respond()\nprint(ai1 + ai2)',
+    walkthrough: [
+      { label: 'Override respond(), inherit __add__', code_snippet: 'class Scout(AI):\n    def respond(self):\n        print("Scout responding: Scanning area.")', explanation: 'Each AI type overrides respond(), but they all share the __add__ from the AI base.' },
+      { label: 'Combine two AIs with +', code_snippet: 'print(ai1 + ai2)', explanation: '+ uses the inherited __add__ to join names and add power levels.' },
+    ],
+    student_explanation: "The challenge mixes polymorphism (each respond() differs) with operator overloading (+ combines two AIs through the shared __add__).",
+    worked_example: 'Scout(50) + Engineer(70)  ->  Scout-Engineer with power 120',
+    key_concepts: ['polymorphism', '__add__ inherited', 'overriding'],
+    common_mistakes: ['Defining __add__ in each child instead of the base', 'Reading type and power in the wrong order'],
+  },
+
+  // ── Session 33: Level 3 Capstone — Project COSMIC LINK ──
+  {
+    problem_id: 181, level_number: 3, session_id: 33, case_number: 1,
+    solution_code: 'friendly = 0\nunknown = 0\nfor _ in range(3):\n    source = input()\n    strength = int(input())\n    message = input()\n    if strength > 70:\n        friendly += 1\n    else:\n        unknown += 1\nprint(f"Total Signals Detected: {friendly + unknown}")\nprint(f"Friendly Signals: {friendly}")\nprint(f"Unknown Signals: {unknown}")\nprint("COSMIC LINK LIVE - STREAMS CLASSIFIED")',
+    walkthrough: [
+      { label: 'Read and classify each signal', code_snippet: 'for _ in range(3):\n    source = input()\n    strength = int(input())\n    message = input()\n    if strength > 70:\n        friendly += 1\n    else:\n        unknown += 1', explanation: 'Each signal is three lines; a strength above 70 is Friendly, 70 or below is Unknown.' },
+      { label: 'Report the totals', code_snippet: 'print(f"Total Signals Detected: {friendly + unknown}")\nprint(f"Friendly Signals: {friendly}")\nprint(f"Unknown Signals: {unknown}")', explanation: 'Count each category and print the summary lines.' },
+    ],
+    student_explanation: "The Level 3 capstone reads three 3-line signals, classifies each by a strength threshold (above 70 is Friendly), and tallies the results - a clean use of counters and a loop.",
+    worked_example: 'strength 71  ->  Friendly;  strength 70  ->  Unknown',
+    key_concepts: ['counting in a loop', 'threshold classification', 'reading grouped input'],
+    common_mistakes: ['Counting strength 70 as Friendly (it is 70-or-less = Unknown)', 'Reading the three lines per signal in the wrong order'],
+  },
 ];
 
 async function seed() {
