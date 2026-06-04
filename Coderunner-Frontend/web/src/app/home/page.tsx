@@ -10,6 +10,7 @@ import { usePageAudio } from '@/hooks/usePageAudio';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { getMissionCardImage } from '@/lib/view-backgrounds';
 import FloatingParticles from '@/components/ui/FloatingParticles';
 
 function AgeSelectionPageContent() {
@@ -119,11 +120,13 @@ function AgeSelectionPageContent() {
       title: 'Mission Card 1',
       href: '/levels/11-14',
       cardType: 'novice' as const,
+      ageGroup: '11-14',
     },
     {
       title: 'Mission Card 2',
       href: '/levels/15-18',
       cardType: 'advanced' as const,
+      ageGroup: '15-18',
     },
   ];
 
@@ -205,10 +208,12 @@ function AgeSelectionPageContent() {
               onMouseLeave={(e) => handleCardHover(e, false)}
               onClick={(e) => handleCardClick(e, group.href, group.cardType)}
             >
-              {/* Simple Image Card - Clickable */}
+              {/* Simple Image Card - Clickable. Image is themed per character +
+                  age group (view-backgrounds); falls back to the default card art
+                  for characters/age groups not yet themed. */}
               <div className="relative transition-all duration-500 hover:scale-105 cursor-pointer">
                 <img
-                  src="/card-11-14.png"
+                  src={getMissionCardImage(theme.id, group.ageGroup)}
                   alt={group.title || "Mission Card"}
                   className="w-full h-auto rounded-lg shadow-2xl"
                   style={{

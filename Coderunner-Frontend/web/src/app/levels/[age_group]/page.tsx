@@ -14,9 +14,8 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { getLevelsBackdrop } from '@/lib/view-backgrounds';
 import FloatingParticles from '@/components/ui/FloatingParticles';
-
-const CDN_SETTLEMENT_BG = 'https://res.cloudinary.com/dwqzqxeuk/image/upload/f_auto,q_auto/code-runner/ui/technological-exploration-settlement.jpg';
 
 interface LevelPageProps {
     params: {
@@ -124,7 +123,7 @@ export default function LevelPage({ params }: LevelPageProps) {
             <div
                 className="fixed inset-0 z-0"
                 style={{
-                    backgroundImage: `url("${CDN_SETTLEMENT_BG}")`,
+                    backgroundImage: `url("${getLevelsBackdrop(theme.id, ageGroup)}")`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat'

@@ -288,5 +288,20 @@
     "url": "https://res.cloudinary.com/dwqzqxeuk/video/upload/v1770206187/code-runner/audio/storyline-video.mp3",
     "publicId": "code-runner/audio/storyline-video",
     "resourceType": "video"
+  },
+  "/assets/view/kenji/11-14.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780567151/code-runner/view/kenji/11-14.png",
+    "publicId": "code-runner/view/kenji/11-14",
+    "resourceType": "image"
+  },
+  "/assets/view/kenji/15-18.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780567153/code-runner/view/kenji/15-18.png",
+    "publicId": "code-runner/view/kenji/15-18",
+    "resourceType": "image"
+  },
+  "/assets/view/kenji/INSIDE 11-14/kenji-home-bg.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780567266/code-runner/view/kenji/inside-11-14.png",
+    "publicId": "code-runner/view/kenji/inside-11-14",
+    "resourceType": "image"
   }
 }
