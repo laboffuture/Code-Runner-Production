@@ -2268,6 +2268,568 @@ const GUIDES = [
     key_concepts: ['counting in a loop', 'threshold classification', 'reading grouped input'],
     common_mistakes: ['Counting strength 70 as Friendly (it is 70-or-less = Unknown)', 'Reading the three lines per signal in the wrong order'],
   },
+
+  // ══════════ LEVEL 4 ══════════
+  // ── Session 34: Error Detection & Exception Resolution (cases 1–6) ──
+  {
+    problem_id: 182, level_number: 4, session_id: 34, case_number: 1,
+    solution_code: 'try:\n    speed = int(input())\n    time = int(input())\n    velocity = speed / time\n    print(f"Velocity: {velocity}")\nexcept ZeroDivisionError:\n    print("Error: Time cannot be zero")',
+    walkthrough: [
+      { label: 'Wrap risky code in try', code_snippet: 'try:\n    velocity = speed / time\n    print(f"Velocity: {velocity}")', explanation: 'Dividing by zero would crash the program, so the division goes inside try.' },
+      { label: 'Catch the specific error', code_snippet: 'except ZeroDivisionError:\n    print("Error: Time cannot be zero")', explanation: 'If a ZeroDivisionError happens, this block runs instead of crashing.' },
+    ],
+    student_explanation: "try-except lets a program survive an error. The risky code goes in try; if it raises a ZeroDivisionError, the except block handles it gracefully.",
+    worked_example: '100 / 0  ->  caught, prints the error message instead of crashing',
+    key_concepts: ['try-except', 'ZeroDivisionError', 'graceful failure'],
+    common_mistakes: ['Putting the division outside the try', 'Catching the wrong exception type'],
+  },
+  {
+    problem_id: 183, level_number: 4, session_id: 34, case_number: 2,
+    solution_code: 'try:\n    speed = int(input())\n    time = int(input())\n    velocity = speed / time\n    print(f"Velocity: {velocity}")\nexcept ZeroDivisionError:\n    print("Division by zero: Adjusting time.")\nexcept ValueError:\n    print("Invalid input: Time must be a number.")',
+    walkthrough: [
+      { label: 'Two except blocks', code_snippet: 'except ZeroDivisionError:\n    print("Division by zero: Adjusting time.")\nexcept ValueError:\n    print("Invalid input: Time must be a number.")', explanation: 'Each error type gets its own handler. int("abc") raises ValueError; dividing by zero raises ZeroDivisionError.' },
+    ],
+    student_explanation: "You can stack several except blocks. Python runs the one that matches the error that actually happened - a bad number is a ValueError, dividing by zero is a ZeroDivisionError.",
+    worked_example: 'int("abc")  ->  ValueError;  10 / 0  ->  ZeroDivisionError',
+    key_concepts: ['multiple except blocks', 'ValueError', 'ZeroDivisionError'],
+    common_mistakes: ['Using one except for two different errors', 'Putting the broader Exception before the specific ones'],
+  },
+  {
+    problem_id: 184, level_number: 4, session_id: 34, case_number: 3,
+    solution_code: 'try:\n    readings = [int(input()), int(input()), int(input())]\n    index = int(input())\n    print(f"Sensor Reading: {readings[index]}")\nexcept IndexError:\n    print("Error: Sensor index out of range!")\nexcept ValueError:\n    print("Error: Please enter a valid number for index!")',
+    walkthrough: [
+      { label: 'Two ways this can fail', code_snippet: 'print(f"Sensor Reading: {readings[index]}")', explanation: 'A bad index raises IndexError; a non-number index raises ValueError when int() runs.' },
+      { label: 'Handle each', code_snippet: 'except IndexError:\n    ...\nexcept ValueError:\n    ...', explanation: 'Each problem prints its own clear message.' },
+    ],
+    student_explanation: "Accessing a list at a missing position raises IndexError; turning bad text into a number raises ValueError. Separate except blocks handle each.",
+    worked_example: 'list[5] on a 3-item list  ->  IndexError',
+    key_concepts: ['IndexError', 'ValueError', 'list access'],
+    common_mistakes: ['Forgetting that a wrong index is out of range', 'Mixing up which error each line can raise'],
+  },
+  {
+    problem_id: 185, level_number: 4, session_id: 34, case_number: 4,
+    solution_code: 'try:\n    dividend = float(input())\n    divisor = float(input())\n    result = dividend / divisor\n    print(f"Result: {result}")\nexcept Exception as e:\n    print(f"Error: {e}")\n    print(f"Error Type: {type(e)}")',
+    walkthrough: [
+      { label: 'Catch any error with the base class', code_snippet: 'except Exception as e:\n    print(f"Error: {e}")\n    print(f"Error Type: {type(e)}")', explanation: 'Exception is the parent of most errors, so it catches them all. "as e" gives access to the error object.' },
+    ],
+    student_explanation: "Every error type inherits from Exception, so catching Exception catches them all. The object e holds the message; type(e) names the exact error class.",
+    worked_example: 'type(e)  ->  <class \'ZeroDivisionError\'>',
+    key_concepts: ['Exception base class', 'as e', 'type(e)'],
+    common_mistakes: ['Forgetting "as e" so you cannot read the error', 'Catching Exception before more specific handlers (it would swallow them)'],
+  },
+  {
+    problem_id: 186, level_number: 4, session_id: 34, case_number: 5,
+    solution_code: 'class SensorFailure(Exception):\n    pass\ntry:\n    status = int(input())\n    if status == 0:\n        raise SensorFailure("Sensor malfunction detected!")\n    print("Sensor operational.")\nexcept SensorFailure as e:\n    print(f"Custom Error: {e}")',
+    walkthrough: [
+      { label: 'Define your own exception', code_snippet: 'class SensorFailure(Exception):\n    pass', explanation: 'A custom exception is just a class that inherits from Exception.' },
+      { label: 'Raise and catch it', code_snippet: 'if status == 0:\n    raise SensorFailure("Sensor malfunction detected!")\n...\nexcept SensorFailure as e:\n    print(f"Custom Error: {e}")', explanation: 'raise triggers your exception with a message; the matching except catches it.' },
+    ],
+    student_explanation: "You can invent your own exception by subclassing Exception, then raise it when something specific goes wrong - making the error meaningful to your program.",
+    worked_example: 'raise SensorFailure("...")  ->  caught by except SensorFailure',
+    key_concepts: ['custom exception', 'raise', 'subclassing Exception'],
+    common_mistakes: ['Forgetting the class must inherit from Exception', 'Catching a different exception than the one raised'],
+  },
+  {
+    problem_id: 187, level_number: 4, session_id: 34, case_number: 6,
+    solution_code: 'distance = int(input())\ntime = int(input())\nsensor_index = int(input())\ntry:\n    velocity = distance / time\n    print(f"Velocity: {velocity}")\nexcept ZeroDivisionError:\n    print("Error: Cannot calculate with zero time")\nsensors = [10, 20, 30, 40, 50]\ntry:\n    print(f"Sensor Reading: {sensors[sensor_index]}")\nexcept IndexError:\n    print("Error: Sensor index out of range")\nprint("System Status: Operational")',
+    walkthrough: [
+      { label: 'Two independent guarded steps', code_snippet: 'try:\n    velocity = distance / time\n    ...\nexcept ZeroDivisionError:\n    ...\ntry:\n    print(f"Sensor Reading: {sensors[sensor_index]}")\nexcept IndexError:\n    ...', explanation: 'Each risky step has its own try-except, so one failing does not stop the other.' },
+      { label: 'Always finish with status', code_snippet: 'print("System Status: Operational")', explanation: 'Because each error is caught, the program always reaches the final status line.' },
+    ],
+    student_explanation: "The challenge guards two separate operations with their own try-except blocks, so either can fail safely and the system still reports Operational at the end.",
+    worked_example: 'zero time  ->  velocity error, but the sensor read and status still run',
+    key_concepts: ['independent try blocks', 'ZeroDivisionError + IndexError', 'resilience'],
+    common_mistakes: ['Wrapping both steps in one try (one failure skips the other)', 'Forgetting the final status line'],
+  },
+
+  // ── Session 35: Advanced Try-Except (cases 1,2,3,4,5 — case 6 P193 pending) ──
+  {
+    problem_id: 188, level_number: 4, session_id: 35, case_number: 1,
+    solution_code: 'try:\n    packets = int(input())\n    result = 100 / packets\n    print(f"Each packet contains {result} units of data.")\nexcept ZeroDivisionError:\n    print("Error: Cannot divide by zero!")',
+    walkthrough: [
+      { label: 'Guard the division', code_snippet: 'try:\n    result = 100 / packets\n    print(f"Each packet contains {result} units of data.")\nexcept ZeroDivisionError:\n    print("Error: Cannot divide by zero!")', explanation: 'Splitting 100 units by 0 packets would crash, so the try-except catches it.' },
+    ],
+    student_explanation: "A try-except shields a division so a zero divisor produces a friendly message instead of a crash.",
+    worked_example: '100 / 5  ->  20.0 units;  100 / 0  ->  caught',
+    key_concepts: ['try-except', 'ZeroDivisionError', 'safe division'],
+    common_mistakes: ['Dividing before entering the try', 'Catching ValueError instead of ZeroDivisionError'],
+  },
+  {
+    problem_id: 189, level_number: 4, session_id: 35, case_number: 2,
+    solution_code: 'try:\n    code = int(input())\n    result = 50 / code\n    print(f"Result: {result}")\nexcept ValueError:\n    print("Invalid input! Please enter a number.")\nexcept ZeroDivisionError:\n    print("Command code cannot be zero.")',
+    walkthrough: [
+      { label: 'Two failure modes', code_snippet: 'except ValueError:\n    print("Invalid input! Please enter a number.")\nexcept ZeroDivisionError:\n    print("Command code cannot be zero.")', explanation: 'Letters cause a ValueError at int(); a zero causes a ZeroDivisionError at the division.' },
+    ],
+    student_explanation: "Different mistakes raise different errors. Letters fail the int() conversion (ValueError); a zero fails the division (ZeroDivisionError).",
+    worked_example: '"abc"  ->  ValueError;  "0"  ->  ZeroDivisionError',
+    key_concepts: ['multiple except blocks', 'ValueError', 'ZeroDivisionError'],
+    common_mistakes: ['Handling only one of the two errors', 'Putting the division outside the try'],
+  },
+  {
+    problem_id: 190, level_number: 4, session_id: 35, case_number: 3,
+    solution_code: 'try:\n    strength = int(input())\nexcept ValueError:\n    print("Signal corrupted. Try again.")\nelse:\n    print("Processing signal...")\n    print(f"Signal strength verified: {strength}")',
+    walkthrough: [
+      { label: 'try-except-else', code_snippet: 'try:\n    strength = int(input())\nexcept ValueError:\n    print("Signal corrupted. Try again.")\nelse:\n    print("Processing signal...")\n    print(f"Signal strength verified: {strength}")', explanation: 'The else block runs ONLY when the try succeeded with no error.' },
+    ],
+    student_explanation: "An else block after except runs only when the try part worked. It is the place for code that should happen only on success.",
+    worked_example: 'valid number  ->  else runs;  bad input  ->  except runs',
+    key_concepts: ['try-except-else', 'success path', 'ValueError'],
+    common_mistakes: ['Putting the success code in try (it would run before the error is known)', 'Forgetting the else only runs on success'],
+  },
+  {
+    problem_id: 191, level_number: 4, session_id: 35, case_number: 4,
+    solution_code: 'try:\n    temp = int(input())\n    print(f"Storing sample at {temp} °C")\nexcept ValueError:\n    print("Temperature data invalid!")\nfinally:\n    print("Closing storage chamber.")',
+    walkthrough: [
+      { label: 'finally always runs', code_snippet: 'finally:\n    print("Closing storage chamber.")', explanation: 'Whether the try succeeds or an error is caught, the finally block always executes - perfect for cleanup.' },
+    ],
+    student_explanation: "A finally block runs no matter what - success or failure. It is where you close or clean up resources so nothing is left open.",
+    worked_example: 'valid or invalid input  ->  the chamber is always closed',
+    key_concepts: ['try-except-finally', 'guaranteed cleanup', 'ValueError'],
+    common_mistakes: ['Expecting finally to be skipped on error', 'Putting cleanup only in the try'],
+  },
+  {
+    problem_id: 192, level_number: 4, session_id: 35, case_number: 5,
+    solution_code: 'try:\n    code = int(input())\n    try:\n        with open("log.txt", "w") as f:\n            f.write(str(code))\n        print("Signal logged successfully!")\n    except Exception:\n        print("Logging failed!")\nexcept ValueError:\n    print("Signal decoding failed!")',
+    walkthrough: [
+      { label: 'A try inside a try', code_snippet: 'try:\n    code = int(input())\n    try:\n        ...write to file...\n    except Exception:\n        print("Logging failed!")\nexcept ValueError:\n    print("Signal decoding failed!")', explanation: 'The outer try handles a bad code (ValueError); the inner try handles a file-writing problem independently.' },
+    ],
+    student_explanation: "Nesting try blocks lets each layer handle its own kind of failure - decoding the signal versus saving it to a file - without one masking the other.",
+    worked_example: '"invalid"  ->  decoding fails (outer);  a write error  ->  logging fails (inner)',
+    key_concepts: ['nested try-except', 'separation of concerns', 'file write'],
+    common_mistakes: ['Letting one except handle both unrelated failures', 'Forgetting to convert the code with int() first'],
+  },
+
+  // ── Session 36: Finally Block & User-Defined Exceptions (cases 1–6) ──
+  {
+    problem_id: 194, level_number: 4, session_id: 36, case_number: 1,
+    solution_code: 'print("Initiating launch sequence...")\ntry:\n    divisor = int(input())\n    result = 100 / divisor\n    print(f"Calculation result: {result}")\nexcept ZeroDivisionError:\n    print("Error: Division by zero during calculations.")\nfinally:\n    print("Fuel valves closed")',
+    walkthrough: [
+      { label: 'Cleanup that always runs', code_snippet: 'try:\n    result = 100 / divisor\n    ...\nexcept ZeroDivisionError:\n    ...\nfinally:\n    print("Fuel valves closed")', explanation: 'Whether the division works or fails, the fuel valves are always closed in finally.' },
+    ],
+    student_explanation: "finally guarantees critical cleanup. The valves close on every run, success or failure - exactly what safety-critical code needs.",
+    worked_example: 'divisor 0 or 10  ->  Fuel valves closed always prints',
+    key_concepts: ['finally', 'guaranteed cleanup', 'ZeroDivisionError'],
+    common_mistakes: ['Closing the valves only in the success path', 'Expecting finally to skip after an error'],
+  },
+  {
+    problem_id: 195, level_number: 4, session_id: 36, case_number: 2,
+    solution_code: 'try:\n    pressure = int(input())\n    if pressure > 150:\n        raise Exception("Critical Alert: Pressure exceeds safe limits!")\n    print("Pressure within safe limits.")\nexcept Exception as e:\n    print(e)',
+    walkthrough: [
+      { label: 'Trigger an error on purpose', code_snippet: 'if pressure > 150:\n    raise Exception("Critical Alert: Pressure exceeds safe limits!")', explanation: 'raise lets you signal a problem yourself when a value breaks a rule.' },
+      { label: 'Catch and report it', code_snippet: 'except Exception as e:\n    print(e)', explanation: 'print(e) shows the message you raised.' },
+    ],
+    student_explanation: "raise lets your code report a problem deliberately. Here a pressure above 150 raises an alert that the except block then prints.",
+    worked_example: 'pressure 180  ->  raises and prints the alert;  150  ->  within limits',
+    key_concepts: ['raise', 'Exception with message', 'threshold check'],
+    common_mistakes: ['Using > 150 vs >= 150 wrongly (150 is within limits)', 'Forgetting to catch what you raise'],
+  },
+  {
+    problem_id: 196, level_number: 4, session_id: 36, case_number: 3,
+    solution_code: 'class TransmissionCorrupted(Exception):\n    pass\ntry:\n    status = input()\n    if status == "corrupted":\n        raise TransmissionCorrupted("Data transmission corrupted!")\n    print("Transmission successful.")\nexcept TransmissionCorrupted as e:\n    print(e)',
+    walkthrough: [
+      { label: 'A named custom exception', code_snippet: 'class TransmissionCorrupted(Exception):\n    pass', explanation: 'A descriptive exception class makes the error self-explanatory.' },
+      { label: 'Raise it on the bad case', code_snippet: 'if status == "corrupted":\n    raise TransmissionCorrupted("Data transmission corrupted!")', explanation: 'Raise the custom exception when the packet is corrupted.' },
+    ],
+    student_explanation: "A custom exception with a clear name documents exactly what went wrong. Define it, raise it on the bad case, and catch it by name.",
+    worked_example: 'status "corrupted"  ->  raises TransmissionCorrupted',
+    key_concepts: ['custom exception', 'raise', 'descriptive errors'],
+    common_mistakes: ['Forgetting pass in the empty class body', 'Comparing status to the wrong text'],
+  },
+  {
+    problem_id: 197, level_number: 4, session_id: 36, case_number: 4,
+    solution_code: 'try:\n    system_status = input()\n    if system_status == "power_loss":\n        raise ValueError("Power system failure!")\n    print("Systems operational")\nexcept ValueError:\n    print("Mission Alert: Power system failure!")\nexcept Exception:\n    print("Generic Failure occurred")\nfinally:\n    print("Log transmission complete")',
+    walkthrough: [
+      { label: 'Specific then general, plus finally', code_snippet: 'except ValueError:\n    print("Mission Alert: Power system failure!")\nexcept Exception:\n    print("Generic Failure occurred")\nfinally:\n    print("Log transmission complete")', explanation: 'ValueError is checked first; Exception catches anything else; finally always logs.' },
+    ],
+    student_explanation: "Order matters: put specific exceptions (ValueError) before the general Exception, and use finally for the log that must always run.",
+    worked_example: '"power_loss"  ->  Mission Alert, then the always-on log line',
+    key_concepts: ['exception ordering', 'specific before general', 'finally'],
+    common_mistakes: ['Putting Exception before ValueError (it would catch everything)', 'Forgetting the finally log line'],
+  },
+  {
+    problem_id: 198, level_number: 4, session_id: 36, case_number: 5,
+    solution_code: 'try:\n    print("Main Engine Check")\n    try:\n        reading = int(input())\n        if reading > 50:\n            raise RuntimeError("Sensor glitch detected")\n        else:\n            print("Sensors nominal")\n    except RuntimeError:\n        print("Inner Recovery: Sensor glitch detected")\n        raise Exception("Mission abort initiated")\nexcept Exception:\n    print("Outer System Response: Mission abort initiated")\nfinally:\n    print("Mission Report Filed.")',
+    walkthrough: [
+      { label: 'Inner handles, then re-raises', code_snippet: 'except RuntimeError:\n    print("Inner Recovery: Sensor glitch detected")\n    raise Exception("Mission abort initiated")', explanation: 'The inner block recovers, then raises a NEW exception that the outer block catches - a cascade.' },
+      { label: 'Outer catch and finally', code_snippet: 'except Exception:\n    print("Outer System Response: Mission abort initiated")\nfinally:\n    print("Mission Report Filed.")', explanation: 'The outer except handles the re-raised error; finally always files the report.' },
+    ],
+    student_explanation: "A high reading triggers a cascade: the inner block recovers and re-raises, the outer block responds, and finally always files the report. A safe reading skips the cascade.",
+    worked_example: 'reading 80  ->  full cascade;  reading 30  ->  Sensors nominal only',
+    key_concepts: ['nested try', 're-raising', 'cascading handling'],
+    common_mistakes: ['Forgetting to re-raise from the inner block', 'Mis-pairing the inner and outer except blocks'],
+  },
+  {
+    problem_id: 199, level_number: 4, session_id: 36, case_number: 6,
+    solution_code: 'class SensorMalfunction(Exception):\n    pass\nclass TransmissionCorrupted(Exception):\n    pass\nclass ComputationError(Exception):\n    pass\nvalue = int(input())\ntemperature = int(input())\nerror_type = input()\nrecovery_status = input()\nlog_status = input()\ntry:\n    print("Solar panels deployed")\nfinally:\n    print("Power lines disconnected safely")\nif temperature > 100:\n    print("Cooling System Overload!")\nelse:\n    print("Cooling temperature normal")\ntry:\n    if error_type == "sensor_fail":\n        raise SensorMalfunction("SensorMalfunction raised")\n    elif error_type == "transmission_corrupt":\n        raise TransmissionCorrupted("TransmissionCorrupted raised")\n    elif error_type == "computation_error":\n        raise ComputationError("ComputationError raised")\nexcept (SensorMalfunction, TransmissionCorrupted, ComputationError) as e:\n    print(e)\n    if recovery_status == "recovery_fail":\n        print("Fallback System Activated")\n        print("Mission Abort Initiated")\n    else:\n        print("Recovery successful")\nprint(f"Log entry recorded: {log_status}")\nprint("All operations complete")',
+    walkthrough: [
+      { label: 'Three custom exceptions', code_snippet: 'class SensorMalfunction(Exception):\n    pass\nclass TransmissionCorrupted(Exception):\n    pass\nclass ComputationError(Exception):\n    pass', explanation: 'Each subsystem failure gets its own named exception.' },
+      { label: 'Raise by type, recover by status', code_snippet: 'except (SensorMalfunction, TransmissionCorrupted, ComputationError) as e:\n    print(e)\n    if recovery_status == "recovery_fail":\n        print("Fallback System Activated")\n        print("Mission Abort Initiated")\n    else:\n        print("Recovery successful")', explanation: 'One except can catch a tuple of exception types; the recovery branch then decides the outcome.' },
+    ],
+    student_explanation: "The capstone-style challenge combines custom exceptions, a finally cleanup, a temperature check, and a recovery branch - a realistic fault-resilient system.",
+    worked_example: 'sensor_fail + recovery_fail  ->  Fallback System Activated, Mission Abort Initiated',
+    key_concepts: ['multiple custom exceptions', 'except with a tuple', 'try-finally'],
+    common_mistakes: ['Forgetting finally runs before the later code', 'Listing the exception types wrongly in the except tuple'],
+  },
+
+  // ── Session 37: File Handling Basics (cases 1–6) ──
+  {
+    problem_id: 200, level_number: 4, session_id: 37, case_number: 1,
+    solution_code: 'message = input()\nfile = open("diary.txt", "w")\nfile.write(message)\nfile.close()\nfile = open("diary.txt", "r")\ncontent = file.read()\nfile.close()\nprint(content)\nprint(len(content))',
+    walkthrough: [
+      { label: 'Write, then close', code_snippet: 'file = open("diary.txt", "w")\nfile.write(message)\nfile.close()', explanation: 'Open in write mode ("w"), write the text, and close to save it.' },
+      { label: 'Read it back', code_snippet: 'file = open("diary.txt", "r")\ncontent = file.read()\nfile.close()\nprint(content)\nprint(len(content))', explanation: 'Open in read mode ("r"), read everything, and report the content and its character count.' },
+    ],
+    student_explanation: "open(name, \"w\") writes a file and open(name, \"r\") reads it. Always close() after, and len() counts the characters in the text.",
+    worked_example: 'write then read "hi"  ->  prints hi, then 2',
+    key_concepts: ['open / write / close', 'read mode', 'len()'],
+    common_mistakes: ['Forgetting to close the file', 'Reading before the write is saved'],
+  },
+  {
+    problem_id: 201, level_number: 4, session_id: 37, case_number: 2,
+    solution_code: 'message = input()\nfile = open("mynote.txt", "w")\nfile.write(message)\nfile.close()\nfile = open("mynote.txt", "r")\ncontent = file.read()\nprint(content)\nfile.close()',
+    walkthrough: [
+      { label: 'Write then read', code_snippet: 'file = open("mynote.txt", "w")\nfile.write(message)\nfile.close()\nfile = open("mynote.txt", "r")\nprint(file.read())', explanation: 'Save the message, then reopen in read mode and print everything with read().' },
+    ],
+    student_explanation: "read() returns the whole file as one string. Open in \"w\" to write, close, then open in \"r\" to read it back.",
+    worked_example: 'open("f","r").read()  ->  the full file contents',
+    key_concepts: ['write mode', 'read mode', 'read()'],
+    common_mistakes: ['Opening in the wrong mode', 'Forgetting to close between writing and reading'],
+  },
+  {
+    problem_id: 202, level_number: 4, session_id: 37, case_number: 3,
+    solution_code: 'initial = input()\nnew = input()\nfile = open("mynote.txt", "w")\nfile.write(initial)\nfile.close()\nfile = open("mynote.txt", "a")\nfile.write("\\n" + new)\nfile.close()\nfile = open("mynote.txt", "r")\nprint(file.read())\nfile.close()',
+    walkthrough: [
+      { label: 'Append mode adds to the end', code_snippet: 'file = open("mynote.txt", "a")\nfile.write("\\n" + new)\nfile.close()', explanation: 'Mode "a" appends without erasing. Writing "\\n" first puts the new text on its own line.' },
+    ],
+    student_explanation: "Append mode (\"a\") adds to the end of a file instead of overwriting it. Writing a newline first keeps the new message on a fresh line.",
+    worked_example: 'write "A", append "\\nB"  ->  file holds A then B on two lines',
+    key_concepts: ['append mode', 'newline character', 'read()'],
+    common_mistakes: ['Using "w" instead of "a" (it would erase the first line)', 'Forgetting the newline before the new text'],
+  },
+  {
+    problem_id: 203, level_number: 4, session_id: 37, case_number: 4,
+    solution_code: 'message = input()\nwith open("mynote.txt", "w") as f:\n    f.write(message)\nwith open("mynote.txt", "r") as f:\n    content = f.read()\nprint(content)',
+    walkthrough: [
+      { label: 'The with statement auto-closes', code_snippet: 'with open("mynote.txt", "w") as f:\n    f.write(message)', explanation: 'A with block closes the file for you when it ends - no close() needed.' },
+    ],
+    student_explanation: "The with statement opens a file and automatically closes it when the block finishes, even if an error happens. It is the safest way to handle files.",
+    worked_example: 'with open(...) as f:  ->  f closes automatically after the block',
+    key_concepts: ['with statement', 'automatic closing', 'safe file handling'],
+    common_mistakes: ['Calling close() inside a with block (unnecessary)', 'Reading outside the with block where f no longer exists'],
+  },
+  {
+    problem_id: 204, level_number: 4, session_id: 37, case_number: 5,
+    solution_code: 'lines = [input() + "\\n", input() + "\\n", input() + "\\n"]\nwith open("shopping.txt", "w") as f:\n    f.writelines(lines)\nwith open("shopping.txt", "r") as f:\n    print(f.read())',
+    walkthrough: [
+      { label: 'writelines writes a whole list', code_snippet: 'lines = [input() + "\\n", input() + "\\n", input() + "\\n"]\nf.writelines(lines)', explanation: 'writelines writes every string in the list. It does NOT add newlines, so you add "\\n" to each yourself.' },
+    ],
+    student_explanation: "writelines() writes a list of strings in one call, but it does not add line breaks - you must include \"\\n\" on each line yourself.",
+    worked_example: 'writelines(["a\\n", "b\\n"])  ->  two lines in the file',
+    key_concepts: ['writelines()', 'adding newlines', 'lists of lines'],
+    common_mistakes: ['Forgetting the "\\n" so everything joins on one line', 'Expecting writelines to add newlines for you'],
+  },
+  {
+    problem_id: 205, level_number: 4, session_id: 37, case_number: 6,
+    solution_code: 'with open("mission_log.txt", "w") as f:\n    f.write("Mission started successfully.\\n")\nprint("Mission log created")\nwith open("mission_log.txt", "a") as f:\n    f.write("Oxygen levels stable\\n")\n    f.write("Engines checked\\n")\nprint("System updates appended")\nwith open("mission_log.txt", "r") as f:\n    print(f.read(), end="")\nmessage = input()\nwith open("mission_log.txt", "a") as f:\n    f.write(message + "\\n")\nprint("Log saved!")',
+    walkthrough: [
+      { label: 'Create, append, read, append', code_snippet: 'with open(..., "w") as f: ...   # create\nwith open(..., "a") as f: ...   # append updates\nwith open(..., "r") as f: print(f.read())   # read all\nwith open(..., "a") as f: f.write(message + "\\n")   # add user log', explanation: 'Each step uses the right mode: "w" to start the log, "a" to add lines, "r" to read it all back.' },
+    ],
+    student_explanation: "The challenge walks through a real log lifecycle: create with \"w\", add entries with \"a\", read everything with \"r\", then append one more line.",
+    worked_example: '"w" once to start, "a" each time to add more',
+    key_concepts: ['write / append / read modes', 'with statement', 'file lifecycle'],
+    common_mistakes: ['Using "w" again and wiping the earlier log', 'Forgetting the newline on appended lines'],
+  },
+
+  // ── Session 38: File Handling (cases 1–6) ──
+  {
+    problem_id: 206, level_number: 4, session_id: 38, case_number: 1,
+    solution_code: 'entries = [input() for _ in range(3)]\nwith open("mission_log.txt", "w") as f:\n    for entry in entries:\n        f.write(entry + "\\n")\nwith open("mission_log.txt", "r") as f:\n    print(f.read())',
+    walkthrough: [
+      { label: 'Write each entry on its own line', code_snippet: 'for entry in entries:\n    f.write(entry + "\\n")', explanation: 'Adding "\\n" after each entry puts each log on a separate line.' },
+    ],
+    student_explanation: "To store several items one per line, write each followed by a newline. Reading the file back then shows them stacked.",
+    worked_example: 'write 3 entries with "\\n"  ->  3 lines in the file',
+    key_concepts: ['writing in a loop', 'newline per entry', 'read()'],
+    common_mistakes: ['Forgetting the newline so entries merge', 'Opening the file in append mode by mistake'],
+  },
+  {
+    problem_id: 207, level_number: 4, session_id: 38, case_number: 2,
+    solution_code: 'e1 = input()\ne2 = input()\nwith open("mission_log.txt", "w") as f:\n    f.write(e1 + "\\n")\n    f.write(e2 + "\\n")\nu1 = input()\nu2 = input()\nwith open("mission_log.txt", "a") as f:\n    f.write(u1 + "\\n")\n    f.write(u2 + "\\n")\nwith open("mission_log.txt", "r") as f:\n    print(f.read())',
+    walkthrough: [
+      { label: 'Write two, then append two', code_snippet: 'with open(..., "w") as f:\n    f.write(e1 + "\\n")\n    f.write(e2 + "\\n")\nwith open(..., "a") as f:\n    f.write(u1 + "\\n")\n    f.write(u2 + "\\n")', explanation: 'Start the log with "w", then add the emergency updates with "a" so the first two survive.' },
+    ],
+    student_explanation: "Append mode keeps existing lines and adds more. Writing two then appending two leaves all four in the file.",
+    worked_example: '2 written + 2 appended  ->  4 lines total',
+    key_concepts: ['write then append', 'newline per line', 'read()'],
+    common_mistakes: ['Reopening in "w" and erasing the first two', 'Dropping a newline so two entries join'],
+  },
+  {
+    problem_id: 208, level_number: 4, session_id: 38, case_number: 3,
+    solution_code: 'entries = [input() for _ in range(3)]\nwith open("mission_log.txt", "w") as f:\n    for entry in entries:\n        f.write(entry + "\\n")\nwith open("mission_log.txt", "r") as f:\n    for line in f:\n        print(line.strip())',
+    walkthrough: [
+      { label: 'Loop over the file line by line', code_snippet: 'for line in f:\n    print(line.strip())', explanation: 'A for loop over a file yields one line at a time; strip() removes the trailing newline before printing.' },
+    ],
+    student_explanation: "You can loop directly over a file to read it line by line. strip() trims the newline and stray spaces so each line prints cleanly.",
+    worked_example: 'for line in f: print(line.strip())  ->  each line without extra spacing',
+    key_concepts: ['iterating a file', 'strip()', 'reading lines'],
+    common_mistakes: ['Forgetting strip() so blank lines appear', 'Reading the whole file when line-by-line is asked'],
+  },
+  {
+    problem_id: 209, level_number: 4, session_id: 38, case_number: 4,
+    solution_code: 'entries = [input() for _ in range(3)]\nwith open("mission_log.txt", "w") as f:\n    for entry in entries:\n        f.write(entry + "\\n")\nfind = input()\nreplace = input()\nwith open("mission_log.txt", "r+") as f:\n    content = f.read()\n    content = content.replace(find, replace)\n    f.seek(0)\n    f.write(content)\n    f.truncate()\nwith open("mission_log.txt", "r") as f:\n    print(f.read())',
+    walkthrough: [
+      { label: 'r+ reads AND writes', code_snippet: 'with open("mission_log.txt", "r+") as f:\n    content = f.read()\n    content = content.replace(find, replace)\n    f.seek(0)\n    f.write(content)\n    f.truncate()', explanation: 'Read everything, swap the words, jump back to the start with seek(0), write the new text, and truncate() to drop any leftover.' },
+    ],
+    student_explanation: "r+ mode lets you read and write the same file. After editing the text, seek(0) rewinds and truncate() removes any old leftover characters.",
+    worked_example: 'replace("LAUNCHED", "COMPLETED")  ->  swaps every match in the file',
+    key_concepts: ['r+ mode', 'seek(0) + truncate()', 'str.replace()'],
+    common_mistakes: ['Forgetting seek(0) so the new text appends instead of overwriting', 'Skipping truncate() and leaving stale characters'],
+  },
+  {
+    problem_id: 210, level_number: 4, session_id: 38, case_number: 5,
+    solution_code: 'message = input()\nwith open("sensor_data.bin", "wb") as f:\n    f.write(message.encode())\nwith open("sensor_data.bin", "rb") as f:\n    content = f.read().decode()\nprint(content)',
+    walkthrough: [
+      { label: 'Binary write and read', code_snippet: 'with open("sensor_data.bin", "wb") as f:\n    f.write(message.encode())\nwith open("sensor_data.bin", "rb") as f:\n    content = f.read().decode()', explanation: 'Binary modes "wb"/"rb" work with bytes. encode() turns text into bytes; decode() turns bytes back into text.' },
+    ],
+    student_explanation: "Binary mode stores raw bytes. encode() converts a string to bytes for writing, and decode() converts the bytes back to a string when reading.",
+    worked_example: '"hi".encode()  ->  bytes;  bytes.decode()  ->  "hi"',
+    key_concepts: ['binary mode wb/rb', 'encode() / decode()', 'bytes vs text'],
+    common_mistakes: ['Forgetting to encode before a binary write', 'Forgetting to decode the bytes after reading'],
+  },
+  {
+    problem_id: 211, level_number: 4, session_id: 38, case_number: 6,
+    solution_code: 'header = input()\nstatus = input()\nwith open("galactic_archive.txt", "w") as f:\n    f.write(header + "\\n")\n    f.write(status + "\\n")\nprint("Archive initialized")\nevent1 = input()\nevent2 = input()\nevent3 = input()\nwith open("galactic_archive.txt", "a") as f:\n    f.write(event1 + "\\n")\n    f.write(event2 + "\\n")\n    f.write(event3 + "\\n")\nprint("Mission events logged")\nfind = input()\nreplace = input()\nwith open("galactic_archive.txt", "r+") as f:\n    content = f.read().replace(find, replace)\n    f.seek(0)\n    f.write(content)\n    f.truncate()\nprint("Log entry modified")\nbinary_msg = input()\nwith open("sensor_archive.bin", "wb") as f:\n    f.write(binary_msg.encode())\nprint("Binary telemetry archived")\nwith open("galactic_archive.txt", "r") as f:\n    print(f.read(), end="")\nwith open("sensor_archive.bin", "rb") as f:\n    print(f.read().decode())',
+    walkthrough: [
+      { label: 'Five file techniques in one', code_snippet: 'write + append + (r+ replace) + binary write + read both', explanation: 'The system writes a header, appends events, edits with r+, archives binary telemetry, and finally reads both files.' },
+    ],
+    student_explanation: "The challenge chains every file skill: write, append, in-place edit with r+, binary write, and reading two files back - a complete archive pipeline.",
+    worked_example: 'text file then decoded binary file printed at the end',
+    key_concepts: ['write / append / r+', 'binary mode', 'multi-file workflow'],
+    common_mistakes: ['Reopening the text file in "w" and losing earlier lines', 'Forgetting to decode the binary file when reading'],
+  },
+
+  // ── Session 39: File Handling Functions (cases 1–6) ──
+  {
+    problem_id: 212, level_number: 4, session_id: 39, case_number: 1,
+    solution_code: 'name = input()\nsubject = input()\nwith open("myinfo.txt", "w") as f:\n    f.write(name + " - " + subject)\nwith open("myinfo.txt", "r") as f:\n    print(f.read())',
+    walkthrough: [
+      { label: 'Build one line with write()', code_snippet: 'f.write(name + " - " + subject)', explanation: 'Join the two inputs with " - " and write them as a single line.' },
+    ],
+    student_explanation: "write() puts exactly what you give it into the file - no automatic newline. Here the name and subject are joined into one line.",
+    worked_example: 'write("A - B")  ->  the line A - B',
+    key_concepts: ['write()', 'string joining', 'read()'],
+    common_mistakes: ['Adding an accidental newline', 'Forgetting the spaces around the dash'],
+  },
+  {
+    problem_id: 213, level_number: 4, session_id: 39, case_number: 2,
+    solution_code: 'items = [input() + "\\n" for _ in range(3)]\nwith open("wishlist.txt", "w") as f:\n    f.writelines(items)\nwith open("wishlist.txt", "r") as f:\n    print(f.read())',
+    walkthrough: [
+      { label: 'Build the list with newlines', code_snippet: 'items = [input() + "\\n" for _ in range(3)]\nf.writelines(items)', explanation: 'A comprehension reads three lines and tacks "\\n" onto each, then writelines writes them all.' },
+    ],
+    student_explanation: "writelines() writes a list of strings at once. Adding \"\\n\" to each item keeps them on separate lines.",
+    worked_example: 'writelines(["a\\n","b\\n","c\\n"])  ->  three lines',
+    key_concepts: ['writelines()', 'list comprehension', 'newlines'],
+    common_mistakes: ['Forgetting "\\n" on each item', 'Expecting writelines to add the breaks'],
+  },
+  {
+    problem_id: 214, level_number: 4, session_id: 39, case_number: 3,
+    solution_code: 'items = [input() for _ in range(3)]\nwith open("wishlist.txt", "w") as f:\n    for item in items:\n        f.write(item + "\\n")\nwith open("wishlist.txt", "r") as f:\n    print(f.read())',
+    walkthrough: [
+      { label: 'read() grabs everything', code_snippet: 'with open("wishlist.txt", "r") as f:\n    print(f.read())', explanation: 'read() returns the entire file as one string, ready to print.' },
+    ],
+    student_explanation: "read() with no argument returns the whole file in one string. It is the quickest way to dump a file's full contents.",
+    worked_example: 'f.read()  ->  the complete file as one string',
+    key_concepts: ['read()', 'writing in a loop', 'newlines'],
+    common_mistakes: ['Confusing read() with readline() (one line only)', 'Forgetting the newline on each written item'],
+  },
+  {
+    problem_id: 215, level_number: 4, session_id: 39, case_number: 4,
+    solution_code: 'with open("goals.txt", "w") as f:\n    f.write("My Goals:\\n")\n    f.write("1. Read a book\\n")\n    f.write("2. Complete homework\\n")\n    f.write("3. Practice coding\\n")\nwith open("goals.txt", "r") as f:\n    f.readline()\n    second = f.readline()\nprint(f"Second line: {second.strip()}")',
+    walkthrough: [
+      { label: 'readline reads ONE line at a time', code_snippet: 'f.readline()        # skip the header\nsecond = f.readline()  # read the next line', explanation: 'Each readline() call advances to the next line, so the first skips the header and the second grabs the first goal.' },
+    ],
+    student_explanation: "readline() reads a single line and moves the cursor forward. Calling it twice skips the header and lands on the line you want.",
+    worked_example: 'two readline() calls  ->  the second line of the file',
+    key_concepts: ['readline()', 'cursor advances per call', 'strip()'],
+    common_mistakes: ['Calling readline once and getting the header', 'Forgetting strip() so the newline shows'],
+  },
+  {
+    problem_id: 216, level_number: 4, session_id: 39, case_number: 5,
+    solution_code: 'items = [input() for _ in range(3)]\nwith open("wishlist.txt", "w") as f:\n    for item in items:\n        f.write(item + "\\n")\nwith open("wishlist.txt", "r") as f:\n    lines = f.readlines()\nfor i, line in enumerate(lines, 1):\n    print(f"Item {i}: {line.strip()}")',
+    walkthrough: [
+      { label: 'readlines returns a list', code_snippet: 'lines = f.readlines()\nfor i, line in enumerate(lines, 1):\n    print(f"Item {i}: {line.strip()}")', explanation: 'readlines() gives every line as a list; enumerate(..., 1) numbers them starting at 1.' },
+    ],
+    student_explanation: "readlines() reads the whole file into a list of lines. enumerate with a start of 1 lets you number each item as you print it.",
+    worked_example: 'enumerate(lines, 1)  ->  (1, first), (2, second), ...',
+    key_concepts: ['readlines()', 'enumerate()', 'strip()'],
+    common_mistakes: ['Starting the numbering at 0', 'Forgetting strip() on each line'],
+  },
+  {
+    problem_id: 217, level_number: 4, session_id: 39, case_number: 6,
+    solution_code: 'with open("galactic_log.txt", "w") as f:\n    f.write("--- Galactic Mission Log ---\\n")\nprint("Log initialized")\nentries = ["Navigation system initialized\\n", "Resource scan complete\\n", "Signal received from satellite\\n"]\nwith open("galactic_log.txt", "a") as f:\n    f.writelines(entries)\nprint("Mission entries added")\nwith open("galactic_log.txt", "r") as f:\n    print(f.read(), end="")\nwith open("galactic_log.txt", "r") as f:\n    f.readline()\n    second = f.readline()\nprint(f"Second entry: {second.strip()}")\nwith open("galactic_log.txt", "r") as f:\n    lines = f.readlines()\nfor i, line in enumerate(lines, 1):\n    print(f"Log {i}: {line.strip()}")\nwith open("galactic_log.txt", "a") as f:\n    f.write("Emergency alert activated\\n")\nprint("New log saved successfully")',
+    walkthrough: [
+      { label: 'Every read function in one system', code_snippet: 'f.read()        # whole file\nf.readline()    # one line\nf.readlines()   # list of lines', explanation: 'The challenge uses read(), readline(), and readlines() together, plus writelines() and append.' },
+    ],
+    student_explanation: "The capstone-style task tours every file function: writelines to add entries, read() for the whole log, readline() for one line, readlines() to number them, and append for a new entry.",
+    worked_example: 'read() / readline() / readlines()  ->  whole / one / list of lines',
+    key_concepts: ['read / readline / readlines', 'writelines()', 'enumerate()'],
+    common_mistakes: ['Mixing up the three read functions', 'Reopening in "w" and wiping the log'],
+  },
+
+  // ── Session 40: File Position and Operations (cases 1–6) ──
+  {
+    problem_id: 218, level_number: 4, session_id: 40, case_number: 1,
+    solution_code: 'entries = [input() for _ in range(3)]\nwith open("galactic_log.txt", "w", newline="") as f:\n    for entry in entries:\n        f.write(entry + "\\n")\n        print(f"Position after {entry}: {f.tell()}")',
+    walkthrough: [
+      { label: 'tell() reports the cursor position', code_snippet: 'f.write(entry + "\\n")\nprint(f"Position after {entry}: {f.tell()}")', explanation: 'After each write, tell() gives the current byte position in the file.' },
+      { label: 'Keep newlines one byte', code_snippet: 'open("galactic_log.txt", "w", newline="")', explanation: 'newline="" stops the system from turning "\\n" into two bytes, so the positions stay exact.' },
+    ],
+    student_explanation: "tell() returns how many bytes have been written so far. newline=\"\" keeps each newline a single byte so the byte positions are predictable.",
+    worked_example: 'after writing "ENGINE IGNITED\\n" (15 bytes)  ->  tell() is 15',
+    key_concepts: ['tell()', 'byte positions', 'newline=""'],
+    common_mistakes: ['Counting a newline as 2 bytes', 'Calling tell() before the write'],
+  },
+  {
+    problem_id: 219, level_number: 4, session_id: 40, case_number: 2,
+    solution_code: 'entries = [input() for _ in range(3)]\nwith open("galactic_log.txt", "w", newline="") as f:\n    for entry in entries:\n        f.write(entry + "\\n")\nwith open("galactic_log.txt", "r", newline="") as f:\n    f.seek(26)\n    third = f.readline()\nprint(f"Third entry: {third.strip()}")',
+    walkthrough: [
+      { label: 'seek() jumps to a byte position', code_snippet: 'f.seek(26)\nthird = f.readline()', explanation: 'seek(26) moves the cursor to byte 26 - the start of the third entry - then readline() reads it.' },
+    ],
+    student_explanation: "seek(position) moves the read cursor directly to a byte offset, so you can jump straight to a line instead of reading from the start.",
+    worked_example: 'seek(26) then readline()  ->  the line starting at byte 26',
+    key_concepts: ['seek()', 'byte offset', 'readline()'],
+    common_mistakes: ['Seeking to the wrong byte position', 'Forgetting newline="" so the offsets shift'],
+  },
+  {
+    problem_id: 220, level_number: 4, session_id: 40, case_number: 3,
+    solution_code: 'entries = [input() for _ in range(4)]\nwith open("galactic_log.txt", "w") as f:\n    for entry in entries:\n        f.write(entry + "\\n")\nwith open("galactic_log.txt", "r") as f:\n    next(f)\n    next(f)\n    third = next(f)\n    fourth = next(f)\nprint(f"Third Entry: {third.strip()}")\nprint(f"Fourth Entry: {fourth.strip()}")',
+    walkthrough: [
+      { label: 'next() reads the next line', code_snippet: 'next(f)\nnext(f)\nthird = next(f)\nfourth = next(f)', explanation: 'Each next(f) advances one line, so two skips reach the third and fourth entries.' },
+    ],
+    student_explanation: "next() pulls the next line from a file, advancing the cursor. Calling it repeatedly walks through the lines one by one.",
+    worked_example: 'two next() skips  ->  the third line comes next',
+    key_concepts: ['next()', 'line-by-line reading', 'strip()'],
+    common_mistakes: ['Miscounting how many lines to skip', 'Calling next() past the end of the file'],
+  },
+  {
+    problem_id: 221, level_number: 4, session_id: 40, case_number: 4,
+    solution_code: 'entries = [input() for _ in range(4)]\nwith open("galactic_log.txt", "w", newline="") as f:\n    for entry in entries:\n        f.write(entry + "\\n")\nwith open("galactic_log.txt", "r+", newline="") as f:\n    f.truncate(26)\n    print("Log file truncated to safe size")\n    f.seek(0)\n    print(f.read(), end="")',
+    walkthrough: [
+      { label: 'truncate() cuts the file to a size', code_snippet: 'f.truncate(26)', explanation: 'truncate(26) keeps only the first 26 bytes - the first two entries - and drops the rest.' },
+      { label: 'Read what is left', code_snippet: 'f.seek(0)\nprint(f.read(), end="")', explanation: 'Rewind to the start and read the remaining content.' },
+    ],
+    student_explanation: "truncate(n) chops a file down to n bytes. With newline=\"\" each line is one byte per newline, so 26 bytes keeps exactly the first two entries.",
+    worked_example: 'truncate(26)  ->  only the first two entries remain',
+    key_concepts: ['truncate()', 'r+ mode', 'byte size'],
+    common_mistakes: ['Truncating to the wrong byte count', 'Forgetting to seek(0) before reading back'],
+  },
+  {
+    problem_id: 222, level_number: 4, session_id: 40, case_number: 5,
+    solution_code: 'entries = [input() for _ in range(2)]\nwith open("galactic_log.txt", "w") as f:\n    for entry in entries:\n        f.write(entry + "\\n")\nwith open("galactic_log.txt", "r", encoding="utf-8") as f:\n    print(f"File Name: {f.name}")\n    print(f"Encoding: {f.encoding}")\nwith open("galactic_log.txt", "a") as f:\n    f.write("LOG READY FOR TRANSMISSION")\nprint("Transmission ready")',
+    walkthrough: [
+      { label: 'Files carry metadata', code_snippet: 'with open("galactic_log.txt", "r", encoding="utf-8") as f:\n    print(f"File Name: {f.name}")\n    print(f"Encoding: {f.encoding}")', explanation: 'A file object knows its own .name and .encoding.' },
+    ],
+    student_explanation: "An open file object exposes details about itself: f.name is the filename and f.encoding is the text encoding it was opened with.",
+    worked_example: 'f.name  ->  galactic_log.txt;  f.encoding  ->  utf-8',
+    key_concepts: ['f.name', 'f.encoding', 'encoding="utf-8"'],
+    common_mistakes: ['Hardcoding the values instead of reading the attributes', 'Opening without specifying the encoding'],
+  },
+  {
+    problem_id: 223, level_number: 4, session_id: 40, case_number: 6,
+    solution_code: 'entries = [input() for _ in range(5)]\nwith open("chronicle_log.txt", "w", newline="") as f:\n    for entry in entries:\n        f.write(entry + "\\n")\n        print(f"Position after {entry}: {f.tell()}")\nwith open("chronicle_log.txt", "r", newline="") as f:\n    f.seek(29)\n    targeted = f.readline()\nprint(f"Targeted entry: {targeted.strip()}")\nwith open("chronicle_log.txt", "r") as f:\n    line1 = next(f)\n    line2 = next(f)\n    line3 = next(f)\n    line4 = next(f)\nprint(f"Entry 2: {line2.strip()}")\nprint(f"Entry 4: {line4.strip()}")\nwith open("chronicle_log.txt", "r+", newline="") as f:\n    f.truncate(43)\nprint("Log truncated to safe entries")\nwith open("chronicle_log.txt", "a") as f:\n    f.write("CHRONICLE SEALED - READY FOR TRANSMISSION")\nwith open("chronicle_log.txt", "r", encoding="utf-8") as f:\n    name = f.name\n    encoding = f.encoding\nprint(f"File Name: {name}")\nprint(f"Encoding: {encoding}")\nprint("Mission Chronicle finalized")',
+    walkthrough: [
+      { label: 'Every position tool together', code_snippet: 'f.tell()    # position\nf.seek(29)  # jump\nnext(f)     # next line\nf.truncate(43)  # cut to size', explanation: 'The challenge tracks positions with tell(), jumps with seek(), walks with next(), and trims with truncate().' },
+      { label: 'newline="" for exact bytes', code_snippet: 'open("chronicle_log.txt", "w", newline="")', explanation: 'Keeping newlines one byte makes every position and truncate size predictable.' },
+    ],
+    student_explanation: "The capstone-style task combines tell(), seek(), next(), and truncate(). newline=\"\" keeps newlines a single byte so all the offsets line up.",
+    worked_example: 'truncate(43)  ->  keeps the first three entries',
+    key_concepts: ['tell / seek / next / truncate', 'newline=""', 'file metadata'],
+    common_mistakes: ['Getting a byte offset wrong', 'Letting newline translation shift the positions'],
+  },
+
+  // ── Session 41: OS Module & File Handling with Exceptions (cases 1–6) ──
+  {
+    problem_id: 224, level_number: 4, session_id: 41, case_number: 1,
+    solution_code: 'import os\nf1 = input()\nf2 = input()\nos.mkdir("mydata")\nopen(os.path.join("mydata", f1), "w").close()\nopen(os.path.join("mydata", f2), "w").close()\nif os.path.exists("mydata"):\n    files = sorted(os.listdir("mydata"))\n    print(f"Files in folder: {files}")',
+    walkthrough: [
+      { label: 'Make a folder and files', code_snippet: 'os.mkdir("mydata")\nopen(os.path.join("mydata", f1), "w").close()', explanation: 'os.mkdir creates a folder; os.path.join builds a path inside it safely.' },
+      { label: 'List the folder', code_snippet: 'if os.path.exists("mydata"):\n    files = sorted(os.listdir("mydata"))\n    print(f"Files in folder: {files}")', explanation: 'os.listdir returns the names inside a folder; sorting makes the order predictable.' },
+    ],
+    student_explanation: "The os module manages folders. mkdir makes one, listdir lists what is inside, and os.path.join builds correct paths across systems.",
+    worked_example: 'os.listdir("mydata")  ->  the file names inside the folder',
+    key_concepts: ['os.mkdir', 'os.listdir', 'os.path.join'],
+    common_mistakes: ['Building paths with manual slashes', 'Forgetting to sort for a predictable order'],
+  },
+  {
+    problem_id: 225, level_number: 4, session_id: 41, case_number: 2,
+    solution_code: 'import os\nfilename = input()\ncontent = input()\nif os.path.exists(filename):\n    os.remove(filename)\ntry:\n    with open(filename, "x") as f:\n        f.write(content)\n    print("File created successfully.")\nexcept FileExistsError:\n    print("File already exists.")',
+    walkthrough: [
+      { label: 'Exclusive creation with "x"', code_snippet: 'try:\n    with open(filename, "x") as f:\n        f.write(content)\n    print("File created successfully.")\nexcept FileExistsError:\n    print("File already exists.")', explanation: 'Mode "x" creates a NEW file but raises FileExistsError if it already exists.' },
+    ],
+    student_explanation: "Mode \"x\" is exclusive creation: it makes a fresh file or fails with FileExistsError, which try-except can catch.",
+    worked_example: 'open(name, "x") on an existing file  ->  FileExistsError',
+    key_concepts: ['"x" mode', 'FileExistsError', 'os.remove'],
+    common_mistakes: ['Using "w" which silently overwrites', 'Forgetting to handle FileExistsError'],
+  },
+  {
+    problem_id: 226, level_number: 4, session_id: 41, case_number: 3,
+    solution_code: 'filename = input()\ncontent = input()\nwith open(filename, "w") as f:\n    f.write(content)\ntry:\n    with open(filename, "r") as f:\n        print(f"File Content: {f.read()}")\nexcept FileNotFoundError:\n    print("File not found. Please check the name.")',
+    walkthrough: [
+      { label: 'Guard the read', code_snippet: 'try:\n    with open(filename, "r") as f:\n        print(f"File Content: {f.read()}")\nexcept FileNotFoundError:\n    print("File not found. Please check the name.")', explanation: 'Reading a missing file raises FileNotFoundError, which the except handles gracefully.' },
+    ],
+    student_explanation: "Opening a file that does not exist raises FileNotFoundError. Wrapping the read in try-except keeps the program from crashing.",
+    worked_example: 'open("missing.txt", "r")  ->  FileNotFoundError',
+    key_concepts: ['FileNotFoundError', 'try-except', 'safe reading'],
+    common_mistakes: ['Not handling a missing file', 'Catching the wrong exception type'],
+  },
+  {
+    problem_id: 227, level_number: 4, session_id: 41, case_number: 4,
+    solution_code: 'import os\nfilename = input()\ncontent = input()\nwith open(filename, "w") as f:\n    f.write(content)\ntry:\n    os.remove(filename)\n    print(f"{filename} deleted successfully.")\nexcept FileNotFoundError:\n    print("File not found, cannot delete.")',
+    walkthrough: [
+      { label: 'Delete with os.remove', code_snippet: 'try:\n    os.remove(filename)\n    print(f"{filename} deleted successfully.")\nexcept FileNotFoundError:\n    print("File not found, cannot delete.")', explanation: 'os.remove deletes a file; if it is missing, FileNotFoundError is caught.' },
+    ],
+    student_explanation: "os.remove deletes a file. Guarding it with try-except means a missing file gives a friendly message instead of a crash.",
+    worked_example: 'os.remove on a missing file  ->  FileNotFoundError',
+    key_concepts: ['os.remove', 'FileNotFoundError', 'try-except'],
+    common_mistakes: ['Deleting without handling the missing case', 'Removing the wrong filename'],
+  },
+  {
+    problem_id: 228, level_number: 4, session_id: 41, case_number: 5,
+    solution_code: 'import os\nfolder = input()\nfilename = input()\ncontent = input()\nif not os.path.exists(folder):\n    os.mkdir(folder)\npath = os.path.join(folder, filename)\nwith open(path, "w") as f:\n    f.write(content)\nprint("File saved in new folder.")',
+    walkthrough: [
+      { label: 'Make the folder only if needed', code_snippet: 'if not os.path.exists(folder):\n    os.mkdir(folder)', explanation: 'Check first so you do not try to create a folder that already exists.' },
+      { label: 'Save inside it', code_snippet: 'path = os.path.join(folder, filename)\nwith open(path, "w") as f:\n    f.write(content)', explanation: 'os.path.join builds the full path, then the file is written there.' },
+    ],
+    student_explanation: "Check os.path.exists before os.mkdir so you never recreate an existing folder, then use os.path.join to build the file path inside it.",
+    worked_example: 'os.path.join("projects", "science.txt")  ->  projects/science.txt',
+    key_concepts: ['os.path.exists', 'os.mkdir', 'os.path.join'],
+    common_mistakes: ['Calling mkdir on an existing folder (it errors)', 'Joining the path with a manual slash'],
+  },
+  {
+    problem_id: 229, level_number: 4, session_id: 41, case_number: 6,
+    solution_code: 'import os\nfolder = input()\nfilename = input()\nu1 = input()\nu2 = input()\nu3 = input()\nif not os.path.exists(folder):\n    os.mkdir(folder)\n    print("Command Center created.")\nelse:\n    print("Folder already exists.")\nfilepath = os.path.join(folder, filename)\nwith open(filepath, "w") as f:\n    f.writelines([u1 + "\\n", u2 + "\\n", u3 + "\\n"])\nprint("Mission entries added.")\ntry:\n    with open(filepath, "r") as f:\n        print(f.read(), end="")\nexcept FileNotFoundError:\n    print("File not found.")\nnew_name = os.path.join(folder, filename.replace(".txt", "_archive.txt"))\nos.rename(filepath, new_name)\nprint("File renamed successfully.")\nwith open(new_name, "a") as f:\n    f.write("Emergency alert activated\\n")\nprint("Update saved!")\ntry:\n    os.remove(os.path.join(folder, "temp_log.txt"))\n    print("Temp log deleted.")\nexcept FileNotFoundError:\n    print("Temp log not found.")',
+    walkthrough: [
+      { label: 'A full file-management flow', code_snippet: 'os.mkdir(folder)        # create\nf.writelines(...)        # write\nos.rename(filepath, new_name)  # rename\nos.remove(...)           # delete (guarded)', explanation: 'The system makes a folder, writes a file, renames it with _archive, appends, and tries a guarded delete.' },
+    ],
+    student_explanation: "The challenge ties the os tools together: mkdir, writelines, os.rename to add _archive, append, and a try-except delete that reports when the temp log is absent.",
+    worked_example: 'os.rename("a.txt", "a_archive.txt")  ->  renames the file',
+    key_concepts: ['os.mkdir / os.rename / os.remove', 'os.path.join', 'FileNotFoundError'],
+    common_mistakes: ['Renaming to a path outside the folder', 'Not guarding the delete of the missing temp log'],
+  },
+
+  // ── Session 44: Level 4 Capstone — Project GALACTIC COMMAND ──
+  {
+    problem_id: 242, level_number: 4, session_id: 44, case_number: 1,
+    solution_code: 'class UnknownSystemError(Exception):\n    pass\nclass MissionLogger:\n    def __init__(self):\n        self.entries = []\n    def log(self, entry):\n        self.entries.append(entry)\nclass GalacticCommand:\n    def __init__(self, logger):\n        self.charged = 0\n        self.logger = logger\n    def charge(self, system, power):\n        valid = ["SHIELD", "LASER", "ENGINE"]\n        if system in valid:\n            print(f"{system} charged to {power}%")\n            self.charged += 1\n            self.logger.log(f"{system}={power}")\n        else:\n            raise UnknownSystemError(system)\nn = int(input())\nlogger = MissionLogger()\ncommand = GalacticCommand(logger)\nfor _ in range(n):\n    parts = input().split()\n    system = parts[0]\n    power = parts[1]\n    try:\n        command.charge(system, power)\n    except UnknownSystemError as e:\n        print(f"ALERT: Unknown system \'{e}\'")\nprint(f"Defense grid online: {command.charged} systems charged")\nprint("Mission Log:")\nfor entry in logger.entries:\n    print(entry)',
+    walkthrough: [
+      { label: 'A custom exception, a logger, a command class', code_snippet: 'class UnknownSystemError(Exception):\n    pass\nclass MissionLogger:\n    ...keeps a list of entries...\nclass GalacticCommand:\n    ...counts charges, uses the logger...', explanation: 'Three OOP pieces work together: the error type, the logger object, and the command object.' },
+      { label: 'Charge or reject each system', code_snippet: 'if system in valid:\n    print(f"{system} charged to {power}%")\n    self.charged += 1\n    self.logger.log(f"{system}={power}")\nelse:\n    raise UnknownSystemError(system)\n...\nexcept UnknownSystemError as e:\n    print(f"ALERT: Unknown system \'{e}\'")', explanation: 'A valid system is charged and logged; an unknown one raises the custom exception, which is caught and reported (but NOT logged).' },
+    ],
+    student_explanation: "The Level 4 finale combines a class, a custom exception, and a logger. Valid systems are charged and logged; unknown ones raise UnknownSystemError, which is caught and only alerted - never logged.",
+    worked_example: '"WARP 50"  ->  raises UnknownSystemError, prints an ALERT, not logged',
+    key_concepts: ['custom exception', 'logger class', 'try-except in a loop'],
+    common_mistakes: ['Logging the unknown systems too', 'Counting a rejected system as charged'],
+  },
 ];
 
 async function seed() {

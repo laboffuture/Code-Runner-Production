@@ -8,6 +8,9 @@
 import './_load-env';
 import { connectToDatabase, Models } from '@code-runner/shared';
 import { execFileSync } from 'child_process';
+import { mkdtempSync, rmSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 const PY = process.platform === 'win32' ? 'python' : 'python3';
 
@@ -58,14 +61,20 @@ async function main() {
     let firstFail: any = null;
     for (const tc of tcs) {
       let got = '';
+      // Run each test case in its own fresh temp dir so file-creating solutions are
+      // isolated per test (matching the runner's per-execution sandbox) and never
+      // litter the repo. Non-file solutions are unaffected by the cwd.
+      const workDir = mkdtempSync(join(tmpdir(), 'verify-'));
       try {
         got = execFileSync(PY, ['-c', sol.solution_code], {
-          input: String(tc.input ?? ''), encoding: 'utf8', timeout: 10000,
-          env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+          input: String(tc.input ?? ''), encoding: 'utf8', timeout: 10000, cwd: workDir,
+          env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' },
         });
       } catch (e: any) {
         firstFail = { input: tc.input, err: (e.stderr || e.message || '').toString().trim().split('\n').pop() };
         break;
+      } finally {
+        try { rmSync(workDir, { recursive: true, force: true }); } catch { /* best-effort cleanup */ }
       }
       if (outputsMatch(got, tc.expected_output)) pass++;
       else if (!firstFail) firstFail = { input: tc.input, exp: normalizeOutput(tc.expected_output), got: normalizeOutput(got) };
