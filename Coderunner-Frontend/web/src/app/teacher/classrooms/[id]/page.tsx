@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api-client';
-import { ChevronLeft, Loader2, Users, Flame, CheckCircle2, Trophy, UserPlus, KeyRound, ShieldAlert } from 'lucide-react';
+import { ChevronLeft, Loader2, Users, Flame, CheckCircle2, Trophy, UserPlus, KeyRound, ShieldAlert, Trash2, AlertTriangle } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -69,6 +69,10 @@ export default function ClassroomDashboard() {
   const [addName, setAddName] = useState('');
   const [adding, setAdding] = useState(false);
   const [addMsg, setAddMsg] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteErr, setDeleteErr] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -100,6 +104,20 @@ export default function ClassroomDashboard() {
       setAddMsg(e?.message?.includes('404') ? 'No student with that username.' : 'Failed to add student.');
     } finally {
       setAdding(false);
+    }
+  };
+
+  const classroomName = data?.classroom.name || '';
+  const deleteClassroom = async () => {
+    if (!classroomName || confirmText !== classroomName) return; // strict exact match
+    setDeleting(true);
+    setDeleteErr(null);
+    try {
+      await api.teacher.deleteClassroom(id);
+      router.push('/teacher'); // gone — back to the classrooms list
+    } catch {
+      setDeleteErr('Failed to delete the class. Please try again.');
+      setDeleting(false);
     }
   };
 
@@ -144,12 +162,23 @@ export default function ClassroomDashboard() {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setAddOpen((v) => !v)}
-            className="shrink-0 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 font-orbitron font-bold text-xs tracking-wider"
-          >
-            <UserPlus className="w-4 h-4" /> ADD STUDENT
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setAddOpen((v) => !v)}
+              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 font-orbitron font-bold text-xs tracking-wider"
+            >
+              <UserPlus className="w-4 h-4" /> ADD STUDENT
+            </button>
+            {data && (
+              <button
+                onClick={() => { setConfirmText(''); setDeleteErr(null); setDeleteOpen(true); }}
+                className="px-3 py-2 rounded-lg border-2 border-rose-200 text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-orbitron font-bold text-xs tracking-wider"
+                title="Delete this class"
+              >
+                <Trash2 className="w-4 h-4" /> DELETE
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -296,6 +325,50 @@ export default function ClassroomDashboard() {
         )}
       </main>
 
+      {/* Delete class — strict "type the name to confirm" gate (destructive). */}
+      {deleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border-2 border-rose-200 p-6 shadow-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="w-5 h-5 text-rose-500" />
+              <h2 className="font-orbitron font-black text-gray-900 tracking-wider">DELETE CLASS</h2>
+            </div>
+            <p className="text-sm text-gray-700 font-rajdhani mb-1">
+              This permanently deletes <span className="font-bold text-gray-900">{classroomName}</span> and its join code.
+            </p>
+            <p className="text-sm text-gray-600 font-rajdhani mb-4">
+              Students keep their accounts and all progress — only their place in this class is removed; they can re-join another class by code.
+            </p>
+            <label className="block text-[11px] font-orbitron text-gray-500 tracking-wider mb-1">
+              Type <span className="font-bold text-gray-800">{classroomName}</span> to confirm
+            </label>
+            <input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder={classroomName}
+              autoFocus
+              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg font-rajdhani focus:border-rose-400 outline-none mb-3"
+            />
+            {deleteErr && <p className="text-sm text-rose-600 font-rajdhani mb-3">{deleteErr}</p>}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setDeleteOpen(false)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg border-2 border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 font-orbitron font-bold text-xs tracking-wider"
+              >
+                CANCEL
+              </button>
+              <button
+                onClick={deleteClassroom}
+                disabled={deleting || !classroomName || confirmText !== classroomName}
+                className="px-5 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-orbitron font-bold text-xs tracking-wider"
+              >
+                {deleting ? 'DELETING…' : 'DELETE CLASS'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

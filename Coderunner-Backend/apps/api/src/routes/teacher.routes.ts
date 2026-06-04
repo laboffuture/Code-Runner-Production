@@ -234,6 +234,32 @@ router.get('/classrooms/:id', async (req: Request, res: Response) => {
 });
 
 /**
+ * DELETE /teacher/classrooms/:id — delete one of my classrooms. Student accounts
+ * and ALL their progress/attempts are preserved; only their membership link to
+ * this class is cleared (classroomId -> null), so they can re-join another class
+ * by code. Owner-only.
+ */
+router.delete('/classrooms/:id', async (req: Request, res: Response) => {
+  try {
+    const classroom = await myClassroom(req, req.params.id);
+    if (!classroom) return res.status(404).json({ error: 'Not Found', message: 'Classroom not found' });
+    // Remove the class FIRST so its join code is immediately invalid (a concurrent
+    // join-by-code can't resolve into a class that's mid-deletion), THEN detach the
+    // members. Student accounts/progress/attempts are preserved — only the link clears.
+    await Models.Classroom.deleteOne({ _id: classroom._id });
+    const detached = await Models.User.updateMany(
+      { role: 'student', classroomId: classroom._id },
+      { $set: { classroomId: null } },
+    );
+    logger.info('Classroom deleted', { classroomId: String(classroom._id), studentsDetached: detached.modifiedCount });
+    res.json({ message: `Deleted ${classroom.name}`, studentsDetached: detached.modifiedCount });
+  } catch (error) {
+    logger.error('Error deleting classroom', { error });
+    res.status(500).json({ error: 'Failed to delete classroom' });
+  }
+});
+
+/**
  * POST /teacher/classrooms/:id/students — add an existing student to my classroom by username.
  */
 router.post('/classrooms/:id/students', async (req: Request, res: Response) => {

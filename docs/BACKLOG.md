@@ -10,8 +10,8 @@ Tracked work, grouped by phase. UI polish is intentionally **last** — internal
 - [ ] **1.5 Clean up test accounts** — reset out-of-order solves (e.g. `Teja`) so the portal reflects real sequential usage; real students start clean.
 
 ## Phase 2 — Classroom lifecycle
-- [ ] **2.1 Delete a class** (teacher) — class removed, **student data preserved**, students can re-join by code.
-- [ ] **2.2 Multi-class membership** — a student can join multiple classes.
+- [x] **2.1 Delete a class** (teacher) — `DELETE /teacher/classrooms/:id` (owner-only via myClassroom). Deletes the class first (join code invalid immediately), then detaches members (classroomId→null); student accounts/progress/attempts preserved, re-join by code. Strict "type the class name to confirm" modal. Panel PASS.
+- [ ] ~~**2.2 Multi-class membership**~~ — **DEFERRED**: only one teacher at launch, so a student never needs to be in >1 class. Membership stays single-class (`User.classroomId`). Revisit if multiple teachers are added.
 
 ## Phase 3 — Admin role
 - [ ] **3.1 Admin / CEO-CMO oversight** — teacher activity (logging in, managing students) + student engagement (actually solving). Distinct from the `developer` role (system/tech health).
