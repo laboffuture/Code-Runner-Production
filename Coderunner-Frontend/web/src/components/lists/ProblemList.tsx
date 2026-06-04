@@ -3,18 +3,17 @@
 import type { Problem } from '@/lib/types';
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, CheckCircle, Zap, Target, Lock } from 'lucide-react';
+import { ArrowRight, BookOpen, Zap, Target, Lock } from 'lucide-react';
 import { useGlobalAudio } from '@/contexts/AudioContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useProgress } from '@/lib/utilities/progress';
 
 interface ProblemListProps {
   problems: Problem[];
@@ -25,6 +24,7 @@ interface ProblemListProps {
 export function ProblemList({ problems, sessionId }: ProblemListProps) {
   const { playProjectTextSound } = useGlobalAudio();
   const { accentColor, theme } = useTheme();
+  const { isProblemCompleted } = useProgress();
 
   const hexToRgba = (hex: string, opacity: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -33,11 +33,24 @@ export function ProblemList({ problems, sessionId }: ProblemListProps) {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
+  // Order by case_number (fallback problem_id) so both the render order and the
+  // case-by-case lock below match the server's isProblemUnlocked rule, regardless
+  // of the order the caller passed `problems` in.
+  const ordered = [...problems].sort(
+    (a, b) => (a.case_number ?? 0) - (b.case_number ?? 0) || a.problem_id - b.problem_id,
+  );
+
   return (
     <div className="space-y-3">
-        {problems.map((problem, index) => {
+        {ordered.map((problem, index) => {
             // Check if this is the final task (6th task, index 5)
             const isFinalTask = index === 5;
+            // Case-by-case gate: a task is locked until every EARLIER task in this
+            // session is solved — mirrors the server's isProblemUnlocked rule so the
+            // UI never offers a task the grader would reject with 403 Locked.
+            const locked = ordered
+              .slice(0, index)
+              .some((p) => !isProblemCompleted(String(p.problem_id)));
 
             return (
                 <div key={problem.problem_id}>
@@ -79,6 +92,32 @@ export function ProblemList({ problems, sessionId }: ProblemListProps) {
                         </>
                     )}
 
+                    {locked ? (
+                        /* Locked task — finish the previous case first. Not clickable. */
+                        <Card
+                            className="flex items-center border-2 relative overflow-hidden opacity-60 cursor-not-allowed"
+                            style={{
+                                background: `linear-gradient(135deg, ${hexToRgba(accentColor, 0.06)}, ${hexToRgba(accentColor, 0.03)})`,
+                                borderColor: hexToRgba(accentColor, 0.25),
+                            }}
+                        >
+                            <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: hexToRgba(accentColor, 0.3) }}></div>
+                            <CardHeader className="flex-grow py-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <Lock className="h-4 w-4" style={{ color: accentColor }} />
+                                    <span className="text-xs font-space uppercase tracking-wide font-bold" style={{ color: accentColor }}>
+                                        {isFinalTask ? 'FINAL TASK' : `TASK ${index + 1}`} · LOCKED
+                                    </span>
+                                </div>
+                                <CardTitle className="text-lg font-space" style={{ color: 'rgba(243, 237, 233, 0.55)' }}>
+                                    {problem.title}
+                                </CardTitle>
+                                <CardDescription className="text-xs font-space mt-1" style={{ color: hexToRgba(accentColor, 0.75) }}>
+                                    Complete the previous task to unlock
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                    ) : (
                     <Link
                         href={`/problems/${problem.problem_id}`}
                         className="block"
@@ -154,6 +193,7 @@ export function ProblemList({ problems, sessionId }: ProblemListProps) {
                             </CardFooter>
                         </Card>
                     </Link>
+                    )}
                 </div>
             );
         })}

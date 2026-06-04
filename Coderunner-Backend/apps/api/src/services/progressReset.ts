@@ -150,8 +150,9 @@ export async function performStudentReset(
     { age_group: req.ageGroup }, 'problem_id session_id level_number session_title difficulty',
   ).lean();
   // Keep-set = problems strictly BEFORE the boundary. Full reset = empty keep-set.
-  // Uses the SAME shared sessionOrderKey as the sequential-unlock gate, so a
-  // from-session reset re-locks exactly the sessions the gate then gates.
+  // Uses the SESSION-granular sessionOrderKey (not the case-granular unlock key) so
+  // a from-session reset re-locks whole sessions from the boundary; the unlock gate
+  // then enforces case order from the start of that boundary session.
   let keep: Set<number>;
   if (req.scope === 'full') {
     keep = new Set();

@@ -208,8 +208,9 @@ router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLim
     }
 
     // Sequential progression: a curriculum problem can only be GRADED once every
-    // problem in all prior sessions is solved. Genuine contest submissions are
-    // exempt. Skip if the problem has no age band (can't scope the curriculum).
+    // problem BEFORE it (earlier cases in the same session, then earlier sessions,
+    // then earlier levels) is solved. Genuine contest submissions are exempt. Skip
+    // if the problem has no age band (can't scope the curriculum).
     if (!isContestSubmission && problem.age_group) {
       const userId = req.user!.userId;
       const up = await Models.UserProgress.findOne({ userId })
@@ -217,12 +218,12 @@ router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLim
         .lean<{ solvedProblemIds?: number[] } | null>();
       const solved: number[] = up?.solvedProblemIds || [];
       const curriculum = await Models.Problem.find(
-        { age_group: problem.age_group }, 'problem_id level_number session_id',
+        { age_group: problem.age_group }, 'problem_id level_number session_id case_number',
       ).lean<UnlockProblem[]>();
       if (!isProblemUnlocked(problemId, solved, curriculum)) {
         return res.status(403).json({
           error: 'Locked',
-          message: 'Complete the previous session to unlock this one.',
+          message: 'Complete the previous task to unlock this one.',
         });
       }
     } else if (!isContestSubmission && !problem.age_group) {
