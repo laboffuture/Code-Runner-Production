@@ -123,7 +123,7 @@ export default function LevelPage({ params }: LevelPageProps) {
             <div
                 className="fixed inset-0 z-0"
                 style={{
-                    backgroundImage: `url("${getLevelsBackdrop(theme.id, ageGroup)}")`,
+                    backgroundImage: `url("${getLevelsBackdrop(theme.id)}")`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat'

@@ -13,6 +13,7 @@ import { NovasChip } from '@/components/novas/NovasChip';
 import { NOVAS } from '@/lib/novas';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { getCharacterEmblem } from '@/lib/view-backgrounds';
 
 export function Header() {
   const { playProjectTextSound } = useGlobalAudio();
@@ -233,7 +234,9 @@ export function Header() {
                   borderColor: accent40
                 }}
               >
-                <AvatarImage data-ai-hint="cyberpunk user avatar" src="https://placehold.co/100x100" alt="User" />
+                {/* Selected character's emblem; falls back to the User icon
+                    until that character's profile art is uploaded. */}
+                <AvatarImage data-ai-hint="character emblem" src={getCharacterEmblem(theme.id) ?? undefined} alt={theme.name} />
                 <AvatarFallback className="bg-slate-800 font-space" style={{
                   color: accentColor
                 }}>

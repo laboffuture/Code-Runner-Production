@@ -303,5 +303,85 @@
     "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780567266/code-runner/view/kenji/inside-11-14.png",
     "publicId": "code-runner/view/kenji/inside-11-14",
     "resourceType": "image"
+  },
+  "/assets/view/astra/basic.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636349/code-runner/view/astra/basic.png",
+    "publicId": "code-runner/view/astra/basic",
+    "resourceType": "image"
+  },
+  "/assets/view/astra/advanced.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636350/code-runner/view/astra/advanced.png",
+    "publicId": "code-runner/view/astra/advanced",
+    "resourceType": "image"
+  },
+  "/assets/view/astra/internal.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636352/code-runner/view/astra/internal.png",
+    "publicId": "code-runner/view/astra/internal",
+    "resourceType": "image"
+  },
+  "/assets/view/astra/profile.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636353/code-runner/view/astra/profile.png",
+    "publicId": "code-runner/view/astra/profile",
+    "resourceType": "image"
+  },
+  "/assets/view/kenji/basic.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636354/code-runner/view/kenji/basic.png",
+    "publicId": "code-runner/view/kenji/basic",
+    "resourceType": "image"
+  },
+  "/assets/view/kenji/advanced.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636355/code-runner/view/kenji/advanced.png",
+    "publicId": "code-runner/view/kenji/advanced",
+    "resourceType": "image"
+  },
+  "/assets/view/kenji/internal.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636357/code-runner/view/kenji/internal.png",
+    "publicId": "code-runner/view/kenji/internal",
+    "resourceType": "image"
+  },
+  "/assets/view/kenji/profile.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636358/code-runner/view/kenji/profile.png",
+    "publicId": "code-runner/view/kenji/profile",
+    "resourceType": "image"
+  },
+  "/assets/view/leo/basic.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636359/code-runner/view/leo/basic.png",
+    "publicId": "code-runner/view/leo/basic",
+    "resourceType": "image"
+  },
+  "/assets/view/leo/advanced.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636360/code-runner/view/leo/advanced.png",
+    "publicId": "code-runner/view/leo/advanced",
+    "resourceType": "image"
+  },
+  "/assets/view/leo/internal.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636362/code-runner/view/leo/internal.png",
+    "publicId": "code-runner/view/leo/internal",
+    "resourceType": "image"
+  },
+  "/assets/view/leo/profile.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636363/code-runner/view/leo/profile.png",
+    "publicId": "code-runner/view/leo/profile",
+    "resourceType": "image"
+  },
+  "/assets/view/nila/basic.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636364/code-runner/view/nila/basic.png",
+    "publicId": "code-runner/view/nila/basic",
+    "resourceType": "image"
+  },
+  "/assets/view/nila/advanced.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636365/code-runner/view/nila/advanced.png",
+    "publicId": "code-runner/view/nila/advanced",
+    "resourceType": "image"
+  },
+  "/assets/view/nila/internal.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636367/code-runner/view/nila/internal.png",
+    "publicId": "code-runner/view/nila/internal",
+    "resourceType": "image"
+  },
+  "/assets/view/nila/profile.png": {
+    "url": "https://res.cloudinary.com/dwqzqxeuk/image/upload/v1780636368/code-runner/view/nila/profile.png",
+    "publicId": "code-runner/view/nila/profile",
+    "resourceType": "image"
   }
 }

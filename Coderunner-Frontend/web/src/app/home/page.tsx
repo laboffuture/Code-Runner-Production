@@ -69,7 +69,7 @@ function AgeSelectionPageContent() {
 
   const [loadingState, setLoadingState] = useState<{
     isLoading: boolean;
-    cardType: 'novice' | 'advanced' | null;
+    cardType: 'basic' | 'advanced' | null;
   }>({
     isLoading: false,
     cardType: null
@@ -99,7 +99,7 @@ function AgeSelectionPageContent() {
     
   };
 
-  const handleCardClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, cardType: 'novice' | 'advanced') => {
+  const handleCardClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, cardType: 'basic' | 'advanced') => {
     e.preventDefault();
     playProjectTextSound(); // Play deploy click sound for training protocols
 
@@ -115,18 +115,19 @@ function AgeSelectionPageContent() {
     }, 1500); // 1.5 seconds of loading
   };
 
-  const ageGroups = [
+  // Presentation-only: the two cards are framed as Basic / Advanced and pull the
+  // matching themed art. The underlying routes/curriculum stay on the existing
+  // age-group axis (/levels/11-14 · /levels/15-18) — unchanged.
+  const missionCards = [
     {
-      title: 'Mission Card 1',
+      title: 'Basic',
       href: '/levels/11-14',
-      cardType: 'novice' as const,
-      ageGroup: '11-14',
+      variant: 'basic' as const,
     },
     {
-      title: 'Mission Card 2',
+      title: 'Advanced',
       href: '/levels/15-18',
-      cardType: 'advanced' as const,
-      ageGroup: '15-18',
+      variant: 'advanced' as const,
     },
   ];
 
@@ -199,22 +200,23 @@ function AgeSelectionPageContent() {
 
         {/* Mission Selection Cards */}
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {ageGroups.map((group) => (
+          {missionCards.map((card) => (
             <Link
-              href={group.href}
-              key={group.title}
+              href={card.href}
+              key={card.title}
               className="block group"
               onMouseEnter={(e) => handleCardHover(e, true)}
               onMouseLeave={(e) => handleCardHover(e, false)}
-              onClick={(e) => handleCardClick(e, group.href, group.cardType)}
+              onClick={(e) => handleCardClick(e, card.href, card.variant)}
             >
               {/* Clickable themed Mission-Card image. The art IS the card, so no
-                  CSS frame/shadow — just the image (themed per character + age
-                  group; falls back to the default art when not yet themed). */}
+                  CSS frame/shadow — just the image (themed per character +
+                  Basic/Advanced variant; falls back to the default art when not
+                  yet themed). */}
               <div className="relative transition-all duration-500 hover:scale-105 cursor-pointer">
                 <img
-                  src={getMissionCardImage(theme.id, group.ageGroup)}
-                  alt={group.title || "Mission Card"}
+                  src={getMissionCardImage(theme.id, card.variant)}
+                  alt={card.title}
                   className="w-full h-auto"
                 />
               </div>

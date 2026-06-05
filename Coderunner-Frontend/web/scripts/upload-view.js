@@ -7,7 +7,7 @@
  * quality (transformation: [], overwrite: true) and MERGES them into
  * cloudinary-urls.json without touching any other entry.
  *
- * Reference the results in code via getCloudinaryImage('view/kenji/11-14') etc.
+ * Reference the results in code via getCloudinaryImage('view/kenji/basic') etc.
  *
  * Usage (from Coderunner-Frontend/web):  node scripts/upload-view.js
  */
@@ -27,11 +27,17 @@ const PUBLIC_DIR = path.join(__dirname, '../public');
 // KEEP IN SYNC with src/lib/view-backgrounds.ts (AVAILABLE_VIEW): each publicId
 // 'code-runner/view/<key>' uploaded here must be listed there as '<key>' for the
 // app to actually use it (otherwise it falls back to the default image).
-const FILES = [
-  { local: 'assets/view/kenji/11-14.png',                       publicId: 'code-runner/view/kenji/11-14' },
-  { local: 'assets/view/kenji/15-18.png',                       publicId: 'code-runner/view/kenji/15-18' },
-  { local: 'assets/view/kenji/INSIDE 11-14/kenji-home-bg.png',  publicId: 'code-runner/view/kenji/inside-11-14' },
-];
+// Per character: basic + advanced (the two /home Mission Cards), internal (the
+// inside levels backdrop), profile (the round header emblem). banner.png is the
+// student download-only asset and is intentionally NOT uploaded here.
+const SLOTS = ['basic', 'advanced', 'internal', 'profile'];
+const CHARACTERS = ['astra', 'kenji', 'leo', 'nila'];
+const FILES = CHARACTERS.flatMap((char) =>
+  SLOTS.map((slot) => ({
+    local: `assets/view/${char}/${slot}.png`,
+    publicId: `code-runner/view/${char}/${slot}`,
+  }))
+);
 
 async function main() {
   const mapPath = path.join(__dirname, 'cloudinary-urls.json');
@@ -49,7 +55,7 @@ async function main() {
 
   fs.writeFileSync(mapPath, JSON.stringify(map, null, 2));
   console.log('\nMerged into', path.basename(mapPath), '— no other entries touched.');
-  console.log('Reference in code via: getCloudinaryImage(\'view/kenji/11-14\'), \'view/kenji/15-18\', \'view/kenji/inside-11-14\'');
+  console.log('Reference in code via: getCloudinaryImage(\'view/<character>/<slot>\') — e.g. \'view/kenji/basic\', \'view/nila/internal\', \'view/leo/profile\'.');
 }
 
 main().catch((e) => { console.error('Upload failed:', e.message); process.exit(1); });
