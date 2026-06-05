@@ -29,8 +29,10 @@ export function ProfileStats({ data, section = 'identity' }: ProfileStatsProps) 
   if (!mounted) return null;
 
   const profile = data;
-  const nextLevelXP = (profile.level + 1) * 500;
-  const currentLevelXP = profile.level * 500;
+  // Model sets level = floor(experience / 500) + 1, so the current level's XP
+  // floor is (level - 1) * 500 and the next-level threshold is level * 500.
+  const nextLevelXP = profile.level * 500;
+  const currentLevelXP = (profile.level - 1) * 500;
   const progressXP = profile.experience - currentLevelXP;
   const neededXP = nextLevelXP - currentLevelXP;
   const progressPercentage = Math.max(0, Math.min((progressXP / neededXP) * 100, 100));

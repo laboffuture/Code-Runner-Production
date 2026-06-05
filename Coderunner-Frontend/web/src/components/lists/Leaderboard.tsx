@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trophy, TrendingUp, Users, Medal } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Trophy, TrendingUp, Users, Medal, Loader2 } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -10,74 +10,21 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import Link from 'next/link';
+import { api } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 
+// Shape returned by GET /leaderboard/global (mirrors the /rank page).
 interface LeaderboardUser {
-  id: string;
+  position: number;
+  userId: string;
   username: string;
-  avatar?: string;
-  rank: 'NOVICE' | 'ADVANCED' | 'EXPERT' | 'MASTER';
-  totalSolved: number;
   level: number;
   contestRating: number;
+  rank: 'NOVICE' | 'ADVANCED' | 'EXPERT' | 'MASTER';
+  stats: {
+    totalSolved: number;
+  };
 }
-
-// Mock leaderboard data - trial version with 6 users
-const mockLeaderboardData: LeaderboardUser[] = [
-  {
-    id: '1',
-    username: 'CodeMaster_X',
-    avatar: 'https://placehold.co/32x32',
-    rank: 'MASTER',
-    totalSolved: 287,
-    level: 42,
-    contestRating: 2150
-  },
-  {
-    id: '2',
-    username: 'AlgoNinja',
-    avatar: 'https://placehold.co/32x32',
-    rank: 'EXPERT',
-    totalSolved: 245,
-    level: 38,
-    contestRating: 1980
-  },
-  {
-    id: '3',
-    username: 'PyQueen',
-    avatar: 'https://placehold.co/32x32',
-    rank: 'EXPERT',
-    totalSolved: 198,
-    level: 34,
-    contestRating: 1875
-  },
-  {
-    id: '4',
-    username: 'DataWizard',
-    avatar: 'https://placehold.co/32x32',
-    rank: 'ADVANCED',
-    totalSolved: 156,
-    level: 28,
-    contestRating: 1650
-  },
-  {
-    id: '5',
-    username: 'LogicBot',
-    avatar: 'https://placehold.co/32x32',
-    rank: 'ADVANCED',
-    totalSolved: 134,
-    level: 25,
-    contestRating: 1520
-  },
-  {
-    id: '6',
-    username: 'You',
-    avatar: 'https://placehold.co/32x32',
-    rank: 'ADVANCED',
-    totalSolved: 89,
-    level: 22,
-    contestRating: 1420
-  }
-];
 
 const getRankColor = (rank: string) => {
   switch (rank) {
@@ -99,17 +46,36 @@ const getRankIcon = (position: number) => {
 };
 
 export function Leaderboard() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [showFullLeaderboard, setShowFullLeaderboard] = useState(false);
 
   useEffect(() => {
-    // In a real app, fetch leaderboard data from API
-    setLeaderboardData(mockLeaderboardData);
+    let cancelled = false;
+    (async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.leaderboard.getGlobal({ limit: 100, sortBy: 'contestRating' });
+        const data = response as any;
+        if (!cancelled) {
+          setLeaderboardData(data.leaderboard || []);
+          setError(false);
+        }
+      } catch (err) {
+        console.error('Failed to fetch leaderboard:', err);
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
-  const currentUserRank = 6; // Mock current user rank
-  const currentUser = leaderboardData.find(user => user.username === 'You');
+  const currentUser = user ? leaderboardData.find(u => u.userId === user.id) : null;
+  const currentUserRank = currentUser ? currentUser.position : null;
   const displayUsers = showFullLeaderboard ? leaderboardData : leaderboardData.slice(0, 5);
 
   return (
@@ -121,11 +87,11 @@ export function Leaderboard() {
         >
           <TrendingUp className="w-3 h-3" style={{ color: '#ff6b35' }} />
           <span className="text-xs font-mono" style={{ color: '#ff6b35' }}>
-            RANK #{currentUserRank}
+            {currentUserRank ? `RANK #${currentUserRank}` : 'RANK —'}
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
+      <PopoverContent
         className="w-80 p-0 bg-slate-900/95 border border-orange-500/30 backdrop-blur-xl"
         align="center"
         sideOffset={8}
@@ -148,48 +114,64 @@ export function Leaderboard() {
           </div>
 
           {/* User List */}
-          <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-            {displayUsers.map((user, index) => (
-              <div
-                key={user.id}
-                className="flex items-center space-x-3 p-2 rounded bg-slate-800/30 border border-slate-700/50 hover:border-orange-500/30 transition-colors"
-              >
-                <div className="flex items-center justify-center w-6">
-                  {getRankIcon(index + 1)}
-                </div>
-                
-                <Avatar className="h-6 w-6 border border-slate-600">
-                  <AvatarImage src={user.avatar} alt={user.username} />
-                  <AvatarFallback className="bg-slate-700 text-xs">
-                    {user.username.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-white truncate">
-                      {user.username}
-                    </span>
-                    <div className="flex items-center space-x-2">
-                      <span
-                        className="text-xs font-mono px-1 rounded"
-                        style={{ 
-                          color: getRankColor(user.rank),
-                          backgroundColor: `${getRankColor(user.rank)}20`
-                        }}
-                      >
-                        {user.rank}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: '#ff6b35' }} />
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-xs font-mono text-muted-foreground">
+              Failed to load leaderboard
+            </div>
+          ) : leaderboardData.length === 0 ? (
+            <div className="text-center py-8 text-xs font-mono text-muted-foreground">
+              No users ranked yet
+            </div>
+          ) : (
+            <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+              {displayUsers.map((u, index) => (
+                <div
+                  key={u.userId}
+                  className="flex items-center space-x-3 p-2 rounded bg-slate-800/30 border border-slate-700/50 hover:border-orange-500/30 transition-colors"
+                >
+                  <div className="flex items-center justify-center w-6">
+                    {getRankIcon(index + 1)}
+                  </div>
+
+                  <Avatar className="h-6 w-6 border border-slate-600">
+                    <AvatarFallback className="bg-slate-700 text-xs" style={{ color: getRankColor(u.rank) }}>
+                      {u.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-white truncate">
+                        {u.username}
+                        {user && u.userId === user.id && (
+                          <span className="ml-1.5 text-xs" style={{ color: '#ff6b35' }}>(You)</span>
+                        )}
                       </span>
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className="text-xs font-mono px-1 rounded"
+                          style={{
+                            color: getRankColor(u.rank),
+                            backgroundColor: `${getRankColor(u.rank)}20`
+                          }}
+                        >
+                          {u.rank}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{u.stats.totalSolved} solved</span>
+                      <span>Lv.{u.level}</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{user.totalSolved} solved</span>
-                    <span>Lv.{user.level}</span>
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Footer */}
           <div className="mt-4 pt-3 border-t border-slate-700/50">
