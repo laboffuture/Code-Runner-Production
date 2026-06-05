@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldCheck, LayoutGrid, Radar, LogOut } from 'lucide-react';
+import { ShieldCheck, LayoutGrid, Radar, Activity, LogOut } from 'lucide-react';
 
 const NAV = [
   { href: '/oversight/dashboard', label: 'Groups', icon: LayoutGrid },
   { href: '/oversight/tickets', label: 'Accountability', icon: Radar },
+  { href: '/oversight/health', label: 'Health', icon: Activity },
 ];
 
 function navCls(active: boolean) {

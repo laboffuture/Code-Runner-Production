@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Activity, Server, Cloud, Database, Cpu, Package, ListChecks, AlertTriangle, LayoutDashboard, LogOut } from 'lucide-react';
+import { Activity, Server, Cloud, Database, Cpu, Package, ListChecks, AlertTriangle, LayoutDashboard, LogOut, Bug } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function AdminHeader() {
@@ -23,6 +23,7 @@ export default function AdminHeader() {
     { href: '/admin/docker', label: 'DOCKER', icon: Package },
     { href: '/admin/queues', label: 'QUEUES', icon: ListChecks },
     { href: '/admin/errors', label: 'ERRORS', icon: AlertTriangle },
+    { href: '/admin/tickets', label: 'TICKETS', icon: Bug },
   ];
 
   return (

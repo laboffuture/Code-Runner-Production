@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutGrid, LogOut, Hash, BookOpen } from 'lucide-react';
+import { GraduationCap, LayoutGrid, LogOut, Hash, BookOpen, Inbox } from 'lucide-react';
 
 function navCls(active: boolean) {
   return `flex items-center gap-3 px-5 py-2.5 text-sm font-rajdhani transition-colors ${
@@ -41,6 +41,10 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
 
           <Link href="/teacher/curriculum" className={navCls(pathname === '/teacher/curriculum')}>
             <BookOpen className="w-4 h-4" /> Answer Guide
+          </Link>
+
+          <Link href="/teacher/inbox" className={navCls(pathname === '/teacher/inbox')}>
+            <Inbox className="w-4 h-4" /> Inbox
           </Link>
 
           {classes.length > 0 && (
