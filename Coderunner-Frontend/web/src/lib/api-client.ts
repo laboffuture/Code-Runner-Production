@@ -367,10 +367,16 @@ export const api = {
       if (params?.type) q.append('type', params.type);
       return apiClient.get(`/oversight/tickets?${q.toString()}`);
     },
+    getStudentHealth: () => apiClient.get('/oversight/health/students'),
+    getTeacherHealth: () => apiClient.get('/oversight/health/teachers'),
+    getDeveloperHealth: () => apiClient.get('/oversight/health/developers'),
   },
   tickets: {
     create: (data: { type: 'bug_report' | 'doubt'; title: string; description: string }) =>
       apiClient.post('/tickets', data),
+    respond: (id: string) => apiClient.patch(`/tickets/${id}/respond`, {}),
+    resolve: (id: string) => apiClient.patch(`/tickets/${id}/resolve`, {}),
+    mine: () => apiClient.get('/tickets/mine'),
   },
 
   // Health

@@ -294,6 +294,13 @@ router.get('/students/:id', async (req: Request, res: Response) => {
     }
     const objId = new mongoose.Types.ObjectId(String(user._id));
 
+    // Record that this teacher reviewed this student (powers the owner Teacher-health panel).
+    Models.TeacherActivity.findOneAndUpdate(
+      { teacherId: req.user!.userId, studentId: user._id },
+      { $set: { lastReviewedAt: new Date(), classroomId: user.classroomId ?? null }, $inc: { reviewCount: 1 } },
+      { upsert: true }
+    ).catch(() => { /* activity logging is best-effort */ });
+
     const progress = (await Models.UserProgress.findOne({ userId: objId }).lean()) as any;
 
     // Integrity: most-recent graded attempts (for the "how they solved it" panel).

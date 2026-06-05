@@ -15,3 +15,4 @@ export { StoreItem } from './StoreItem.model';
 export { StoreOrder } from './StoreOrder.model';
 export { Solution } from './Solution.model';
 export { Ticket } from './Ticket.model';
+export { TeacherActivity } from './TeacherActivity.model';

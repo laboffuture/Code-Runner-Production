@@ -17,6 +17,7 @@ export type {
   TicketStatus,
   TicketTargetRole,
 } from './database/models/Ticket.model';
+export type { ITeacherActivity } from './database/models/TeacherActivity.model';
 
 // Export utilities
 export * from './utils';

@@ -80,4 +80,70 @@ router.get('/tickets', async (req: Request, res: Response) => {
   }
 });
 
+// GET /oversight/health/students — per-student activity buckets (active/quiet/silent).
+router.get('/health/students', async (_req: Request, res: Response) => {
+  try {
+    const students: any[] = await Models.User.find({ role: 'student' }).select('username classroomId').limit(1000).lean();
+    const ids = students.map(s => s._id);
+    const progress: any[] = await Models.UserProgress.find({ userId: { $in: ids } }).lean();
+    const byUser = new Map(progress.map((p: any) => [String(p.userId), p]));
+    const classrooms: any[] = await Models.Classroom.find({}).select('name').lean();
+    const className = new Map(classrooms.map((c: any) => [String(c._id), c.name]));
+    const now = Date.now();
+    const buckets = { active: 0, quiet: 0, silent: 0 };
+    const rows = students.map((s: any) => {
+      const p: any = byUser.get(String(s._id));
+      const last = p?.recentActivity?.[0]?.timestamp || p?.updatedAt || null;
+      const days = last ? (now - new Date(last).getTime()) / 86400000 : Infinity;
+      const bucket = days <= 7 ? 'active' : days <= 14 ? 'quiet' : 'silent';
+      buckets[bucket as keyof typeof buckets]++;
+      return { id: String(s._id), username: s.username, classroom: s.classroomId ? (className.get(String(s.classroomId)) || null) : null,
+        lastActive: last, bucket, totalSolved: p?.stats?.totalSolved ?? 0, acceptanceRate: p?.stats?.acceptanceRate ?? 0 };
+    });
+    return res.json({ buckets, students: rows });
+  } catch (error) {
+    console.error('[Oversight] health/students failed:', error);
+    return res.status(500).json({ error: 'Internal error', message: 'Could not load student health' });
+  }
+});
+
+// GET /oversight/health/teachers — per-teacher review activity + open doubt load.
+router.get('/health/teachers', async (_req: Request, res: Response) => {
+  try {
+    const teachers: any[] = await Models.User.find({ role: 'teacher' }).select('username').lean();
+    const rows = await Promise.all(teachers.map(async (t: any) => {
+      const classIds = await Models.Classroom.find({ teacherIds: t._id }).distinct('_id');
+      const acts: any[] = await Models.TeacherActivity.find({ teacherId: t._id }).select('lastReviewedAt reviewCount').lean();
+      const lastReviewedAt = acts.reduce((mx: any, a: any) => !mx || new Date(a.lastReviewedAt) > new Date(mx) ? a.lastReviewedAt : mx, null);
+      const totalReviews = acts.reduce((s: number, a: any) => s + (a.reviewCount || 0), 0);
+      const openDoubts = classIds.length ? await Models.Ticket.countDocuments({ targetRole: 'teacher', status: { $ne: 'resolved' }, classroomId: { $in: classIds } }) : 0;
+      return { id: String(t._id), username: t.username, classCount: classIds.length, lastReviewedAt, totalReviews, openDoubts };
+    }));
+    return res.json({ teachers: rows });
+  } catch (error) {
+    console.error('[Oversight] health/teachers failed:', error);
+    return res.status(500).json({ error: 'Internal error', message: 'Could not load teacher health' });
+  }
+});
+
+// GET /oversight/health/developers — bug-report SLA summary + oldest open bugs.
+router.get('/health/developers', async (_req: Request, res: Response) => {
+  try {
+    const bugs: any[] = await Models.Ticket.find({ type: 'bug_report' }).select('status createdAt resolvedAt type').lean();
+    let totalOpen = 0, breached = 0; const resolvedDurations: number[] = [];
+    for (const b of bugs) {
+      const d = computeTicketDelay(b);
+      if (b.status !== 'resolved') { totalOpen++; if (d.isBreached) breached++; }
+      else if (b.resolvedAt) resolvedDurations.push((new Date(b.resolvedAt).getTime() - new Date(b.createdAt).getTime()) / 3600000);
+    }
+    const avgResolutionHours = resolvedDurations.length ? Math.round((resolvedDurations.reduce((a, c) => a + c, 0) / resolvedDurations.length) * 10) / 10 : null;
+    const openBugs: any[] = await Models.Ticket.find({ type: 'bug_report', status: { $ne: 'resolved' } }).sort({ createdAt: 1 }).limit(5).select('title createdAt status type resolvedAt').lean();
+    const oldestOpen = openBugs.map((b: any) => ({ id: String(b._id), title: b.title, ...computeTicketDelay(b) }));
+    return res.json({ summary: { totalOpen, breached, avgResolutionHours, totalResolved: resolvedDurations.length }, oldestOpen });
+  } catch (error) {
+    console.error('[Oversight] health/developers failed:', error);
+    return res.status(500).json({ error: 'Internal error', message: 'Could not load developer health' });
+  }
+});
+
 export default router;
