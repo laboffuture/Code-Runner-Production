@@ -12,7 +12,7 @@ export interface CheatSheetBox {
   tip: string;
 }
 
-export type CheatSheetCharacter = 'default' | 'Astra' | 'Kenji' | 'Leo';
+export type CheatSheetCharacter = 'default' | 'Astra' | 'Kenji' | 'Leo' | 'Nila';
 
 interface CheatSheetTemplateProps {
   title: string;
@@ -26,7 +26,9 @@ interface CheatSheetTemplateProps {
 const getAssetPaths = (character: CheatSheetCharacter) => {
   const CDN = `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/cheatsheets`;
 
-  if (character === 'default') {
+  // Nila has no custom frame art — she reuses the generic default frame shapes;
+  // her identity comes from the green gradient in getCharacterStyles().
+  if (character === 'default' || character === 'Nila') {
     return {
       topFrame: `${CDN}/Frame/full-frame/top-frame-2.png`,
       bottomFrame: `${CDN}/Frame/full-frame/bottom%20frame.png`,
@@ -64,6 +66,12 @@ const getCharacterStyles = (character: CheatSheetCharacter) => {
       return {
         frameGradient: 'linear-gradient(20deg, #d7fdfd, #a7fafc 18%, #fff 32%, #195bb0 55%, #40d9fe 72%, #a4f5fe)',
         insetGradient: 'linear-gradient(145deg, #205b9e, #1e437b 45%, #0c1627)',
+      };
+    case 'Nila':
+      // Default frame shapes + Nila's green feel (theme: #22c55e / #86efac / #15803d).
+      return {
+        frameGradient: 'linear-gradient(20deg, #d7fde9, #86efac 18%, #ffffff 32%, #15803d 55%, #22c55e 72%, #a4f5c8)',
+        insetGradient: 'linear-gradient(145deg, #1e5b3a, #14432a 45%, #0a1f14)',
       };
     default:
       return {

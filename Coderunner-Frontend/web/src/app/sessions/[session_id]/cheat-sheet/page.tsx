@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import CheatSheetTemplate, { CheatSheetCharacter } from '@/components/cheatsheet/CheatSheetTemplate';
 import { useGlobalAudio } from '@/contexts/AudioContext';
-import { BookOpen, ArrowLeft, Download, AlertCircle, User } from 'lucide-react';
+import { BookOpen, ArrowLeft, Download, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { downloadCheatsheet } from '@/lib/downloadCheatsheet';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface CheatSheetBox {
   number: number;
@@ -34,19 +35,24 @@ interface CheatSheetPageProps {
   };
 }
 
-const CHARACTERS: { id: CheatSheetCharacter; name: string; color: string }[] = [
-  { id: 'default', name: 'Default', color: '#6B7280' },
-  { id: 'Astra', name: 'Astra', color: '#8B5CF6' },
-  { id: 'Kenji', name: 'Kenji', color: '#EF4444' },
-  { id: 'Leo', name: 'Leo', color: '#F59E0B' },
-];
+// Auto-map the student's selected character (lowercase theme id) to its
+// cheat-sheet theme. Nila reuses the default frame shapes with a green feel.
+const THEME_TO_CHEATSHEET: Record<string, CheatSheetCharacter> = {
+  astra: 'Astra',
+  nila: 'Nila',
+  kenji: 'Kenji',
+  leo: 'Leo',
+};
 
 export default function CheatSheetPage({ params }: CheatSheetPageProps) {
   const [cheatSheet, setCheatSheet] = useState<CheatSheetData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCharacter, setSelectedCharacter] = useState<CheatSheetCharacter>('default');
   const { forcePlayBackgroundMusic } = useGlobalAudio();
+  const { theme } = useTheme();
+
+  // The cheat sheet auto-themes to the student's selected character — no manual picker.
+  const character: CheatSheetCharacter = THEME_TO_CHEATSHEET[theme.id] ?? 'default';
 
   const handleDownload = async () => {
     if (!cheatSheet) return;
@@ -65,8 +71,6 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
         const resolvedParams = await params;
         const { session_id } = resolvedParams;
 
-        console.log(`[CheatSheet Page] Loading cheat sheet for session ${session_id}`);
-
         // Fetch cheat sheet data from API
         const response = await fetch(`/api/cheatsheets/${session_id}`);
 
@@ -78,8 +82,6 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
         }
 
         const data: CheatSheetData = await response.json();
-        console.log('[CheatSheet Page] Loaded:', data.title);
-
         setCheatSheet(data);
 
         // Play background music
@@ -102,11 +104,11 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
         <div className="text-center">
           <div className="relative w-20 h-20 mx-auto mb-6">
-            <div className="absolute inset-0 border-2 border-cyan-500/30 rounded-full"></div>
-            <div className="absolute inset-0 border-2 border-transparent border-t-cyan-500 rounded-full animate-spin"></div>
-            <div className="absolute inset-2 border-2 border-transparent border-t-cyan-400 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+            <div className="absolute inset-0 border-2 rounded-full" style={{ borderColor: `${theme.colors.primary}4d` }}></div>
+            <div className="absolute inset-0 border-2 border-transparent rounded-full animate-spin" style={{ borderTopColor: theme.colors.primary }}></div>
+            <div className="absolute inset-2 border-2 border-transparent rounded-full animate-spin" style={{ borderTopColor: theme.colors.light, animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
           </div>
-          <p className="font-mono text-cyan-400 text-sm animate-pulse">
+          <p className="font-mono text-sm animate-pulse" style={{ color: theme.colors.primary }}>
             // Loading cheat sheet...
           </p>
         </div>
@@ -131,11 +133,11 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
             <p className="text-gray-400 mb-6">
               {error || 'Cheat sheet not found for this session'}
             </p>
-            <Link href="/levels/11-14/1">
+            <Link href="/home">
               <Button
                 variant="outline"
                 className="font-space"
-                style={{ borderColor: 'rgb(0, 191, 255)', color: 'rgb(0, 191, 255)' }}
+                style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Levels
@@ -172,14 +174,14 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
         }
       `}</style>
 
-      {/* Background Grid */}
+      {/* Background Grid — themed to the character accent */}
       <div className="fixed inset-0 opacity-10 z-0 print:hidden">
         <div
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(0,191,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0,191,255,0.1) 1px, transparent 1px)
+              linear-gradient(${theme.colors.primary}1a 1px, transparent 1px),
+              linear-gradient(90deg, ${theme.colors.primary}1a 1px, transparent 1px)
             `,
             backgroundSize: '40px 40px',
           }}
@@ -196,8 +198,8 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
           <Link href={`/levels/${cheatSheet.age_group}/${cheatSheet.level_number}`} className="print:hidden">
             <Button
               variant="ghost"
-              className="mb-6 hover:bg-blue-500/10 font-space font-semibold uppercase tracking-wide text-sm"
-              style={{ color: 'rgb(0, 191, 255)' }}
+              className="mb-6 font-space font-semibold uppercase tracking-wide text-sm"
+              style={{ color: theme.colors.primary }}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Level {cheatSheet.level_number}
@@ -208,22 +210,22 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
           <div className="mb-8 text-center print:hidden">
             <div className="flex items-center justify-center gap-3 mb-3">
               <div className="relative">
-                <BookOpen className="h-7 w-7 md:h-8 md:w-8" style={{ color: 'rgb(0, 191, 255)' }} />
+                <BookOpen className="h-7 w-7 md:h-8 md:w-8" style={{ color: theme.colors.primary }} />
                 <div
                   className="absolute -inset-1 rounded-full blur animate-pulse"
-                  style={{ backgroundColor: 'rgba(0, 191, 255, 0.2)' }}
+                  style={{ backgroundColor: theme.colors.glow }}
                 ></div>
               </div>
               <h1
                 className="text-2xl sm:text-3xl md:text-4xl font-space font-bold"
-                style={{ color: 'rgb(0, 191, 255)' }}
+                style={{ color: theme.colors.primary }}
               >
                 CHEAT SHEET
               </h1>
             </div>
             <h2
               className="text-base sm:text-lg md:text-xl font-space font-bold"
-              style={{ color: '#00BFFF' }}
+              style={{ color: theme.colors.primary }}
             >
               Session {cheatSheet.session_id}
             </h2>
@@ -232,45 +234,14 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
             </p>
           </div>
 
-          {/* Character Selector */}
-          <div className="mb-6 print:hidden">
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <span className="text-gray-400 font-space text-sm flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Character Theme:
-              </span>
-              {CHARACTERS.map((char) => (
-                <button
-                  key={char.id}
-                  onClick={() => setSelectedCharacter(char.id)}
-                  className={`
-                    px-4 py-2 rounded-lg font-space font-semibold text-sm
-                    transition-all duration-200 border-2
-                    ${selectedCharacter === char.id
-                      ? 'text-white shadow-lg scale-105'
-                      : 'text-gray-300 border-gray-600 hover:border-gray-400 bg-transparent'
-                    }
-                  `}
-                  style={{
-                    borderColor: selectedCharacter === char.id ? char.color : undefined,
-                    backgroundColor: selectedCharacter === char.id ? char.color : undefined,
-                    boxShadow: selectedCharacter === char.id ? `0 0 20px ${char.color}50` : undefined,
-                  }}
-                >
-                  {char.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Cheat Sheet Template with Dynamic Content */}
+          {/* Cheat Sheet Template — auto-themed to the student's character */}
           <div id="cheat-sheet-printable" className="mb-8 overflow-x-auto">
             <CheatSheetTemplate
               title={cheatSheet.title}
               subtitle={cheatSheet.subtitle}
               boxes={cheatSheet.boxes}
               templateVersion={cheatSheet.template_version}
-              character={selectedCharacter}
+              character={character}
             />
           </div>
 
@@ -280,7 +251,7 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
               variant="outline"
               className="font-space"
               onClick={handleDownload}
-              style={{ borderColor: 'rgb(0, 191, 255)', color: 'rgb(0, 191, 255)' }}
+              style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}
             >
               <Download className="h-4 w-4 mr-2" />
               Download Cheat Sheet
@@ -289,7 +260,7 @@ export default function CheatSheetPage({ params }: CheatSheetPageProps) {
             <Link href={`/levels/${cheatSheet.age_group}/${cheatSheet.level_number}`}>
               <Button
                 className="text-white font-space font-semibold px-8 py-2 hover:opacity-80 transition-opacity"
-                style={{ backgroundColor: 'rgb(0, 191, 255)' }}
+                style={{ backgroundColor: theme.colors.primary }}
               >
                 Continue Learning
               </Button>
