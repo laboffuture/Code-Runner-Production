@@ -6,6 +6,7 @@ export interface IClassroom extends Document {
   joinCode: string;
   teacherIds: mongoose.Types.ObjectId[];
   createdBy: mongoose.Types.ObjectId;
+  schoolId?: mongoose.Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +18,8 @@ const ClassroomSchema = new Schema<IClassroom>(
     // Short human-friendly code students use to self-join.
     joinCode: { type: String, required: true, unique: true, uppercase: true, trim: true },
     teacherIds: [{ type: Schema.Types.ObjectId, ref: 'User', index: true }],
+    // Forward-compat seam for the future School layer (Phase 2). Nullable now.
+    schoolId: { type: Schema.Types.ObjectId, ref: 'School', default: null, index: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },
   {
