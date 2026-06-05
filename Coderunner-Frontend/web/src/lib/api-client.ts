@@ -358,6 +358,21 @@ export const api = {
     delete: (id: string) => apiClient.delete(`/contests/${id}`),
   },
 
+  // Owner Oversight (owner-gated)
+  oversight: {
+    getGroups: () => apiClient.get('/oversight/groups'),
+    getTickets: (params?: { status?: string; type?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.status) q.append('status', params.status);
+      if (params?.type) q.append('type', params.type);
+      return apiClient.get(`/oversight/tickets?${q.toString()}`);
+    },
+  },
+  tickets: {
+    create: (data: { type: 'bug_report' | 'doubt'; title: string; description: string }) =>
+      apiClient.post('/tickets', data),
+  },
+
   // Health
   health: {
     metrics: () => apiClient.get('/health/metrics'),
