@@ -128,8 +128,10 @@ export default function ProblemPage({ params }: ProblemPageProps) {
     <div
       className={`flex flex-col min-h-screen text-foreground relative${hasCompilerTheme && mounted ? ' bg-[#020408]' : ''}`}
     >
-      {/* Header — outside the wallpaper frame, spans full width */}
-      <NeuralHeader />
+      {/* Header — outside the wallpaper frame, spans full width.
+          backHref → the session's training module, with returnTo so "Start
+          Training" brings the student straight back to this same problem. */}
+      <NeuralHeader backHref={`/sessions/${problem.session_id}/introduction?returnTo=${problem.problem_id}`} />
 
       {/* Fallback: plain purple gradient for unknown characters */}
       {!hasCompilerTheme && (

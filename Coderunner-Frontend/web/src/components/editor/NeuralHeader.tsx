@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Terminal, Moon, Sun, User, Settings, LogOut } from 'lucide-react';
+import { Terminal, Moon, Sun, User, Settings, LogOut, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -13,6 +13,8 @@ import { useGlobalAudio } from '@/contexts/AudioContext';
 interface NeuralHeaderProps {
   sidebarOpen?: boolean;
   onToggleSidebar?: () => void;
+  /** When set, shows a prominent "back to arena" button at top-left (problem page). */
+  backHref?: string;
 }
 
 const NAV_LINKS = [
@@ -22,7 +24,7 @@ const NAV_LINKS = [
   { href: '/contest',   label: 'CONTEST'     },
 ];
 
-export default function NeuralHeader(_props: NeuralHeaderProps) {
+export default function NeuralHeader({ backHref }: NeuralHeaderProps) {
   const { character, accentColor, accentLight } = useTheme();
   const hasCompilerTheme = ['astra', 'nila', 'kenji', 'leo'].includes(character);
 
@@ -101,8 +103,21 @@ export default function NeuralHeader(_props: NeuralHeaderProps) {
       <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 pointer-events-none rounded-tl-2xl" style={{ borderColor: 'var(--accent-40)' }} />
       <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 pointer-events-none rounded-tr-2xl" style={{ borderColor: 'var(--accent-40)' }} />
 
-      {/* ── Left: Logo ─────────────────────────────────── */}
-      <div className="flex items-center gap-8 relative z-10">
+      {/* ── Left: Back-to-Arena + Logo ─────────────────── */}
+      <div className="flex items-center gap-5 relative z-10">
+        {backHref && (
+          <Link href={backHref} onClick={() => playProjectTextSound()}>
+            <button
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-orbitron font-bold text-sm text-white transition-all duration-200 hover:scale-105"
+              style={{ backgroundColor: '#dc2626', boxShadow: '0 0 16px rgba(220, 38, 38, 0.55)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ef4444'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#dc2626'; }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              ARENA
+            </button>
+          </Link>
+        )}
         <Link href="/home" className="flex items-center gap-3 cursor-pointer group">
           <div className="relative">
             <div
