@@ -36,7 +36,9 @@ When running the project, all three (front + back + runner) suddenly stop / time
 ### 4. `[x]` Arena re-entry — **SHIPPED (49e7a96)**
 Red "← ARENA" button in the problem-page header → `/sessions/<id>/introduction?returnTo=<problem_id>`; the introduction page already honors `returnTo`, so "Start Training" returns the student to the same problem. Frontend panel PASS. Did not touch the unlock gate.
 
-### 5. `[ ]` Admin oversight page
+### 5. `[~]` Admin/Owner oversight page — **LAUNCH CUT BUILT** (branch `feat/owner-oversight`, 5 commits)
+Built per spec `docs/superpowers/specs/2026-06-05-admin-oversight-design.md` + plan `docs/superpowers/plans/2026-06-05-owner-oversight-launch.md`. SHIPPED on the branch: `owner` role (centralized Role type) + `ownerMiddleware` + `create-owner.ts` seed; `Ticket` model + `Classroom.schoolId` seam; `POST /tickets` (student-gated, server-stamped scope); `GET /oversight/groups` + `GET /oversight/tickets` (read-only radar, creation-anchored breach); the `/oversight` owner UI (shell, Groups overview, Accountability radar); student "Report a bug / Ask a doubt" buttons. tsc clean (shared/api/web); every phase + a final integration pass = judge-panel PASS (0 HIGH). **Remaining to go live:** owner seeds the account (Task 18, needs `OWNER_*` env creds), deploy rebuild order (shared→api→runner), then merge. **Fast-follow (not built):** teacher/dev respond+resolve (+`ownsTicket` IDOR guard), TeacherActivity tracking, per-role health panels. **Phase 2 (separate):** the School layer.
+- ~~original 5/5a/5b breakdown~~ →
 A monitoring surface for an admin/owner persona, watching all three roles:
 - **Student** — % involvement/engagement in Coderunner.
 - **Teacher** — accountability: are they actually opening student profiles / discussing the answer guides? (needs new teacher-activity tracking).

@@ -14,6 +14,10 @@ export default function HomePage() {
 
     if (isAuthenticated) {
       // Developers and teachers go to their own areas, not the student flow.
+      if (user?.role === 'owner') {
+        router.push('/oversight/dashboard');
+        return;
+      }
       if (user?.role === 'developer') {
         router.push('/admin/dashboard');
         return;

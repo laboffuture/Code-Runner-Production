@@ -8,7 +8,7 @@ interface User {
   id: string;
   username: string;
   email: string;
-  role: 'student' | 'teacher' | 'developer';
+  role: 'student' | 'teacher' | 'developer' | 'owner';
   age_group: '11-14' | '15-18';
   selectedCharacter: 'astra' | 'nila' | 'kenji' | 'leo';
   onboardingComplete: boolean;
@@ -22,6 +22,7 @@ interface AuthContextType {
   isLoading: boolean;
   isDeveloper: boolean;
   isTeacher: boolean;
+  isOwner: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
@@ -200,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     isDeveloper: user?.role === 'developer',
     isTeacher: user?.role === 'teacher',
+    isOwner: user?.role === 'owner',
     login,
     register,
     logout,

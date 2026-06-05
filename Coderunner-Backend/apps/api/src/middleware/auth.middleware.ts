@@ -75,6 +75,26 @@ export function staffMiddleware(req: Request, res: Response, next: NextFunction)
   next();
 }
 
+// Owner-only middleware (must be used after authMiddleware).
+// Gates the oversight tier — the platform owner only. Re-verifies the role
+// against the DB because this is the highest-privilege credential and the JWT
+// role is otherwise trusted for the full token lifetime.
+export async function ownerMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (!req.user || req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Forbidden', message: 'Owner access required' });
+  }
+  try {
+    const { Models } = await import('@code-runner/shared');
+    const fresh: any = await Models.User.findById(req.user.userId).select('role').lean();
+    if (!fresh || fresh.role !== 'owner') {
+      return res.status(403).json({ error: 'Forbidden', message: 'Owner access required' });
+    }
+    next();
+  } catch {
+    return res.status(500).json({ error: 'Internal error', message: 'Role verification failed' });
+  }
+}
+
 // Optional auth middleware (doesn't fail if no token)
 export function optionalAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
