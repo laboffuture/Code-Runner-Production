@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Terminal, Cpu, Activity, Zap, User, Power, Settings, LogOut, LayoutDashboard, KeyRound } from 'lucide-react';
+import { Terminal, Cpu, Activity, Zap, User, Power, Settings, LogOut, LayoutDashboard, KeyRound, Bug, HelpCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useGlobalAudio } from '@/contexts/AudioContext';
@@ -14,6 +14,7 @@ import { NOVAS } from '@/lib/novas';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getCharacterEmblem } from '@/lib/view-backgrounds';
+import { ReportModal } from '@/components/support/ReportModal';
 
 export function Header() {
   const { playProjectTextSound } = useGlobalAudio();
@@ -22,6 +23,7 @@ export function Header() {
   const { logout, isDeveloper, user } = useAuth();
   const { theme } = useTheme(); // Get character theme
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [reportType, setReportType] = useState<'bug_report' | 'doubt' | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -291,6 +293,38 @@ export function Header() {
                   </Link>
                 )}
 
+                {user?.role === 'student' && (
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-3 transition-colors text-white"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = accent10}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onClick={() => {
+                      setReportType('doubt');
+                      setIsDropdownOpen(false);
+                      playProjectTextSound();
+                    }}
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                    <span className="text-sm font-space">Ask a doubt</span>
+                  </button>
+                )}
+
+                {user?.role === 'student' && (
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-3 transition-colors text-white"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = accent10}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onClick={() => {
+                      setReportType('bug_report');
+                      setIsDropdownOpen(false);
+                      playProjectTextSound();
+                    }}
+                  >
+                    <Bug className="w-4 h-4" />
+                    <span className="text-sm font-space">Report a bug</span>
+                  </button>
+                )}
+
                 <Link
                   href="/profile"
                   className="flex items-center gap-3 px-4 py-3 transition-colors text-white"
@@ -340,6 +374,12 @@ export function Header() {
           background: accentColor
         }}
       ></div>
+
+      <ReportModal
+        type={reportType ?? 'doubt'}
+        open={reportType !== null}
+        onClose={() => setReportType(null)}
+      />
     </header>
   );
 }
