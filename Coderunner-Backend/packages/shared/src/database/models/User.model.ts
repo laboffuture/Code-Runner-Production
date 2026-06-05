@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { ROLES, Role } from '../../types/roles';
 
 export interface IUser extends Document {
   username: string;
   email: string;
   passwordHash: string;
-  role: 'student' | 'teacher' | 'developer';
+  role: Role;
   age_group: '11-14' | '15-18';
   selectedCharacter: 'astra' | 'nila' | 'kenji' | 'leo';
   onboardingComplete: boolean;
@@ -38,7 +39,7 @@ const UserSchema = new Schema<IUser>({
   },
   role: {
     type: String,
-    enum: ['student', 'teacher', 'developer'],
+    enum: [...ROLES],
     default: 'student',
   },
   age_group: {

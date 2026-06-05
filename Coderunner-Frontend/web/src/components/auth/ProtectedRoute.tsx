@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   /** Restrict to a specific role (e.g. 'developer' for the monitoring
    *  dashboard, 'teacher' for the classroom area). Omit for any logged-in user. */
-  requireRole?: 'student' | 'teacher' | 'developer';
+  requireRole?: 'student' | 'teacher' | 'developer' | 'owner';
   redirectTo?: string;
 }
 

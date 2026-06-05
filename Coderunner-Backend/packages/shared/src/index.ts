@@ -2,6 +2,7 @@
 
 // Export types
 export * from './types';
+export * from './types/roles';
 
 // Export database connection separately (not models to avoid conflicts)
 export { connectToDatabase } from './database/connection';

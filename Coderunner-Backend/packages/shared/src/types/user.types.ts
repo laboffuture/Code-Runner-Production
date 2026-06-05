@@ -1,3 +1,5 @@
+import type { Role } from './roles';
+
 // User Profile Types
 export interface UserProfile {
   id: string;
@@ -68,7 +70,7 @@ export interface User {
   username: string;
   email: string;
   passwordHash: string;
-  role: 'student' | 'teacher' | 'developer';
+  role: Role;
   age_group: '11-14' | '15-18';
   createdAt: Date;
   updatedAt: Date;
@@ -77,7 +79,7 @@ export interface User {
 export interface AuthToken {
   userId: string;
   username: string;
-  role: 'student' | 'teacher' | 'developer';
+  role: Role;
   iat: number;
   exp: number;
 }
@@ -100,7 +102,7 @@ export interface AuthResponse {
     id: string;
     username: string;
     email: string;
-    role: 'student' | 'teacher' | 'developer';
+    role: Role;
     age_group: '11-14' | '15-18';
   };
 }
