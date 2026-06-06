@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { Models } from '@code-runner/shared';
 import { authMiddleware, ownerMiddleware } from '../middleware/auth.middleware';
 import { computeTicketDelay } from '../config/oversight.config';
+import { deriveCompletion, BandProblem } from '../services/curriculumProgress';
 
 const router = Router();
 router.use(authMiddleware);
@@ -15,18 +16,36 @@ router.get('/groups', async (_req: Request, res: Response) => {
     const classrooms: any[] = await Models.Classroom.find({}).select('name age_group teacherIds').lean();
     const since = new Date(Date.now() - ONE_DAY_MS);
 
+    // Load the (small) curriculum for both bands ONCE, then derive each student's
+    // CURRICULUM level from their solved set using the SAME deriveCompletion the
+    // teacher views use — so the owner's "LEVELS (L1-L4)" column means curriculum
+    // progress, not the gamification XP tier it used to show (H2).
+    const bandProblemDocs: any[] = await Models.Problem.find(
+      { age_group: { $in: ['11-14', '15-18'] } },
+      'problem_id level_number session_id difficulty age_group',
+    ).lean();
+    const problemsByBand = new Map<string, BandProblem[]>();
+    for (const p of bandProblemDocs) {
+      const arr = problemsByBand.get(String(p.age_group)) ?? [];
+      arr.push(p);
+      problemsByBand.set(String(p.age_group), arr);
+    }
+
     const rows = await Promise.all(
       classrooms.map(async (c: any) => {
-        const studentIds = await Models.User.find({ role: 'student', classroomId: c._id }).distinct('_id');
-        const studentCount = studentIds.length;
+        const students: any[] = await Models.User.find({ role: 'student', classroomId: c._id }).select('_id age_group').lean();
+        const studentIds = students.map((s) => s._id);
+        const studentCount = students.length;
         const activeUserIds = studentCount
           ? await Models.StudentAttempt.distinct('userId', { userId: { $in: studentIds }, createdAt: { $gte: since } })
           : [];
         const levelDist: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
         if (studentCount) {
-          const progresses: any[] = await Models.UserProgress.find({ userId: { $in: studentIds } }).select('level').lean();
-          for (const p of progresses) {
-            const lvl = Math.max(1, Math.min(4, Number(p.level) || 1));
+          const progresses: any[] = await Models.UserProgress.find({ userId: { $in: studentIds } }).select('userId solvedProblemIds').lean();
+          const solvedByUser = new Map<string, number[]>(progresses.map((p: any) => [String(p.userId), p.solvedProblemIds || []]));
+          for (const s of students) {
+            const band = problemsByBand.get(String(s.age_group)) || [];
+            const lvl = deriveCompletion(solvedByUser.get(String(s._id)) || [], band).level;
             levelDist[lvl] = (levelDist[lvl] || 0) + 1;
           }
         }

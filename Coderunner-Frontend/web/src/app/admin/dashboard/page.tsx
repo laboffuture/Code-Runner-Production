@@ -34,7 +34,7 @@ function fmtB(b: number) { return b>=1073741824?`${(b/1073741824).toFixed(1)} GB
 // ===== ARCHITECTURE LAYER CARD =====
 function ArchLayer({ title, subtitle, icon: Icon, status, children }: {
   title: string; subtitle: string; icon: React.ElementType;
-  status: 'online' | 'warning' | 'offline' | 'loading';
+  status: 'online' | 'warning' | 'offline' | 'loading' | 'static';
   children?: React.ReactNode;
 }) {
   const statusMap = {
@@ -42,6 +42,9 @@ function ArchLayer({ title, subtitle, icon: Icon, status, children }: {
     warning: { dot: 'bg-amber-500', text: 'text-amber-600', label: 'WARNING' },
     offline: { dot: 'bg-red-500', text: 'text-red-600', label: 'OFFLINE' },
     loading: { dot: 'bg-gray-400', text: 'text-gray-400', label: 'LOADING' },
+    // 'static' = we are NOT live-checking this layer here (no cheap always-valid probe);
+    // the card links to its detail page for real metrics. Honest neutral, never fake green.
+    static: { dot: 'bg-gray-300', text: 'text-gray-400', label: 'DETAIL' },
   };
   const s = statusMap[status];
 
@@ -99,6 +102,10 @@ export default function AdminDashboard() {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [logsExpanded, setLogsExpanded] = useState(false);
+  // Real status for the two external dependencies (null = probing). Driven by a
+  // mount-only probe, deliberately separate from the 10s auto-refresh below.
+  const [mongoUp, setMongoUp] = useState<boolean | null>(null);
+  const [cloudinaryUp, setCloudinaryUp] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Access control is enforced by the developer-gated admin layout
@@ -128,6 +135,21 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => { if (!authed) return; fetchAll(); const i = setInterval(fetchAll, 10000); return () => clearInterval(i); }, [authed, fetchAll]);
+
+  // External-dependency status dots (MongoDB Atlas, Cloudinary) are probed ONCE on
+  // mount — NOT inside the 10s loop — so auto-refresh never hammers Cloudinary's
+  // rate-limited Admin API. Resolved probe = reachable; rejected = down (honest red).
+  useEffect(() => {
+    if (!authed) return;
+    let cancelled = false;
+    (async () => {
+      const [mongo, cloud] = await Promise.allSettled([api.admin.mongodbStats(), api.admin.cloudinaryStats()]);
+      if (cancelled) return;
+      setMongoUp(mongo.status === 'fulfilled');
+      setCloudinaryUp(cloud.status === 'fulfilled');
+    })();
+    return () => { cancelled = true; };
+  }, [authed]);
 
   if (authChecking) return (
     <div className="min-h-screen bg-white flex items-center justify-center">
@@ -225,7 +247,7 @@ export default function AdminDashboard() {
               onClick={() => router.push('/admin/frontend')}
               className="cursor-pointer w-full"
             >
-              <ArchLayer title="FRONTEND" subtitle="Railway · Next.js · Port 8080" icon={Globe} status="online" />
+              <ArchLayer title="FRONTEND" subtitle="Railway · Next.js · Port 8080" icon={Globe} status="static" />
             </div>
 
             <FlowConnector label="HTTPS" />
@@ -234,7 +256,7 @@ export default function AdminDashboard() {
               onClick={() => router.push('/admin/nginx')}
               className="cursor-pointer w-full"
             >
-              <ArchLayer title="NGINX" subtitle="Load Balancer · least_conn" icon={Server} status="online">
+              <ArchLayer title="NGINX" subtitle="Load Balancer · least_conn" icon={Server} status="static">
                 <div className="grid grid-cols-2 gap-x-6">
                   <MiniStat label="Upstreams" value="2" />
                   <MiniStat label="Failover" value="auto" />
@@ -302,10 +324,11 @@ export default function AdminDashboard() {
                 onClick={() => router.push('/admin/mongodb')}
                 className="cursor-pointer"
               >
-                <ArchLayer title="MONGODB" subtitle="Atlas · Database" icon={Database} status="online">
+                <ArchLayer title="MONGODB" subtitle="Atlas · Database" icon={Database}
+                  status={mongoUp === null ? 'loading' : mongoUp ? 'online' : 'offline'}>
                   <div className="space-y-2">
                     <MiniStat label="Cluster" value="code-runner-db" />
-                    <MiniStat label="Status" value="Connected" color="text-emerald-600" />
+                    <MiniStat label="Status" value={mongoUp === null ? '…' : mongoUp ? 'Connected' : 'Unreachable'} color={mongoUp === false ? 'text-red-600' : 'text-emerald-600'} />
                   </div>
                 </ArchLayer>
               </div>
@@ -313,10 +336,11 @@ export default function AdminDashboard() {
                 onClick={() => router.push('/admin/cloudinary')}
                 className="cursor-pointer"
               >
-                <ArchLayer title="CLOUDINARY" subtitle="CDN · Asset Storage" icon={Server} status="online">
+                <ArchLayer title="CLOUDINARY" subtitle="CDN · Asset Storage" icon={Server}
+                  status={cloudinaryUp === null ? 'loading' : cloudinaryUp ? 'online' : 'offline'}>
                   <div className="space-y-2">
                     <MiniStat label="Storage" value="Cloud CDN" />
-                    <MiniStat label="Status" value="Active" color="text-emerald-600" />
+                    <MiniStat label="Status" value={cloudinaryUp === null ? '…' : cloudinaryUp ? 'Active' : 'Unreachable'} color={cloudinaryUp === false ? 'text-red-600' : 'text-emerald-600'} />
                   </div>
                 </ArchLayer>
               </div>

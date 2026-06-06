@@ -8,6 +8,7 @@ import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
+import { formatAcceptanceRate } from '@/lib/format';
 
 interface StudentRow {
   userId: string;
@@ -312,7 +313,7 @@ export default function ClassroomDashboard() {
                         <td className="px-5 py-3 text-gray-700">L{s.curriculumLevel}</td>
                         <td className="px-5 py-3 text-gray-700">{s.solvedToday}</td>
                         <td className="px-5 py-3 font-bold text-indigo-600">{s.totalSolved}</td>
-                        <td className="px-5 py-3 text-gray-700">{s.acceptanceRate}%</td>
+                        <td className="px-5 py-3 text-gray-700">{formatAcceptanceRate(s.acceptanceRate)}</td>
                         <td className="px-5 py-3 text-gray-700">{s.currentStreak} 🔥</td>
                         <td className="px-5 py-3 text-gray-400 text-xs font-fira">{fmt(s.lastActive)}</td>
                       </tr>

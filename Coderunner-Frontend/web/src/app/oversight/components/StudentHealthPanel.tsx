@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Loader2, HeartPulse } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
+import { formatAcceptanceRate } from '@/lib/format';
 
 interface StudentRow {
   id: string;
@@ -123,7 +124,7 @@ export function StudentHealthPanel() {
                       <td className="py-3 pr-4 font-rajdhani text-gray-700">{s.classroom || '—'}</td>
                       <td className="py-3 pr-4"><BucketChip bucket={s.bucket} /></td>
                       <td className="py-3 pr-4 font-rajdhani text-gray-700">{s.totalSolved}</td>
-                      <td className="py-3 pr-4 font-rajdhani text-gray-700">{Math.round(s.acceptanceRate)}%</td>
+                      <td className="py-3 pr-4 font-rajdhani text-gray-700">{formatAcceptanceRate(s.acceptanceRate)}</td>
                     </tr>
                   ))}
                 </tbody>

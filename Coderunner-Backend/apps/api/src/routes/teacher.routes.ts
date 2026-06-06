@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { Models, getLogger } from '@code-runner/shared';
 import { authMiddleware, teacherMiddleware } from '../middleware/auth.middleware';
 import { performStudentReset } from '../services/progressReset';
+import { deriveCompletion, BandProblem } from '../services/curriculumProgress';
 
 const router = Router();
 const logger = getLogger('teacher');
@@ -35,38 +36,11 @@ async function myStudent(req: Request, id: string) {
   return owns ? user : null;
 }
 
-interface BandProblem { problem_id: number; level_number: number; session_id: number; difficulty: string; }
-
-/**
- * Single source of truth for every teacher-facing COMPLETION number: derive them
- * fresh from the student's solvedProblemIds (the same write-once source the unlock
- * gate uses), NOT from the stored stats copies on UserProgress. This keeps the
- * roster and the student profile in lock-step and immune to any legacy/stored drift
- * (e.g. pre-solvedProblemIds test data). Gamification (xp/coins/rank/streak) stays
- * stored — only completion truth is derived here. `level` here means CURRICULUM
- * level reached (1–4), not the XP level.
- */
-function deriveCompletion(solvedIds: number[], bandProblems: BandProblem[]) {
-  const solvedSet = new Set(solvedIds);
-  let easySolved = 0, mediumSolved = 0, hardSolved = 0, totalSolved = 0, level = 1;
-  const agg = new Map<number, { total: number; solved: number }>();
-  for (const p of bandProblems) {
-    const e = agg.get(p.session_id) || { total: 0, solved: 0 };
-    e.total += 1;
-    if (solvedSet.has(p.problem_id)) {
-      e.solved += 1;
-      totalSolved += 1;
-      if (p.level_number > level) level = p.level_number;
-      const d = (p.difficulty || '').toLowerCase();
-      if (d === 'hard') hardSolved += 1; else if (d === 'medium') mediumSolved += 1; else easySolved += 1; // intro counts as easy
-    }
-    agg.set(p.session_id, e);
-  }
-  let sessionsCompleted = 0;
-  for (const e of agg.values()) if (e.total > 0 && e.solved >= e.total) sessionsCompleted += 1;
-  level = Math.max(1, Math.min(4, level)); // curriculum is 4 levels; guard against stray level_number
-  return { totalSolved, easySolved, mediumSolved, hardSolved, sessionsCompleted, sessionsTotal: agg.size, level };
-}
+// deriveCompletion + BandProblem now live in ../services/curriculumProgress, shared
+// with the owner /oversight/groups panel so "curriculum level" has ONE definition.
+// Lifetime solve counts (totalSolved/difficulty) come from stored stats below so the
+// teacher's headline numbers match the student's own profile and the leaderboard (H1);
+// the derived completion is used only for the curriculum lens (level + sessions).
 
 /** Build roster rows + chart overview for a set of student docs. */
 async function buildClassData(students: any[]) {
@@ -119,10 +93,13 @@ async function buildClassData(students: any[]) {
       joinedAt: s.createdAt,
       curriculumLevel: c.level, // derived curriculum level reached (1–4), not the XP level
       rank: p?.rank ?? 'NOVICE',
-      totalSolved: c.totalSolved,
-      easySolved: c.easySolved,
-      mediumSolved: c.mediumSolved,
-      hardSolved: c.hardSolved,
+      // Lifetime solve counts from STORED stats — matches the student's own profile,
+      // the leaderboard and the owner health panel (H1). Curriculum completion is the
+      // sessions + curriculumLevel above, not these counts.
+      totalSolved: p?.stats?.totalSolved ?? 0,
+      easySolved: p?.stats?.easySolved ?? 0,
+      mediumSolved: p?.stats?.mediumSolved ?? 0,
+      hardSolved: p?.stats?.hardSolved ?? 0,
       sessionsCompleted: c.sessionsCompleted,
       sessionsTotal: c.sessionsTotal,
       solvedToday,
@@ -142,9 +119,11 @@ async function buildClassData(students: any[]) {
     const p = byUser.get(String(s._id));
     const c = completionByUser.get(String(s._id))!;
     levelCounts[c.level] = (levelCounts[c.level] || 0) + 1; // derived curriculum level
-    difficulty.easy += c.easySolved;
-    difficulty.medium += c.mediumSolved;
-    difficulty.hard += c.hardSolved;
+    // Difficulty distribution from STORED stats (lifetime) so it sums to the roster's
+    // stored totalSolved and matches each student's own profile (H1).
+    difficulty.easy += p?.stats?.easySolved ?? 0;
+    difficulty.medium += p?.stats?.mediumSolved ?? 0;
+    difficulty.hard += p?.stats?.hardSolved ?? 0;
     for (const d of (p?.solvedCalendar || [])) {
       const key = new Date(d.date).toISOString().split('T')[0];
       dayMap[key] = (dayMap[key] || 0) + (d.count || 0);
@@ -331,9 +310,10 @@ router.get('/students/:id', async (req: Request, res: Response) => {
       .filter((t: any) => t.solved > 0)
       .map((t: any) => ({ name: t.topic, problemCount: t.solved, category: 'CONCEPT' }));
 
-    // Completion (sessions done + solved counts + curriculum level) — derived from
-    // the solved set via the SAME deriveCompletion the roster uses, so the profile
-    // and the roster can never disagree and stored-stat drift never shows.
+    // Curriculum progress (sessions done + curriculum level) — derived from the solved
+    // set via the SAME deriveCompletion the roster uses, so the curriculum lens is
+    // identical on the roster and the profile. Lifetime solve counts come from stored
+    // stats (below) so they match the student's own profile exactly.
     const bandProblems = (await Models.Problem.find(
       { age_group: user.age_group }, 'problem_id level_number session_id difficulty',
     ).lean()) as any[];
@@ -355,11 +335,14 @@ router.get('/students/:id', async (req: Request, res: Response) => {
       curriculumLevel: c.level, // highest curriculum level reached (1–4), derived — for "how far through"
       experience: progress?.experience || 0,
       streak: progress?.streak || { current: 0, longest: 0, lastSubmissionDate: null },
-      // Completion counts (totalSolved + difficulty breakdown) DERIVED from the
-      // solved set; submission-quality counts (submissions/acceptance/failedRuns)
-      // kept from stored stats — they track attempts, not curriculum completion.
+      // Solve counts (total + difficulty) from STORED stats so this matches the
+      // student's own profile exactly (H1). Curriculum progress is exposed separately
+      // via curriculumLevel + sessionsCompleted/Total.
       stats: {
-        totalSolved: c.totalSolved, easySolved: c.easySolved, mediumSolved: c.mediumSolved, hardSolved: c.hardSolved,
+        totalSolved: progress?.stats?.totalSolved ?? 0,
+        easySolved: progress?.stats?.easySolved ?? 0,
+        mediumSolved: progress?.stats?.mediumSolved ?? 0,
+        hardSolved: progress?.stats?.hardSolved ?? 0,
         totalSubmissions: progress?.stats?.totalSubmissions ?? 0,
         acceptedSubmissions: progress?.stats?.acceptedSubmissions ?? 0,
         acceptanceRate: progress?.stats?.acceptanceRate ?? 0,

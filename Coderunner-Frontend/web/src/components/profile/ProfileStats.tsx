@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { formatAcceptanceRate } from '@/lib/format';
 
 type ProfileSection = 'identity' | 'progress' | 'meta';
 
@@ -116,7 +117,7 @@ export function ProfileStats({ data, section = 'identity' }: ProfileStatsProps) 
             <span className="text-xs font-orbitron font-bold text-gray-600 tracking-wider">ACTIVITY STATS</span>
             <div className="mt-3 space-y-2.5">
               {[
-                { icon: TrendingUp, label: 'Acceptance Rate', value: `${profile.stats.acceptanceRate}%` },
+                { icon: TrendingUp, label: 'Acceptance Rate', value: formatAcceptanceRate(profile.stats.acceptanceRate) },
                 { icon: CheckCircle, label: 'Total Submissions', value: profile.stats.totalSubmissions },
                 { icon: Flame, label: 'Current Streak', value: `${profile.streak.current} days` },
                 { icon: Award, label: 'Longest Streak', value: `${profile.streak.longest} days` },
@@ -156,7 +157,7 @@ export function ProfileStats({ data, section = 'identity' }: ProfileStatsProps) 
                   { icon: Calendar, label: 'Joined', value: new Date(profile.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) },
                   { icon: Target, label: 'Total Solved', value: profile.stats.totalSolved },
                   { icon: CheckCircle, label: 'Total Submissions', value: profile.stats.totalSubmissions },
-                  { icon: TrendingUp, label: 'Acceptance Rate', value: `${profile.stats.acceptanceRate}%` },
+                  { icon: TrendingUp, label: 'Acceptance Rate', value: formatAcceptanceRate(profile.stats.acceptanceRate) },
                 ].map((stat, i) => (
                   <div key={i} className="flex items-center justify-between">
                     <div className="flex items-center text-gray-500">

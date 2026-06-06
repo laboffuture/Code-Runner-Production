@@ -9,6 +9,7 @@ import { ActivityCalendar } from '@/components/profile/ActivityCalendar';
 import { ChevronLeft, Loader2, Check, X, ShieldAlert } from 'lucide-react';
 import { activeFlags, whyText, type AttemptRecord } from '@/lib/integrity';
 import { ResetProgressDialog } from '@/components/teacher/ResetProgressDialog';
+import { formatAcceptanceRate } from '@/lib/format';
 
 // Full static class strings (Tailwind can't see interpolated color names).
 const TOPIC_COLORS = {
@@ -148,7 +149,7 @@ export default function StudentDetail() {
               const failed = Math.max(0, (s.totalSubmissions ?? 0) - (s.acceptedSubmissions ?? 0));
               const cards = [
                 { label: 'SESSIONS DONE', value: `${data.sessionsCompleted ?? 0} / ${data.sessionsTotal ?? 0}`, accent: 'text-indigo-600' },
-                { label: 'ACCEPTANCE', value: `${s.acceptanceRate ?? 0}%`, accent: 'text-emerald-600' },
+                { label: 'ACCEPTANCE', value: formatAcceptanceRate(s.acceptanceRate), accent: 'text-emerald-600' },
                 { label: 'SUBMISSIONS', value: s.totalSubmissions ?? 0, accent: 'text-gray-800' },
                 { label: 'FAILED SUBMITS', value: failed, accent: 'text-rose-600' },
                 { label: 'FAILED RUNS', value: s.failedRuns ?? 0, accent: 'text-amber-600' },
