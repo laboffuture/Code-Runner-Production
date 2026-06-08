@@ -10,7 +10,7 @@ import { OVERSIGHT_NAV, OWNER_BRAND } from './oversightNav';
  */
 export function OversightShell({ children }: { children: React.ReactNode }) {
   return (
-    <DashboardLayout brand={OWNER_BRAND} groups={OVERSIGHT_NAV} rootLabel="Oversight">
+    <DashboardLayout brand={OWNER_BRAND} groups={OVERSIGHT_NAV} rootLabel="Admin">
       {children}
     </DashboardLayout>
   );
