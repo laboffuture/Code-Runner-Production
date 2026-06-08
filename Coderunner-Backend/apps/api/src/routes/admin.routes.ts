@@ -647,9 +647,9 @@ router.get('/nginx/metrics', async (req: Request, res: Response) => {
     if (!fs.existsSync(logPath)) {
       return res.json({
         _unavailable: true,
-        message: 'Nginx access log not found. This endpoint activates automatically on VPS when Nginx is running.',
+        message: 'Nginx access log not found. This endpoint activates automatically on the VPS when Nginx is running.',
         expectedPath: logPath,
-        requestDistribution: [], upstreamStats: [], responseTimes: [], routingLogs: [],
+        requestDistribution: [], statusDistribution: [], recentRequests: [],
       });
     }
 
@@ -667,35 +667,42 @@ router.get('/nginx/metrics', async (req: Request, res: Response) => {
       return { ip: match[1], timestamp: new Date(dateStr), method: match[3], path: match[4], status: parseInt(match[5]), size: parseInt(match[6]) };
     }).filter((l): l is NonNullable<typeof l> => l !== null && l.timestamp >= since);
 
-    // Determine upstream from path patterns (heuristic: alternate between API-1 and API-2)
-    const api1Count = parsed.filter((_, i) => i % 2 === 0).length;
-    const api2Count = parsed.length - api1Count;
-
-    // Hourly request distribution
-    const hourlyMap = new Map<string, { api1: number; api2: number }>();
-    parsed.forEach((entry, i) => {
+    // Hourly TOTAL request distribution. NOTE: the combined log format does NOT
+    // record which upstream (API-1/API-2) served each request, so we report
+    // totals only — never a fabricated per-upstream split (the old code attributed
+    // requests to API-1/API-2 by `i % 2`, which was invented).
+    const hourlyMap = new Map<string, number>();
+    for (const entry of parsed) {
       const hour = entry.timestamp.toISOString().substring(0, 13) + ':00:00Z';
-      const existing = hourlyMap.get(hour) || { api1: 0, api2: 0 };
-      if (i % 2 === 0) existing.api1++; else existing.api2++;
-      hourlyMap.set(hour, existing);
-    });
-    const requestDistribution = Array.from(hourlyMap.entries()).map(([time, data]) => ({ time, ...data }));
+      hourlyMap.set(hour, (hourlyMap.get(hour) || 0) + 1);
+    }
+    const requestDistribution = Array.from(hourlyMap.entries()).map(([time, requests]) => ({ time, requests }));
 
-    // Recent routing logs
-    const routingLogs = parsed.slice(-30).reverse().map((entry, i) => ({
+    // Real status-class breakdown (2xx/3xx/4xx/5xx) from the parsed status codes.
+    const statusClasses = new Map<string, number>();
+    for (const entry of parsed) {
+      const cls = `${Math.floor(entry.status / 100)}xx`;
+      statusClasses.set(cls, (statusClasses.get(cls) || 0) + 1);
+    }
+    const statusDistribution = Array.from(statusClasses.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    // Recent requests (real). No upstream column — see note above.
+    const recentRequests = parsed.slice(-30).reverse().map((entry) => ({
       timestamp: entry.timestamp.toISOString(),
-      upstream: i % 2 === 0 ? 'API-1' : 'API-2',
       method: entry.method,
       path: entry.path,
       status: entry.status,
-      time: 'N/A',
     }));
 
     res.json({
+      totalRequests: parsed.length,
       requestDistribution,
-      upstreamStats: [{ name: 'API-1', value: api1Count }, { name: 'API-2', value: api2Count }],
-      responseTimes: [], // Nginx combined format doesn't include response time (needs $request_time in log format)
-      routingLogs,
+      statusDistribution,
+      recentRequests,
+      upstreamNote:
+        'least_conn balances across API-1 (:4000) and API-2 (:4001). Per-request upstream attribution requires $upstream_addr in the nginx log_format; the combined format does not record it.',
     });
   } catch (error: any) {
     logger.error('Failed to get Nginx metrics', { error: error.message });
