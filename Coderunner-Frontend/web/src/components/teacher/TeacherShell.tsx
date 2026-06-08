@@ -1,22 +1,26 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { GraduationCap, LayoutGrid, BookOpen, Inbox, Hash } from 'lucide-react';
 import { api } from '@/lib/api-client';
-import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutGrid, LogOut, Hash, BookOpen, Inbox } from 'lucide-react';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import type { NavGroup, DashboardBrand } from '@/components/dashboard/dashboard-nav';
 
-function navCls(active: boolean) {
-  return `flex items-center gap-3 px-5 py-2.5 text-sm font-rajdhani transition-colors ${
-    active ? 'bg-indigo-500/15 text-white border-r-2 border-indigo-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-  }`;
-}
+const TEACHER_BRAND: DashboardBrand = {
+  title: 'CLASSROOM',
+  subtitle: 'teacher',
+  icon: GraduationCap,
+  href: '/teacher',
+};
 
+/**
+ * Teacher-area chrome. Same shared white DashboardLayout as the developer/admin
+ * dashboards (green #76B900 accent), but the nav is dynamic — it lists the
+ * teacher's classrooms under a "Classes" group, refreshed on navigation.
+ */
 export function TeacherShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, logout } = useAuth();
   const [classes, setClasses] = useState<Array<{ id: string; name: string }>>([]);
 
   useEffect(() => {
@@ -26,52 +30,33 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
       .catch(() => {});
   }, [pathname]);
 
+  const groups: NavGroup[] = [
+    {
+      items: [
+        // "/teacher" is exact: it's a prefix of every teacher page, so without
+        // this it would stay highlighted on curriculum/inbox/classroom pages.
+        { href: '/teacher', label: 'My Classrooms', icon: LayoutGrid, exact: true },
+        { href: '/teacher/curriculum', label: 'Answer Guide', icon: BookOpen },
+        { href: '/teacher/inbox', label: 'Inbox', icon: Inbox },
+      ],
+    },
+    ...(classes.length > 0
+      ? [
+          {
+            label: 'Classes',
+            items: classes.map((c) => ({
+              href: `/teacher/classrooms/${c.id}`,
+              label: c.name,
+              icon: Hash,
+            })),
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <aside className="fixed inset-y-0 left-0 w-60 bg-[#0b1020] flex flex-col z-40">
-        <div className="px-5 py-5 flex items-center gap-2 border-b border-white/10">
-          <GraduationCap className="w-6 h-6 text-indigo-400" />
-          <span className="font-orbitron font-black tracking-wider text-white">CLASSROOM</span>
-        </div>
-
-        <nav className="flex-1 overflow-y-auto py-4">
-          <Link href="/teacher" className={navCls(pathname === '/teacher')}>
-            <LayoutGrid className="w-4 h-4" /> My Classrooms
-          </Link>
-
-          <Link href="/teacher/curriculum" className={navCls(pathname === '/teacher/curriculum')}>
-            <BookOpen className="w-4 h-4" /> Answer Guide
-          </Link>
-
-          <Link href="/teacher/inbox" className={navCls(pathname === '/teacher/inbox')}>
-            <Inbox className="w-4 h-4" /> Inbox
-          </Link>
-
-          {classes.length > 0 && (
-            <div className="px-5 mt-5 mb-2 text-[10px] font-orbitron tracking-[0.2em] text-gray-500">CLASSES</div>
-          )}
-          {classes.map((c) => (
-            <Link key={c.id} href={`/teacher/classrooms/${c.id}`} className={navCls(!!pathname?.includes(c.id))}>
-              <Hash className="w-4 h-4 shrink-0" /> <span className="truncate">{c.name}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div className="border-t border-white/10 p-4">
-          <div className="text-xs font-rajdhani text-gray-400 mb-2 truncate">{user?.username || 'Teacher'}</div>
-          <button
-            onClick={() => {
-              logout();
-              router.push('/login');
-            }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-300 hover:bg-red-500/10 font-orbitron text-xs tracking-wider transition-colors"
-          >
-            <LogOut className="w-4 h-4" /> LOGOUT
-          </button>
-        </div>
-      </aside>
-
-      <div className="ml-60 min-w-0">{children}</div>
-    </div>
+    <DashboardLayout brand={TEACHER_BRAND} groups={groups} rootLabel="Classroom">
+      {children}
+    </DashboardLayout>
   );
 }

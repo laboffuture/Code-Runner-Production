@@ -21,13 +21,23 @@ export function DashboardTopbar({
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b-2 border-gray-200 bg-white/90 px-6 backdrop-blur">
       <div className="flex items-center gap-1.5 text-sm">
-        <span className="font-orbitron font-bold uppercase tracking-wider text-gray-400">
+        {/* Matched route: "Root › Page". Unmatched route (e.g. a detail page
+            with no nav entry): just the root label, instead of "… › Console". */}
+        <span
+          className={`font-orbitron font-bold uppercase tracking-wider ${
+            current ? 'text-gray-400' : 'text-gray-900'
+          }`}
+        >
           {rootLabel}
         </span>
-        <ChevronRight className="h-4 w-4 text-gray-300" />
-        <span className="font-orbitron font-bold uppercase tracking-wider text-gray-900">
-          {current?.label ?? 'Console'}
-        </span>
+        {current && (
+          <>
+            <ChevronRight className="h-4 w-4 text-gray-300" />
+            <span className="font-orbitron font-bold uppercase tracking-wider text-gray-900">
+              {current.label}
+            </span>
+          </>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full bg-[#76B900] animate-pulse" />

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
-import { GraduationCap, Plus, Loader2, Users, ChevronRight, KeyRound } from 'lucide-react';
+import { Plus, Loader2, Users, ChevronRight, KeyRound } from 'lucide-react';
 
 interface ClassroomRow {
   id: string;
@@ -61,95 +61,85 @@ export default function TeacherClassrooms() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b-2 border-gray-200 sticky top-0 z-40">
-        <div className="px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <GraduationCap className="w-7 h-7 text-indigo-600" />
-            <div>
-              <h1 className="text-2xl font-orbitron font-black text-gray-900 tracking-wider">MY CLASSROOMS</h1>
-              <p className="text-sm text-gray-600 font-fira">Pick a class to see student insight</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowCreate((v) => !v)}
-              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 font-orbitron font-bold text-xs tracking-wider"
+    <div className="mx-auto max-w-[1100px] px-6 py-8">
+      {/* Action row — the topbar already names the page; this carries the
+          subtitle + the create action. */}
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <p className="font-rajdhani text-sm text-gray-600">Pick a class to see student insight</p>
+        <button
+          onClick={() => setShowCreate((v) => !v)}
+          className="flex items-center gap-2 rounded-lg bg-[#76B900] px-4 py-2 font-orbitron text-xs font-bold tracking-wider text-white hover:bg-[#68a300]"
+        >
+          <Plus className="h-4 w-4" /> NEW CLASS
+        </button>
+      </div>
+
+      {showCreate && (
+        <div className="mb-6 rounded-xl border-2 border-[#76B900]/30 bg-white p-5">
+          <h2 className="mb-3 font-orbitron text-sm font-bold text-gray-900">Create a classroom</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Class name (e.g. Grade 6 - A)"
+              className="min-w-[220px] flex-1 rounded-lg border-2 border-gray-200 px-3 py-2 font-rajdhani outline-none focus:border-[#76B900]"
+            />
+            <select
+              value={ageGroup}
+              onChange={(e) => setAgeGroup(e.target.value as '11-14' | '15-18')}
+              className="rounded-lg border-2 border-gray-200 px-3 py-2 font-rajdhani"
             >
-              <Plus className="w-4 h-4" /> NEW CLASS
+              <option value="11-14">11-14</option>
+              <option value="15-18">15-18</option>
+            </select>
+            <button
+              onClick={create}
+              disabled={creating || !name.trim()}
+              className="rounded-lg bg-[#76B900] px-5 py-2 font-orbitron text-xs font-bold tracking-wider text-white hover:bg-[#68a300] disabled:opacity-50"
+            >
+              {creating ? 'CREATING…' : 'CREATE'}
             </button>
           </div>
         </div>
-      </header>
+      )}
 
-      <main className="max-w-[1100px] mx-auto px-6 py-8">
-        {showCreate && (
-          <div className="bg-white border-2 border-indigo-200 rounded-xl p-5 mb-6">
-            <h2 className="font-orbitron text-sm font-bold text-gray-900 mb-3">Create a classroom</h2>
-            <div className="flex flex-wrap items-center gap-3">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Class name (e.g. Grade 6 - A)"
-                className="flex-1 min-w-[220px] px-3 py-2 border-2 border-gray-200 rounded-lg font-rajdhani focus:border-indigo-400 outline-none"
-              />
-              <select
-                value={ageGroup}
-                onChange={(e) => setAgeGroup(e.target.value as '11-14' | '15-18')}
-                className="px-3 py-2 border-2 border-gray-200 rounded-lg font-rajdhani"
-              >
-                <option value="11-14">11-14</option>
-                <option value="15-18">15-18</option>
-              </select>
-              <button
-                onClick={create}
-                disabled={creating || !name.trim()}
-                className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-orbitron font-bold text-xs tracking-wider"
-              >
-                {creating ? 'CREATING…' : 'CREATE'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-          </div>
-        ) : error ? (
-          <div className="text-center py-20 text-red-600 font-rajdhani">{error}</div>
-        ) : classrooms.length === 0 ? (
-          <div className="text-center py-20 text-gray-400 font-rajdhani">
-            No classrooms yet. Click <span className="font-bold text-indigo-600">NEW CLASS</span> to create one.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {classrooms.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => router.push(`/teacher/classrooms/${c.id}`)}
-                className="text-left bg-white border-2 border-gray-200 hover:border-indigo-300 rounded-xl p-5 transition-colors group"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-orbitron font-black text-lg text-gray-900">{c.name}</div>
-                    <div className="text-xs text-gray-500 font-rajdhani mt-1">Age group {c.age_group}</div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-500" />
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-[#76B900]" />
+        </div>
+      ) : error ? (
+        <div className="py-20 text-center font-rajdhani text-red-600">{error}</div>
+      ) : classrooms.length === 0 ? (
+        <div className="py-20 text-center font-rajdhani text-gray-400">
+          No classrooms yet. Click <span className="font-bold text-[#76B900]">NEW CLASS</span> to create one.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {classrooms.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => router.push(`/teacher/classrooms/${c.id}`)}
+              className="group rounded-xl border-2 border-gray-200 bg-white p-5 text-left transition-colors hover:border-[#76B900]/40"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="font-orbitron text-lg font-black text-gray-900">{c.name}</div>
+                  <div className="mt-1 font-rajdhani text-xs text-gray-500">Age group {c.age_group}</div>
                 </div>
-                <div className="flex items-center gap-4 mt-4 text-sm font-rajdhani text-gray-600">
-                  <span className="flex items-center gap-1">
-                    <Users className="w-4 h-4 text-indigo-500" /> {c.studentCount} students
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <KeyRound className="w-4 h-4 text-amber-500" /> Code <span className="font-fira font-bold">{c.joinCode}</span>
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </main>
+                <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-[#76B900]" />
+              </div>
+              <div className="mt-4 flex items-center gap-4 font-rajdhani text-sm text-gray-600">
+                <span className="flex items-center gap-1">
+                  <Users className="h-4 w-4 text-[#76B900]" /> {c.studentCount} students
+                </span>
+                <span className="flex items-center gap-1">
+                  <KeyRound className="h-4 w-4 text-amber-500" /> Code <span className="font-fira font-bold">{c.joinCode}</span>
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

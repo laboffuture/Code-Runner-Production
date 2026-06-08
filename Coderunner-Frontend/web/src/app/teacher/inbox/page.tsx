@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
-import { Inbox, Loader2, HelpCircle } from 'lucide-react';
+import { Loader2, HelpCircle } from 'lucide-react';
 import { DelayBadge } from '@/app/oversight/components/DelayBadge';
 
 interface Ticket {
@@ -35,7 +35,7 @@ function relativeTime(iso: string): string {
 
 const STATUS_STYLE: Record<Ticket['status'], string> = {
   open: 'text-amber-600',
-  in_progress: 'text-indigo-600',
+  in_progress: 'text-sky-600',
   resolved: 'text-emerald-600',
 };
 
@@ -81,83 +81,73 @@ export default function TeacherInbox() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b-2 border-gray-200 sticky top-0 z-40">
-        <div className="px-6 py-4 flex items-center gap-3">
-          <Inbox className="w-7 h-7 text-indigo-600" />
-          <div>
-            <h1 className="text-2xl font-orbitron font-black text-gray-900 tracking-wider">INBOX</h1>
-            <p className="text-sm text-gray-600 font-fira">Student doubts awaiting your response</p>
-          </div>
+    <div className="mx-auto max-w-[1100px] px-6 py-8">
+      <p className="mb-6 font-rajdhani text-sm text-gray-600">Student doubts awaiting your response</p>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-[#76B900]" />
         </div>
-      </header>
-
-      <main className="max-w-[1100px] mx-auto px-6 py-8">
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-          </div>
-        ) : error ? (
-          <div className="text-center py-20 text-red-600 font-rajdhani">{error}</div>
-        ) : tickets.length === 0 ? (
-          <div className="text-center py-20">
-            <HelpCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-400 font-rajdhani">No doubts in your inbox.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {tickets.map((t) => (
-              <div key={t.id} className="bg-white border-2 border-gray-200 rounded-xl p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-orbitron font-bold text-base text-gray-900">{t.title}</span>
-                      <DelayBadge delayHours={t.delayHours} isBreached={t.isBreached} />
-                      <span className={`font-orbitron font-bold text-xs tracking-wide ${STATUS_STYLE[t.status]}`}>
-                        {t.status.replace('_', ' ').toUpperCase()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 font-rajdhani mb-2 whitespace-pre-wrap">{t.description}</p>
-                    <div className="flex items-center gap-2 text-xs font-rajdhani text-gray-500">
-                      <span className="font-bold text-gray-700">{t.student}</span>
-                      <span>·</span>
-                      <span>{t.classroom || '—'}</span>
-                      <span>·</span>
-                      <span>{relativeTime(t.createdAt)}</span>
-                    </div>
+      ) : error ? (
+        <div className="py-20 text-center font-rajdhani text-red-600">{error}</div>
+      ) : tickets.length === 0 ? (
+        <div className="py-20 text-center">
+          <HelpCircle className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+          <p className="font-rajdhani text-gray-400">No doubts in your inbox.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {tickets.map((t) => (
+            <div key={t.id} className="rounded-xl border-2 border-gray-200 bg-white p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <span className="font-orbitron text-base font-bold text-gray-900">{t.title}</span>
+                    <DelayBadge delayHours={t.delayHours} isBreached={t.isBreached} />
+                    <span className={`font-orbitron text-xs font-bold tracking-wide ${STATUS_STYLE[t.status]}`}>
+                      {t.status.replace('_', ' ').toUpperCase()}
+                    </span>
                   </div>
-
-                  <div className="shrink-0">
-                    {t.status === 'open' && (
-                      <button
-                        onClick={() => act(t.id, 'respond')}
-                        disabled={pendingId === t.id}
-                        className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-orbitron font-bold text-xs tracking-wider"
-                      >
-                        {pendingId === t.id ? 'WORKING…' : 'RESPOND'}
-                      </button>
-                    )}
-                    {t.status === 'in_progress' && (
-                      <button
-                        onClick={() => act(t.id, 'resolve')}
-                        disabled={pendingId === t.id}
-                        className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-orbitron font-bold text-xs tracking-wider"
-                      >
-                        {pendingId === t.id ? 'WORKING…' : 'RESOLVE'}
-                      </button>
-                    )}
-                    {t.status === 'resolved' && (
-                      <span className="px-4 py-2 rounded-lg bg-gray-100 text-gray-400 font-orbitron font-bold text-xs tracking-wider">
-                        RESOLVED
-                      </span>
-                    )}
+                  <p className="mb-2 whitespace-pre-wrap font-rajdhani text-sm text-gray-700">{t.description}</p>
+                  <div className="flex items-center gap-2 font-rajdhani text-xs text-gray-500">
+                    <span className="font-bold text-gray-700">{t.student}</span>
+                    <span>·</span>
+                    <span>{t.classroom || '—'}</span>
+                    <span>·</span>
+                    <span>{relativeTime(t.createdAt)}</span>
                   </div>
                 </div>
+
+                <div className="shrink-0">
+                  {t.status === 'open' && (
+                    <button
+                      onClick={() => act(t.id, 'respond')}
+                      disabled={pendingId === t.id}
+                      className="rounded-lg bg-[#76B900] px-4 py-2 font-orbitron text-xs font-bold tracking-wider text-white hover:bg-[#68a300] disabled:opacity-50"
+                    >
+                      {pendingId === t.id ? 'WORKING…' : 'RESPOND'}
+                    </button>
+                  )}
+                  {t.status === 'in_progress' && (
+                    <button
+                      onClick={() => act(t.id, 'resolve')}
+                      disabled={pendingId === t.id}
+                      className="rounded-lg bg-emerald-600 px-4 py-2 font-orbitron text-xs font-bold tracking-wider text-white hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {pendingId === t.id ? 'WORKING…' : 'RESOLVE'}
+                    </button>
+                  )}
+                  {t.status === 'resolved' && (
+                    <span className="rounded-lg bg-gray-100 px-4 py-2 font-orbitron text-xs font-bold tracking-wider text-gray-400">
+                      RESOLVED
+                    </span>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </main>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -140,7 +140,7 @@ function ProgressRing({ ratio }: { ratio: number }) {
         fill="none"
         strokeWidth="2.5"
         strokeLinecap="round"
-        className="stroke-indigo-500"
+        className="stroke-[#76B900]"
         strokeDasharray={c}
         strokeDashoffset={c * (1 - clamped)}
       />
@@ -169,7 +169,7 @@ function ReadyPill({ ready, total }: { ready: number; total: number }) {
 function SectionLabel({ icon: Icon, children }: { icon: typeof Code2; children: React.ReactNode }) {
   return (
     <div className="mb-3 flex items-center gap-2">
-      <Icon className="h-4 w-4 text-indigo-500" />
+      <Icon className="h-4 w-4 text-[#76B900]" />
       <h3 className="font-orbitron text-xs font-bold uppercase tracking-[0.18em] text-gray-500">
         {children}
       </h3>
@@ -289,33 +289,12 @@ export default function CurriculumGuide() {
   const showGuideView = selection !== null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ---------- Sticky header (mirrors teacher/page.tsx) ---------- */}
-      <header className="sticky top-0 z-40 border-b-2 border-gray-200 bg-white">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
-              <BookOpen className="h-5 w-5 text-indigo-600" />
-            </span>
-            <div className="min-w-0">
-              <h1 className="font-orbitron text-2xl font-black tracking-wider text-gray-900">
-                ANSWER GUIDE
-              </h1>
-              <p className="font-fira text-sm text-gray-600">
-                Model solutions and read-aloud explanations for every case
-              </p>
-            </div>
-          </div>
-          {!showGuideView && currentLevel && (
-            <span className="hidden items-center gap-2 rounded-lg border-2 border-gray-200 bg-gray-50 px-3 py-1.5 font-rajdhani text-sm font-semibold text-gray-600 md:inline-flex">
-              <Sparkles className="h-4 w-4 text-indigo-500" />
-              {levelSummary.ready} guides ready
-            </span>
-          )}
-        </div>
-      </header>
+    <div className="mx-auto max-w-[1100px] px-6 py-8">
+      <p className="mb-6 font-fira text-sm text-gray-600">
+        Model solutions and read-aloud explanations for every case
+      </p>
 
-      <main className="mx-auto max-w-[1100px] px-6 py-8">
+      <div>
         {loading ? (
           <LoadingState />
         ) : treeError ? (
@@ -342,7 +321,7 @@ export default function CurriculumGuide() {
             onOpenCase={openGuide}
           />
         )}
-      </main>
+      </div>
     </div>
   );
 }
@@ -382,11 +361,11 @@ function BrowserView({
               onClick={() => onSwitchLevel(lvl.level_number)}
               className={`inline-flex items-center gap-2 rounded-lg border-2 px-4 py-2 font-orbitron text-xs font-bold tracking-wider transition-colors ${
                 active
-                  ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
-                  : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:text-indigo-700'
+                  ? 'border-[#76B900] bg-[#76B900] text-white shadow-sm'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-[#76B900]/40 hover:text-[#76B900]'
               }`}
             >
-              <Layers className={`h-4 w-4 ${active ? 'text-white' : 'text-indigo-500'}`} />
+              <Layers className={`h-4 w-4 ${active ? 'text-white' : 'text-[#76B900]'}`} />
               LEVEL {lvl.level_number}
             </button>
           );
@@ -453,7 +432,7 @@ function SessionCard({
   return (
     <section
       className={`overflow-hidden rounded-xl border-2 bg-white transition-colors ${
-        open ? 'border-indigo-300' : 'border-gray-200 hover:border-indigo-300'
+        open ? 'border-[#76B900]/40' : 'border-gray-200 hover:border-[#76B900]/40'
       }`}
     >
       {/* Header row — whole row is the accordion toggle. NOT sticky: a sticky
@@ -466,7 +445,7 @@ function SessionCard({
           open ? 'bg-white' : 'bg-white hover:bg-gray-50'
         }`}
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-indigo-100 bg-indigo-50 font-orbitron text-sm font-black text-indigo-600">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#76B900]/30 bg-[#76B900]/10 font-orbitron text-sm font-black text-[#76B900]">
           {pad2(index + 1)}
         </span>
 
@@ -481,7 +460,7 @@ function SessionCard({
 
         <ChevronDown
           className={`h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 ${
-            open ? 'rotate-180 text-indigo-500' : ''
+            open ? 'rotate-180 text-[#76B900]' : ''
           }`}
         />
       </button>
@@ -499,7 +478,7 @@ function SessionCard({
                 <li key={c.problem_id}>
                   <button
                     onClick={() => onOpenCase(c, session.session_id, levelNumber)}
-                    className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-indigo-50/40"
+                    className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#76B900]/5"
                   >
                     {c.hasGuide ? (
                       <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />
@@ -560,7 +539,7 @@ function GuideView({
       <div className="mb-6">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-3 py-1.5 font-rajdhani text-sm font-semibold text-gray-600 transition-colors hover:border-indigo-300 hover:text-indigo-700"
+          className="inline-flex items-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-3 py-1.5 font-rajdhani text-sm font-semibold text-gray-600 transition-colors hover:border-[#76B900]/40 hover:text-[#76B900]"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to guide
@@ -596,7 +575,7 @@ function GuideView({
       {loading ? (
         <div className="rounded-xl border-2 border-gray-200 bg-white px-6 py-20">
           <div className="flex flex-col items-center gap-3 text-gray-400">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#76B900]" />
             <span className="font-rajdhani text-sm">Loading the guide…</span>
           </div>
         </div>
@@ -652,7 +631,7 @@ function GuideContent({ guide }: { guide: Guide }) {
           <ol className="space-y-4">
             {walkthrough.map((w, i) => (
               <li key={i} className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-indigo-100 bg-indigo-50 font-orbitron text-xs font-bold text-indigo-600">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#76B900]/30 bg-[#76B900]/10 font-orbitron text-xs font-bold text-[#76B900]">
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1 pt-0.5">
@@ -711,7 +690,7 @@ function GuideContent({ guide }: { guide: Guide }) {
                 {concepts.map((k) => (
                   <span
                     key={k}
-                    className="rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 font-rajdhani text-xs font-semibold text-indigo-700"
+                    className="rounded-full border border-[#76B900]/30 bg-[#76B900]/10 px-3 py-1 font-rajdhani text-xs font-semibold text-[#76B900]"
                   >
                     {k}
                   </span>
@@ -758,9 +737,9 @@ function ComingSoon({ question }: { question?: string }) {
           </pre>
         </Card>
       )}
-      <div className="rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/40 px-6 py-12 text-center">
-        <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100">
-          <Sparkles className="h-6 w-6 text-indigo-500" />
+      <div className="rounded-xl border-2 border-dashed border-[#76B900]/40 bg-[#76B900]/5 px-6 py-12 text-center">
+        <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#76B900]/15">
+          <Sparkles className="h-6 w-6 text-[#76B900]" />
         </span>
         <h3 className="font-orbitron text-sm font-bold tracking-wider text-gray-900">
           DETAILED GUIDE COMING SOON
@@ -776,7 +755,7 @@ function ComingSoon({ question }: { question?: string }) {
 function LoadingState() {
   return (
     <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 text-gray-400">
-      <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+      <Loader2 className="h-8 w-8 animate-spin text-[#76B900]" />
       <span className="font-rajdhani text-sm">Loading the curriculum…</span>
     </div>
   );

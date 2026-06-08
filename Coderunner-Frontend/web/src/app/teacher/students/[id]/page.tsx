@@ -92,34 +92,33 @@ export default function StudentDetail() {
   }, [id, reloadKey]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b-2 border-gray-200 sticky top-0 z-40">
-        <div className="px-6 py-4 flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="p-2 rounded-lg border-2 border-gray-200 hover:bg-gray-50 text-gray-700"
-            title="Back to classroom"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-orbitron font-black text-gray-900 tracking-wider">
-              {data?.username || 'STUDENT'}
-            </h1>
-            <p className="text-sm text-gray-600 font-fira">
-              Student insight{data?.age_group ? ` · ${data.age_group}` : ''}
-            </p>
-          </div>
-          {data && (
-            <button
-              onClick={() => setResetOpen(true)}
-              className="ml-auto rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100"
-            >
-              Reset Progress
-            </button>
-          )}
+    <div className="mx-auto max-w-[1400px] px-6 py-8">
+      {/* Content-top row (the sticky page header is now the shared topbar). */}
+      <div className="mb-6 flex items-center gap-3">
+        <button
+          onClick={() => router.back()}
+          className="rounded-lg border-2 border-gray-200 p-2 text-gray-700 hover:bg-gray-50"
+          title="Back to classroom"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <div>
+          <h1 className="font-orbitron text-2xl font-black tracking-wider text-gray-900">
+            {data?.username || 'STUDENT'}
+          </h1>
+          <p className="font-fira text-sm text-gray-600">
+            Student insight{data?.age_group ? ` · ${data.age_group}` : ''}
+          </p>
         </div>
-      </header>
+        {data && (
+          <button
+            onClick={() => setResetOpen(true)}
+            className="ml-auto rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100"
+          >
+            Reset Progress
+          </button>
+        )}
+      </div>
 
       {resetOpen && data && (
         <ResetProgressDialog
@@ -130,10 +129,10 @@ export default function StudentDetail() {
         />
       )}
 
-      <main className="max-w-[1400px] mx-auto px-6 py-8">
+      <div>
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#76B900]" />
           </div>
         ) : error ? (
           <div className="text-center py-20 text-red-600 font-rajdhani">{error}</div>
@@ -148,7 +147,7 @@ export default function StudentDetail() {
               const s = data.stats || {};
               const failed = Math.max(0, (s.totalSubmissions ?? 0) - (s.acceptedSubmissions ?? 0));
               const cards = [
-                { label: 'SESSIONS DONE', value: `${data.sessionsCompleted ?? 0} / ${data.sessionsTotal ?? 0}`, accent: 'text-indigo-600' },
+                { label: 'SESSIONS DONE', value: `${data.sessionsCompleted ?? 0} / ${data.sessionsTotal ?? 0}`, accent: 'text-[#76B900]' },
                 { label: 'ACCEPTANCE', value: formatAcceptanceRate(s.acceptanceRate), accent: 'text-emerald-600' },
                 { label: 'SUBMISSIONS', value: s.totalSubmissions ?? 0, accent: 'text-gray-800' },
                 { label: 'FAILED SUBMITS', value: failed, accent: 'text-rose-600' },
@@ -338,7 +337,7 @@ export default function StudentDetail() {
             </div>
           </div>
         ) : null}
-      </main>
+      </div>
     </div>
   );
 }

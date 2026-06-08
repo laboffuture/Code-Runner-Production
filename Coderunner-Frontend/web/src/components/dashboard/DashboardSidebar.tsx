@@ -51,7 +51,7 @@ export function DashboardSidebar({
             <ul className="space-y-1">
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const active = isActive(item.href, pathname);
+                const active = isActive(item.href, pathname, item.exact);
                 return (
                   <li key={item.href}>
                     <Link
