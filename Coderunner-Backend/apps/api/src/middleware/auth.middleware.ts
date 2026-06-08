@@ -75,19 +75,19 @@ export function staffMiddleware(req: Request, res: Response, next: NextFunction)
   next();
 }
 
-// Owner-only middleware (must be used after authMiddleware).
-// Gates the oversight tier — the platform owner only. Re-verifies the role
-// against the DB because this is the highest-privilege credential and the JWT
-// role is otherwise trusted for the full token lifetime.
-export async function ownerMiddleware(req: Request, res: Response, next: NextFunction) {
-  if (!req.user || req.user.role !== 'owner') {
-    return res.status(403).json({ error: 'Forbidden', message: 'Owner access required' });
+// Admin-only middleware (must be used after authMiddleware).
+// Gates the admin oversight tier — the platform admin only. Re-verifies the
+// role against the DB because this is the highest-privilege credential and the
+// JWT role is otherwise trusted for the full token lifetime.
+export async function adminMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Forbidden', message: 'Admin access required' });
   }
   try {
     const { Models } = await import('@code-runner/shared');
     const fresh: any = await Models.User.findById(req.user.userId).select('role').lean();
-    if (!fresh || fresh.role !== 'owner') {
-      return res.status(403).json({ error: 'Forbidden', message: 'Owner access required' });
+    if (!fresh || fresh.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden', message: 'Admin access required' });
     }
     next();
   } catch {

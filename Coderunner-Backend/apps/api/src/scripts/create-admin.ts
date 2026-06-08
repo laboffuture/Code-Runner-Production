@@ -1,5 +1,11 @@
 /**
- * Script to create an admin user
+ * Script to create a DEVELOPER (infra/monitoring) account.
+ *
+ * NOTE: legacy name. Despite the "admin" filename and ADMIN_* env vars, this
+ * seeds a `developer`-role account (the infra tier), NOT the top `admin`
+ * oversight tier. The admin tier is created by create-owner.ts. Set
+ * ADMIN_ROLE=teacher to seed a teacher instead.
+ *
  * Run with: npx tsx src/scripts/create-admin.ts
  */
 

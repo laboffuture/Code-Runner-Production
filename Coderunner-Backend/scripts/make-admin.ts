@@ -1,6 +1,9 @@
 /**
- * Promote a user to admin role
- * 
+ * Promote a user to the DEVELOPER role (infra/monitoring tier).
+ *
+ * NOTE: legacy name — "make-admin" promotes to `developer`, NOT the top `admin`
+ * oversight tier (the admin tier is seeded via apps/api/src/scripts/create-owner.ts).
+ *
  * Usage (from project root):
  *   npx tsx scripts/make-admin.ts <username>
  * 

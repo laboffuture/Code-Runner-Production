@@ -1,7 +1,7 @@
 'use client';
 
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { OVERSIGHT_NAV, OWNER_BRAND } from './oversightNav';
+import { OVERSIGHT_NAV, ADMIN_BRAND } from './oversightNav';
 
 /**
  * Client boundary for the oversight (owner) dashboard chrome — mirrors AdminShell
@@ -10,7 +10,7 @@ import { OVERSIGHT_NAV, OWNER_BRAND } from './oversightNav';
  */
 export function OversightShell({ children }: { children: React.ReactNode }) {
   return (
-    <DashboardLayout brand={OWNER_BRAND} groups={OVERSIGHT_NAV} rootLabel="Admin">
+    <DashboardLayout brand={ADMIN_BRAND} groups={OVERSIGHT_NAV} rootLabel="Admin">
       {children}
     </DashboardLayout>
   );

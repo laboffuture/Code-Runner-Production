@@ -2,12 +2,10 @@ import { LayoutGrid, Radar, Activity, ShieldCheck } from 'lucide-react';
 import type { NavGroup, DashboardBrand } from '@/components/dashboard/dashboard-nav';
 
 /**
- * Admin tier — the same clean shell as the developer dashboard.
- * NOTE: this is a VISIBLE LABEL only. The underlying role string stays 'owner'
- * (auth identity + the `requireRole="owner"` route gate); we only display it as
- * "Admin". Developer and Admin are two separate tiers.
+ * Admin tier (role: 'admin') — the top oversight tier; same clean shell as the
+ * developer dashboard. Developer and Admin are two separate tiers.
  */
-export const OWNER_BRAND: DashboardBrand = {
+export const ADMIN_BRAND: DashboardBrand = {
   title: 'ADMIN',
   subtitle: 'console',
   icon: ShieldCheck,

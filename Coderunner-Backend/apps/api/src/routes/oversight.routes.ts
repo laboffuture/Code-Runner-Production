@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { Models } from '@code-runner/shared';
-import { authMiddleware, ownerMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware';
 import { computeTicketDelay } from '../config/oversight.config';
 import { deriveCompletion, BandProblem } from '../services/curriculumProgress';
 
 const router = Router();
 router.use(authMiddleware);
-router.use(ownerMiddleware);
+router.use(adminMiddleware);
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
