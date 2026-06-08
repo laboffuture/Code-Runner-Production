@@ -6,10 +6,9 @@ import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import {
   Activity, Server, Cpu, AlertTriangle, Zap, Users, FileWarning,
-  RefreshCw, Shield, LogOut, MemoryStick, Timer, Box, Database,
+  RefreshCw, Shield, MemoryStick, Timer, Box, Database,
   Globe, ArrowRight, ChevronDown, ChevronUp
 } from 'lucide-react';
-import AdminHeader from '../components/AdminHeader';
 
 // ===== TYPES =====
 interface SystemData {
@@ -162,7 +161,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f7f7f7] text-gray-900">
-      <AdminHeader />
 
       {/* ━━━ ERROR ━━━ */}
       {fetchError && (

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Server, TrendingUp, Activity, Zap } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { api } from '@/lib/api-client';
-import AdminHeader from '../components/AdminHeader';
 
 type TimeRange = '1h' | '6h' | '1d' | '7d' | '30d';
 
@@ -52,7 +51,6 @@ export default function NginxMetricsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader />
 
       <div className="max-w-7xl mx-auto p-6">
         {/* Page Title */}

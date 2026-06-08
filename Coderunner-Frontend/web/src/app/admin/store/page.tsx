@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Sparkles, Plus, RefreshCw, Check } from 'lucide-react';
-import AdminHeader from '../components/AdminHeader';
 import { api } from '@/lib/api-client';
 
 interface Item {
@@ -80,7 +79,6 @@ export default function AdminStorePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <AdminHeader />
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-orbitron font-black text-gray-900 tracking-wider flex items-center gap-2">

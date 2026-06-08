@@ -7,7 +7,6 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { api } from '@/lib/api-client';
-import AdminHeader from '../components/AdminHeader';
 
 interface ErrorAnalytics {
   errorRate: Array<{ time: string; rate: number }>;
@@ -59,7 +58,6 @@ export default function ErrorAnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader />
 
       <div className="max-w-7xl mx-auto p-6">
         {/* Page Title */}

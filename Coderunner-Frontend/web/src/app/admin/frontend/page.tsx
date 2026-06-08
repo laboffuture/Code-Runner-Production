@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Cpu, HardDrive, Network, Activity } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '@/lib/api-client';
-import AdminHeader from '../components/AdminHeader';
 
 type TimeRange = '1h' | '6h' | '1d' | '7d' | '30d';
 
@@ -71,7 +70,6 @@ export default function FrontendMetricsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader />
 
       <div className="max-w-7xl mx-auto p-6">
         {/* Page Title */}

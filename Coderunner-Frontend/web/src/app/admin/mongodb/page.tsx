@@ -7,7 +7,6 @@ import {
   Database, Activity, HardDrive, Users, FileText, TrendingUp,
   RefreshCw, AlertCircle, CheckCircle, Clock, BarChart3, Server
 } from 'lucide-react';
-import AdminHeader from '../components/AdminHeader';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -168,7 +167,6 @@ export default function MongoDBPage() {
   if (loading && !stats) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AdminHeader />
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <RefreshCw className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
@@ -182,7 +180,6 @@ export default function MongoDBPage() {
   if (error && !stats) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AdminHeader />
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
@@ -201,7 +198,6 @@ export default function MongoDBPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader />
 
       <div className="p-6 max-w-[1600px] mx-auto space-y-6">
         {/* Header Controls */}

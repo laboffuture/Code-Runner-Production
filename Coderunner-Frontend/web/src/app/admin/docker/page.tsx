@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Box, Activity, TrendingUp, AlertCircle, CheckCircle, Clock, Layers, Cpu } from 'lucide-react';
 import { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { api } from '@/lib/api-client';
-import AdminHeader from '../components/AdminHeader';
 
 type TimeRange = '1h' | '6h' | '1d' | '7d' | '30d';
 
@@ -78,7 +77,6 @@ export default function DockerMetricsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader />
       <div className="max-w-7xl mx-auto p-6">
         {/* Page Title */}
         <div className="mb-6">

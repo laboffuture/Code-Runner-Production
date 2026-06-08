@@ -7,7 +7,6 @@ import {
   Cloud, Image, Video, HardDrive, TrendingUp, Activity,
   RefreshCw, AlertCircle, CheckCircle, Zap
 } from 'lucide-react';
-import AdminHeader from '../components/AdminHeader';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -149,7 +148,6 @@ export default function CloudinaryPage() {
   if (loading && !stats) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AdminHeader />
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <RefreshCw className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
@@ -163,7 +161,6 @@ export default function CloudinaryPage() {
   if (error && !stats) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AdminHeader />
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
@@ -182,7 +179,6 @@ export default function CloudinaryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader />
 
       <div className="p-6 max-w-[1600px] mx-auto space-y-6">
         {/* Header Controls */}

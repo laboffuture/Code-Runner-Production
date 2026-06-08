@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { Bug, Loader2 } from 'lucide-react';
-import AdminHeader from '../components/AdminHeader';
 import { DelayBadge } from '@/app/oversight/components/DelayBadge';
 
 interface Ticket {
@@ -83,7 +82,6 @@ export default function AdminTickets() {
 
   return (
     <div className="min-h-screen bg-[#f7f7f7] text-gray-900">
-      <AdminHeader />
 
       <main className="max-w-6xl mx-auto px-6 py-10">
         <div className="bg-white border-2 border-gray-200 rounded-xl p-6">

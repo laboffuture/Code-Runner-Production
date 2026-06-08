@@ -7,7 +7,6 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { api } from '@/lib/api-client';
-import AdminHeader from '../components/AdminHeader';
 
 interface QueueMetrics {
   queueDepth: Array<{ time: string; waiting: number; active: number; delayed: number }>;
@@ -63,7 +62,6 @@ export default function QueuesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader />
       <div className="max-w-7xl mx-auto p-6">
         {/* Page Title */}
         <div className="mb-6">
