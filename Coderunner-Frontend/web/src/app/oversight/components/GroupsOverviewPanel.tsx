@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Users2 } from 'lucide-react';
+import { Users2 } from 'lucide-react';
 import { api } from '@/lib/api-client';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PanelCard } from '@/components/dashboard/PanelCard';
 
 interface Group {
   classroomId: string;
@@ -17,7 +17,7 @@ interface Group {
 }
 
 // Fixed per-level colors for the distribution mini-bar (L1-L4).
-const LEVEL_COLORS = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b'];
+const LEVEL_COLORS = ['#76B900', '#0ea5e9', '#16a34a', '#f59e0b'];
 
 function LevelBar({ dist }: { dist: Record<string, number> }) {
   const segs = ['1', '2', '3', '4'].map((k) => dist?.[k] || 0);
@@ -60,74 +60,60 @@ export function GroupsOverviewPanel() {
   }, []);
 
   return (
-    <Card className="bg-white border-2 border-gray-200 rounded-xl p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <Users2 className="w-6 h-6 text-indigo-500" />
-        <h2 className="text-lg font-orbitron font-bold text-gray-900 tracking-wider">Groups Overview</h2>
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-indigo-500" />
-            <p className="text-sm text-gray-500 font-rajdhani">Loading groups...</p>
-          </div>
-        </div>
-      ) : error ? (
-        <div className="text-center py-12">
-          <p className="text-red-600 font-rajdhani">{error}</p>
-        </div>
-      ) : groups.length === 0 ? (
-        <div className="text-center py-12">
-          <Users2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 font-rajdhani">No groups yet</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-[11px] font-orbitron tracking-widest text-gray-500 border-b border-gray-200">
-                <th className="py-3 pr-4">GROUP</th>
-                <th className="py-3 pr-4">AGE</th>
-                <th className="py-3 pr-4">TEACHERS</th>
-                <th className="py-3 pr-4">STUDENTS</th>
-                <th className="py-3 pr-4">ACTIVE TODAY</th>
-                <th className="py-3 pr-4">LEVELS (L1-L4)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groups.map((g) => (
-                <tr key={g.classroomId} className="border-b border-gray-100 last:border-0">
-                  <td className="py-3 pr-4 font-orbitron font-bold text-gray-900">{g.name}</td>
-                  <td className="py-3 pr-4">
-                    <Badge variant="outline" className="font-rajdhani border-gray-300 text-gray-600">
-                      {g.ageGroup}
+    <PanelCard
+      icon={Users2}
+      title="Groups Overview"
+      isLoading={isLoading}
+      error={error}
+      loadingLabel="Loading groups..."
+      isEmpty={groups.length === 0}
+      emptyIcon={Users2}
+      emptyLabel="No groups yet"
+    >
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-[11px] font-orbitron tracking-widest text-gray-500 border-b border-gray-200">
+              <th className="py-3 pr-4">GROUP</th>
+              <th className="py-3 pr-4">AGE</th>
+              <th className="py-3 pr-4">TEACHERS</th>
+              <th className="py-3 pr-4">STUDENTS</th>
+              <th className="py-3 pr-4">ACTIVE TODAY</th>
+              <th className="py-3 pr-4">LEVELS (L1-L4)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {groups.map((g) => (
+              <tr key={g.classroomId} className="border-b border-gray-100 last:border-0">
+                <td className="py-3 pr-4 font-orbitron font-bold text-gray-900">{g.name}</td>
+                <td className="py-3 pr-4">
+                  <Badge variant="outline" className="font-rajdhani border-gray-300 text-gray-600">
+                    {g.ageGroup}
+                  </Badge>
+                </td>
+                <td className="py-3 pr-4 font-rajdhani text-gray-700">{g.teacherCount}</td>
+                <td className="py-3 pr-4 font-rajdhani text-gray-700">{g.studentCount}</td>
+                <td className="py-3 pr-4">
+                  {g.activeToday === 0 ? (
+                    <Badge
+                      variant="outline"
+                      className="font-rajdhani"
+                      style={{ color: '#d97706', backgroundColor: '#d977061a', borderColor: '#d9770655' }}
+                    >
+                      No activity today
                     </Badge>
-                  </td>
-                  <td className="py-3 pr-4 font-rajdhani text-gray-700">{g.teacherCount}</td>
-                  <td className="py-3 pr-4 font-rajdhani text-gray-700">{g.studentCount}</td>
-                  <td className="py-3 pr-4">
-                    {g.activeToday === 0 ? (
-                      <Badge
-                        variant="outline"
-                        className="font-rajdhani"
-                        style={{ color: '#d97706', backgroundColor: '#d977061a', borderColor: '#d9770655' }}
-                      >
-                        No activity today
-                      </Badge>
-                    ) : (
-                      <span className="font-orbitron font-bold text-gray-900">{g.activeToday}</span>
-                    )}
-                  </td>
-                  <td className="py-3 pr-4">
-                    <LevelBar dist={g.levelDistribution} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Card>
+                  ) : (
+                    <span className="font-orbitron font-bold text-gray-900">{g.activeToday}</span>
+                  )}
+                </td>
+                <td className="py-3 pr-4">
+                  <LevelBar dist={g.levelDistribution} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </PanelCard>
   );
 }

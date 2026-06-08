@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Bug, HelpCircle, Radar } from 'lucide-react';
+import { Loader2, Bug, HelpCircle, Radar, type LucideIcon } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
 import { DelayBadge } from './DelayBadge';
+import { PanelIcon } from '@/components/dashboard/PanelIcon';
 
 interface Ticket {
   id: string;
@@ -37,7 +38,7 @@ function relativeTime(iso: string): string {
 
 const STATUS_STYLE: Record<Ticket['status'], string> = {
   open: 'text-amber-600',
-  in_progress: 'text-indigo-600',
+  in_progress: 'text-sky-600',
   resolved: 'text-emerald-600',
 };
 
@@ -71,7 +72,7 @@ function Column({
   tickets,
 }: {
   title: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   tickets: Ticket[];
 }) {
   const openCount = tickets.filter((t) => t.status !== 'resolved').length;
@@ -81,7 +82,7 @@ function Column({
     <Card className="bg-white border-2 border-gray-200 rounded-xl p-6 flex-1 min-w-0">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Icon className="w-6 h-6 text-indigo-500" />
+          <PanelIcon icon={Icon} />
           <h3 className="text-lg font-orbitron font-bold text-gray-900 tracking-wider">{title}</h3>
         </div>
         <div className="flex items-center gap-3 text-xs font-orbitron font-bold">
@@ -136,13 +137,13 @@ export function AccountabilityPanel() {
 
   const filterBtn = (f: Filter) =>
     `px-4 py-1.5 rounded-lg text-xs font-orbitron font-bold tracking-wider transition-colors ${
-      filter === f ? 'bg-indigo-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+      filter === f ? 'bg-[#76B900] text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
     }`;
 
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Radar className="w-6 h-6 text-indigo-500" />
+        <PanelIcon icon={Radar} />
         <h2 className="text-lg font-orbitron font-bold text-gray-900 tracking-wider">Accountability Radar</h2>
       </div>
 
@@ -161,7 +162,7 @@ export function AccountabilityPanel() {
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-indigo-500" />
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-[#76B900]" />
             <p className="text-sm text-gray-500 font-rajdhani">Loading tickets...</p>
           </div>
         </div>
