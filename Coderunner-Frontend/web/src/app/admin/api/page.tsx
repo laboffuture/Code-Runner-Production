@@ -16,11 +16,11 @@ export default function ApiMetricsPage() {
   const [cpuData, setCpuData] = useState<Array<{ time: string; value: number }>>([]);
   const [memoryData, setMemoryData] = useState<Array<{ time: string; value: number }>>([]);
   const [requestData, setRequestData] = useState<Array<{ time: string; requests: number }>>([]);
-  const [responseTimeData, setResponseTimeData] = useState<Array<{ time: string; avg: number; p95: number }>>([]);
+  const [responseTimeData, setResponseTimeData] = useState<Array<{ time: string; avg: number; p95: number | null }>>([]);
   const [errorRateData, setErrorRateData] = useState<Array<{ time: string; rate: number }>>([]);
   const [stats, setStats] = useState({
     uptime: '0h 0m',
-    activeConnections: 0,
+    activeConnections: null as number | null,
     totalRequests: 0,
     errorRate: 0,
     avgResponseTime: 0,
@@ -157,7 +157,7 @@ export default function ApiMetricsPage() {
                 <Activity className="w-4 h-4 text-purple-600" />
                 <p className="text-xs text-gray-500 font-rajdhani">Connections</p>
               </div>
-              <p className="text-lg font-orbitron font-bold text-gray-900">{stats.activeConnections}</p>
+              <p className="text-lg font-orbitron font-bold text-gray-900">{stats.activeConnections ?? '—'}</p>
             </div>
 
             {/* Total Requests */}

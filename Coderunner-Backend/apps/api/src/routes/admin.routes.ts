@@ -589,17 +589,37 @@ router.get('/api/metrics', async (req: Request, res: Response) => {
     ]);
     const avgResponseTime = avgRespResult[0]?.avg ? Math.round(avgRespResult[0].avg) : 0;
 
+    // Real p95 latency via the approximate-percentile accumulator. Null if the
+    // server can't compute it (e.g. MongoDB < 7.0) — never a fabricated multiple
+    // of the average (the previous code returned avg * 2.5).
+    let p95ResponseTime: number | null = null;
+    try {
+      const p95Result = await Models.ExecutionResult.aggregate([
+        { $match: { createdAt: { $gte: since }, status: 'completed', 'result.executionTime': { $exists: true, $ne: null } } },
+        // $percentile is a MongoDB 7.0+ accumulator; mongoose's types don't model
+        // it yet, hence the cast. Guarded by try/catch so older servers fall back.
+        { $group: { _id: null, p95: { $percentile: { input: '$result.executionTime', p: [0.95], method: 'approximate' } } } } as any,
+      ]);
+      const v = p95Result[0]?.p95?.[0];
+      if (typeof v === 'number') p95ResponseTime = Math.round(v);
+    } catch (e) {
+      // percentile operator unavailable (e.g. MongoDB < 7.0) — stay honest (null),
+      // don't fake it; log so a recurring failure is observable, not silent.
+      logger.warn('p95 percentile unavailable', { error: (e as Error)?.message });
+      p95ResponseTime = null;
+    }
+
     const healthStatus = errRate > 5 || avgResponseTime > 150 ? 'critical' : errRate > 2 || avgResponseTime > 100 ? 'warning' : 'healthy';
 
     res.json({
       cpu: [{ time: 'now', value: avgCpu }],
       memory: [{ time: 'now', value: Math.round(mem.rss / 1048576) }],
       requests: [{ time: 'now', requests: totalRequests }],
-      responseTimes: [{ time: 'now', avg: avgResponseTime, p95: Math.round(avgResponseTime * 2.5) }],
+      responseTimes: [{ time: 'now', avg: avgResponseTime, p95: p95ResponseTime }],
       errorRate: [{ time: 'now', rate: errRate }],
       stats: {
         uptime: `${Math.floor(process.uptime() / 3600)}h ${Math.floor((process.uptime() % 3600) / 60)}m`,
-        activeConnections: 0, // Would need connection tracking middleware
+        activeConnections: null, // not tracked (would need connection-tracking middleware) — honest null, not a fake 0
         totalRequests,
         errorRate: errRate,
         avgResponseTime,
