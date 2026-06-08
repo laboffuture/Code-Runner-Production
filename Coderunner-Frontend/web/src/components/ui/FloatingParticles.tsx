@@ -6,7 +6,9 @@ interface FloatingParticlesProps {
   /** Accent color as a hex string (e.g. "#2e75b2"). Particles are rendered as
    *  small variations around this color, matching the original effect. */
   color?: string;
-  /** Number of particles. Defaults to 800 to preserve the original look. */
+  /** Number of particles. Defaults to 300. (Reduced from the original 800 —
+   *  combined with GPU-`transform` animation this is far lighter on CPU/memory
+   *  while keeping a dense field. Bump it if you want it busier.) */
   count?: number;
   /** Particle width/height as a CSS length. Defaults to "2px". */
   size?: string;
@@ -42,9 +44,11 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
 /**
  * Shared floating-particles background.
  *
- * Visually identical to the original per-page `initFloatingParticles()` (same
- * 800 dots, colors, opacity, speed, edge-wrapping), but implemented once with
- * a correct lifecycle:
+ * Visually the same drifting star-field as the original per-page
+ * `initFloatingParticles()`, but built to be cheap:
+ *   - position is animated with `transform: translate3d(...)` (GPU-composited,
+ *     no layout/reflow) instead of `left`/`top` (which forced a full layout on
+ *     every particle, every frame — the original lag source),
  *   - the requestAnimationFrame loop is cancelled on unmount (the original
  *     never cancelled it, so loops accumulated on navigation and froze the tab),
  *   - particle DOM nodes are removed on unmount,
@@ -55,7 +59,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
  */
 export default function FloatingParticles({
   color = '#2e75b2',
-  count = 800,
+  count = 300,
   size = '2px',
   getColor,
   className = 'fixed inset-0 pointer-events-none',
@@ -82,6 +86,8 @@ export default function FloatingParticles({
     for (let i = 0; i < count; i++) {
       const particle = document.createElement('div');
       particle.style.position = 'absolute';
+      particle.style.top = '0';
+      particle.style.left = '0';
       particle.style.width = size;
       particle.style.height = size;
       particle.style.borderRadius = '50%';
@@ -90,7 +96,7 @@ export default function FloatingParticles({
       if (getColor) {
         particle.style.backgroundColor = getColor();
       } else {
-        // Variations around the accent color (identical to the original effect).
+        // Variations around the accent color (same color math as the original effect).
         const redValue = Math.floor(Math.random() * 30) + Math.max(0, baseColor.r - 15);
         const greenValue = Math.floor(Math.random() * 40) + Math.max(0, baseColor.g - 20);
         const blueValue = Math.floor(Math.random() * 50) + Math.max(0, baseColor.b - 25);
@@ -100,8 +106,8 @@ export default function FloatingParticles({
 
       const x = Math.random() * windowWidth;
       const y = Math.random() * windowHeight;
-      particle.style.left = x + 'px';
-      particle.style.top = y + 'px';
+      // Position via transform (GPU-composited) rather than left/top (layout).
+      particle.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 
       particles.push({
         element: particle,
@@ -125,8 +131,8 @@ export default function FloatingParticles({
         if (p.y < 0) p.y = windowHeight;
         if (p.y > windowHeight) p.y = 0;
 
-        p.element.style.left = p.x + 'px';
-        p.element.style.top = p.y + 'px';
+        // transform-only write: composited on the GPU, never triggers layout.
+        p.element.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
       }
       rafId = requestAnimationFrame(animate);
     };
