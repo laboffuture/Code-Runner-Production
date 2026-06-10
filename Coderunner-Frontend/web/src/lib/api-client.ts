@@ -170,6 +170,8 @@ export const api = {
       apiClient.post('/auth/register', { username, email, password, age_group }),
     logout: () => apiClient.post('/auth/logout', {}),
     me: () => apiClient.get('/auth/me'), // Get current authenticated user
+    // Exchange an ADMIN-LINK hub SSO token for a normal Coderunner session.
+    ssoHub: (hubToken: string) => apiClient.post('/auth/sso/hub', { hub_token: hubToken }),
   },
 
   // Users

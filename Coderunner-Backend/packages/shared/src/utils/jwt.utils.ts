@@ -44,3 +44,48 @@ export function verifyToken(token: string): AuthToken {
     throw new Error('Invalid or expired token');
   }
 }
+
+// ---------------------------------------------------------------------------
+// ADMIN-LINK hub single-sign-on
+// ---------------------------------------------------------------------------
+
+/** Decoded claims of a token minted by the ADMIN-LINK hub. */
+export interface HubSsoClaims {
+  /** The hub principal (e.g. "hub-admin"). */
+  sub?: string;
+  /** This module's id — must match HUB_SSO_AUDIENCE. */
+  aud?: string | string[];
+  iat?: number;
+  exp?: number;
+}
+
+/** Thrown by {@link verifyHubSsoToken} when hub SSO isn't configured on this
+ *  server, so the caller can return a "fall back to normal login" response
+ *  rather than treating it as an auth failure. */
+export const HUB_SSO_NOT_CONFIGURED = 'HUB_SSO_NOT_CONFIGURED';
+
+/**
+ * Verify a single-sign-on token issued by the ADMIN-LINK hub when it frames a
+ * module's admin page. This uses a SEPARATE secret (`HUB_SSO_SECRET`) from the
+ * app's own `JWT_SECRET` — the hub and each module share it out-of-band via env,
+ * never in git. Enforces HS256 (so a forged `alg:none`/RS token is rejected),
+ * the configured audience (`HUB_SSO_AUDIENCE` = this module's id), and expiry
+ * (the hub mints 60-second tokens). Throws on any verification failure; throws
+ * {@link HUB_SSO_NOT_CONFIGURED} when the env isn't set.
+ */
+export function verifyHubSsoToken(token: string): HubSsoClaims {
+  const secret = process.env.HUB_SSO_SECRET;
+  const audience = process.env.HUB_SSO_AUDIENCE;
+
+  if (!secret || !audience) {
+    throw new Error(HUB_SSO_NOT_CONFIGURED);
+  }
+  if (secret.length < 32) {
+    throw new Error('FATAL: HUB_SSO_SECRET must be at least 32 characters');
+  }
+
+  return jwt.verify(token, secret, {
+    algorithms: ['HS256'],
+    audience,
+  }) as HubSsoClaims;
+}

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { Models, generateToken, hashPassword, comparePassword, validate, usernameSchema, emailSchema, passwordSchema } from '@code-runner/shared';
+import { Models, generateToken, verifyHubSsoToken, HUB_SSO_NOT_CONFIGURED, hashPassword, comparePassword, validate, usernameSchema, emailSchema, passwordSchema } from '@code-runner/shared';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { authLimiter } from '../middleware/rateLimit.middleware';
 
@@ -184,6 +184,83 @@ router.post('/login', authLimiter, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error during login:', error);
     res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+/**
+ * POST /auth/sso/hub
+ * ADMIN-LINK hub single-sign-on. When the hub frames this module's admin page it
+ * appends a short-lived (60s) HS256 token signed with the shared HUB_SSO_SECRET.
+ * The browser posts that token here; we verify it and, on success, mint a normal
+ * Coderunner session for ONE fixed account (HUB_SSO_USERNAME) — so a valid hub
+ * token can only ever produce that account's session, never an arbitrary user.
+ *
+ * Never logs the hub token or the secret. Falls back with 503 (not 401) when SSO
+ * isn't configured, so the frontend can quietly show the normal login instead.
+ */
+router.post('/sso/hub', authLimiter, async (req: Request, res: Response) => {
+  try {
+    const { hub_token } = req.body;
+
+    if (!hub_token || typeof hub_token !== 'string') {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'hub_token is required',
+      });
+    }
+
+    // Verify the hub token (signature + HS256 + audience + expiry).
+    try {
+      verifyHubSsoToken(hub_token);
+    } catch (err: any) {
+      if (err?.message === HUB_SSO_NOT_CONFIGURED) {
+        return res.status(503).json({
+          error: 'SSO Unavailable',
+          message: 'Hub SSO is not configured on this server',
+        });
+      }
+      // Bad signature / wrong audience / expired — do not leak which.
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid or expired hub token',
+      });
+    }
+
+    // Map to the single configured module account.
+    const username = process.env.HUB_SSO_USERNAME || 'owner';
+    const user = await Models.User.findOne({ username });
+
+    if (!user) {
+      console.error(`Hub SSO: configured account "${username}" not found`);
+      return res.status(500).json({
+        error: 'Misconfiguration',
+        message: 'SSO account not found',
+      });
+    }
+
+    // Issue a normal Coderunner session — identical shape to /login.
+    const token = generateToken({
+      userId: user._id.toString(),
+      username: user.username,
+      role: user.role,
+    });
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        age_group: user.age_group,
+        selectedCharacter: user.selectedCharacter || 'astra',
+        onboardingComplete: user.onboardingComplete !== undefined ? user.onboardingComplete : false,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error('Error during hub SSO exchange:', error);
+    res.status(500).json({ error: 'SSO exchange failed' });
   }
 });
 

@@ -47,6 +47,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
+        // ADMIN-LINK hub SSO: when the hub frames an admin page it appends a
+        // one-time ?hub_token=. Exchange it for a normal Coderunner session here,
+        // BEFORE any auth/redirect decision (runs while isLoading is still true,
+        // so ProtectedRoute shows its spinner rather than bouncing to /login).
+        // Any failure falls through to the normal flow — SSO can never lock out.
+        const hubToken = new URLSearchParams(window.location.search).get('hub_token');
+        if (hubToken) {
+          try {
+            const response = await api.auth.ssoHub(hubToken) as any;
+            const userData: User = {
+              id: response.user.id,
+              username: response.user.username,
+              email: response.user.email,
+              role: response.user.role,
+              age_group: response.user.age_group,
+              selectedCharacter: response.user.selectedCharacter || 'astra',
+              onboardingComplete: response.user.onboardingComplete || false,
+              createdAt: response.user.createdAt || new Date().toISOString(),
+            };
+            setToken(response.token);
+            setUser(userData);
+            localStorage.setItem('authToken', response.token);
+            localStorage.setItem('userId', response.user.id);
+            localStorage.setItem('username', response.user.username);
+            localStorage.setItem('userRole', response.user.role);
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('userData', JSON.stringify(userData));
+
+            // Strip the one-time token from the URL so it isn't reused, copied,
+            // or leaked via history/referrer.
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('hub_token');
+            window.history.replaceState({}, '', cleanUrl.toString());
+            return;
+          } catch (error: any) {
+            console.warn('Hub SSO exchange failed, falling back to normal auth:', error?.message);
+            // fall through to the stored-session path below
+          }
+        }
+
         const storedToken = localStorage.getItem('authToken');
         const storedUserData = localStorage.getItem('userData');
 
