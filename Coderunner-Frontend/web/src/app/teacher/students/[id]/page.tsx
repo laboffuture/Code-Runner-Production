@@ -9,6 +9,7 @@ import { ActivityCalendar } from '@/components/profile/ActivityCalendar';
 import { ChevronLeft, Loader2, Check, X, ShieldAlert } from 'lucide-react';
 import { activeFlags, whyText, type AttemptRecord } from '@/lib/integrity';
 import { ResetProgressDialog } from '@/components/teacher/ResetProgressDialog';
+import { ResetPasswordDialog } from '@/components/teacher/ResetPasswordDialog';
 import { formatAcceptanceRate } from '@/lib/format';
 
 // Full static class strings (Tailwind can't see interpolated color names).
@@ -70,6 +71,7 @@ export default function StudentDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const [resetPwOpen, setResetPwOpen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -111,12 +113,20 @@ export default function StudentDetail() {
           </p>
         </div>
         {data && (
-          <button
-            onClick={() => setResetOpen(true)}
-            className="ml-auto rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100"
-          >
-            Reset Progress
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setResetPwOpen(true)}
+              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+            >
+              Reset Password
+            </button>
+            <button
+              onClick={() => setResetOpen(true)}
+              className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100"
+            >
+              Reset Progress
+            </button>
+          </div>
         )}
       </div>
 
@@ -126,6 +136,14 @@ export default function StudentDetail() {
           studentUsername={data.username}
           onClose={() => setResetOpen(false)}
           onComplete={() => { setResetOpen(false); setReloadKey((k) => k + 1); }}
+        />
+      )}
+
+      {resetPwOpen && data && (
+        <ResetPasswordDialog
+          studentId={id}
+          studentUsername={data.username}
+          onClose={() => setResetPwOpen(false)}
         />
       )}
 
