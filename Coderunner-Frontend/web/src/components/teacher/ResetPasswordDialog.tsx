@@ -2,17 +2,8 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api-client';
+import { passwordIssue } from '@/lib/password';
 import { KeyRound, Loader2, X, Eye, EyeOff, Check } from 'lucide-react';
-
-// Mirrors the server passwordSchema for instant feedback; the API is the real gate.
-function passwordIssue(pw: string): string | null {
-  if (pw.length < 8) return 'At least 8 characters';
-  if (pw.length > 100) return 'At most 100 characters';
-  if (!/[a-z]/.test(pw)) return 'Include a lowercase letter';
-  if (!/[A-Z]/.test(pw)) return 'Include an uppercase letter';
-  if (!/\d/.test(pw)) return 'Include a number';
-  return null;
-}
 
 export function ResetPasswordDialog({
   studentId, studentUsername, onClose,
@@ -36,6 +27,7 @@ export function ResetPasswordDialog({
     setError(null);
     try {
       await api.teacher.resetStudentPassword(studentId, { newPassword });
+      setBusy(false);
       setDoneValue(newPassword);
     } catch (e: any) {
       setError(e?.message || 'Reset failed. Please try again.');

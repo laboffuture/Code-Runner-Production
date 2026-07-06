@@ -2,20 +2,10 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api-client';
+import { passwordIssue } from '@/lib/password';
 import { Eye, EyeOff, Loader2, KeyRound } from 'lucide-react';
 
 const ACCENT = '#76B900';
-
-// Mirrors the server passwordSchema (8–100 chars, upper + lower + digit) for
-// instant feedback only — the API remains the real gate.
-function passwordIssue(pw: string): string | null {
-  if (pw.length < 8) return 'At least 8 characters';
-  if (pw.length > 100) return 'At most 100 characters';
-  if (!/[a-z]/.test(pw)) return 'Include a lowercase letter';
-  if (!/[A-Z]/.test(pw)) return 'Include an uppercase letter';
-  if (!/\d/.test(pw)) return 'Include a number';
-  return null;
-}
 
 export function ChangePasswordCard() {
   const [current, setCurrent] = useState('');
