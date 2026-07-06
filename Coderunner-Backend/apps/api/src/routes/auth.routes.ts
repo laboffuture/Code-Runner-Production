@@ -316,4 +316,55 @@ router.get('/me', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * PUT /auth/password
+ * Change the authenticated user's OWN password. Requires the current password.
+ * Any authenticated role may use it (students have no UI path to it). Stateless
+ * JWTs mean existing sessions stay valid until natural expiry — documented.
+ */
+router.put('/password', authMiddleware, authLimiter, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid authentication token' });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || typeof currentPassword !== 'string' ||
+        !newPassword || typeof newPassword !== 'string') {
+      return res.status(400).json({ error: 'Validation Error', message: 'currentPassword and newPassword are required' });
+    }
+
+    // passwordHash is select:false on the model — opt in here.
+    const user = await Models.User.findById(userId).select('+passwordHash');
+    if (!user) {
+      return res.status(404).json({ error: 'Not Found', message: 'User not found' });
+    }
+
+    // Verify the current password before allowing any change.
+    const ok = await comparePassword(currentPassword, user.passwordHash);
+    if (!ok) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Current password is incorrect' });
+    }
+
+    // Validate the new password against the shared complexity policy.
+    const validation = validate(passwordSchema, newPassword);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'Validation Error', message: validation.errors?.[0] || 'Invalid password' });
+    }
+
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ error: 'Validation Error', message: 'New password must be different from your current password' });
+    }
+
+    user.passwordHash = await hashPassword(newPassword);
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+});
+
 export default router;
