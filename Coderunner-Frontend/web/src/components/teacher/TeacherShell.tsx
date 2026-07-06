@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { GraduationCap, LayoutGrid, BookOpen, Inbox, Hash } from 'lucide-react';
+import { GraduationCap, LayoutGrid, BookOpen, Inbox, Hash, Settings } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import type { NavGroup, DashboardBrand } from '@/components/dashboard/dashboard-nav';
@@ -38,6 +38,7 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
         { href: '/teacher', label: 'My Classrooms', icon: LayoutGrid, exact: true },
         { href: '/teacher/curriculum', label: 'Answer Guide', icon: BookOpen },
         { href: '/teacher/inbox', label: 'Inbox', icon: Inbox },
+        { href: '/teacher/settings', label: 'Settings', icon: Settings },
       ],
     },
     ...(classes.length > 0

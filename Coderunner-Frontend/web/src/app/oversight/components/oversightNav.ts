@@ -1,4 +1,4 @@
-import { LayoutGrid, Radar, Activity, ShieldCheck } from 'lucide-react';
+import { LayoutGrid, Radar, Activity, ShieldCheck, Settings } from 'lucide-react';
 import type { NavGroup, DashboardBrand } from '@/components/dashboard/dashboard-nav';
 
 /**
@@ -18,6 +18,7 @@ export const OVERSIGHT_NAV: NavGroup[] = [
       { href: '/oversight/dashboard', label: 'Groups', icon: LayoutGrid },
       { href: '/oversight/tickets', label: 'Accountability', icon: Radar },
       { href: '/oversight/health', label: 'Health', icon: Activity },
+      { href: '/oversight/settings', label: 'Settings', icon: Settings },
     ],
   },
 ];

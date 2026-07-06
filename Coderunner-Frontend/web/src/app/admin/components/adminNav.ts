@@ -4,7 +4,7 @@
 
 import {
   LayoutDashboard, Database, HardDrive, Package, Cpu, ListChecks,
-  Network, Activity, Globe, Cloud, AlertTriangle, Ticket, Store, Terminal,
+  Network, Activity, Globe, Cloud, AlertTriangle, Ticket, Store, Terminal, Settings,
 } from 'lucide-react';
 import type { NavGroup, DashboardBrand } from '@/components/dashboard/dashboard-nav';
 
@@ -48,6 +48,12 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: '/admin/tickets', label: 'Tickets', icon: Ticket },
       // Previously orphaned (no nav entry) — restored here.
       { href: '/admin/store', label: 'Store', icon: Store },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { href: '/admin/settings', label: 'Settings', icon: Settings },
     ],
   },
 ];
