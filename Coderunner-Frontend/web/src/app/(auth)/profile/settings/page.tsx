@@ -16,7 +16,6 @@ import {
   Music,
   ChevronLeft,
   User,
-  Sparkles
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -177,17 +176,6 @@ export default function SettingsPage() {
                     <Switch id="sfx" checked={isSoundEffectsEnabled} onCheckedChange={toggleSoundEffects} />
                   </div>
                 </div>
-              </div>
-
-              {/* ── Account (coming soon) ──────────────────────── */}
-              <div className={cardCls} style={{ ...cardBorder, opacity: 0.55 }}>
-                <h3 className="text-sm font-orbitron font-bold text-gray-700 mb-1 tracking-wider flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" style={{ color: theme.colors.primary }} />
-                  ACCOUNT SETTINGS
-                </h3>
-                <p className="font-rajdhani text-gray-500 text-sm">
-                  Coming soon — Email, password, and account management features.
-                </p>
               </div>
 
             </div>
