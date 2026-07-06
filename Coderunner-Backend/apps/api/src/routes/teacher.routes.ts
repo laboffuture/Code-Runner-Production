@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { Models, getLogger } from '@code-runner/shared';
+import { Models, getLogger, hashPassword, validate, passwordSchema } from '@code-runner/shared';
 import { authMiddleware, teacherMiddleware } from '../middleware/auth.middleware';
 import { performStudentReset } from '../services/progressReset';
 import { deriveCompletion, BandProblem } from '../services/curriculumProgress';
@@ -426,6 +426,37 @@ router.post('/students/:id/reset', async (req: Request, res: Response) => {
     if (error?.statusCode === 400) return res.status(400).json({ error: 'Validation Error', message: error.message });
     logger.error('Error resetting student progress', { error });
     res.status(500).json({ error: 'Failed to reset progress' });
+  }
+});
+
+/**
+ * POST /teacher/students/:id/password — set a new password for a student in one
+ * of my classrooms. Ownership-checked via myStudent (must be role student AND in
+ * a classroom I teach). No current password: the teacher is the authority (same
+ * posture as the progress reset). The new value is never logged.
+ */
+router.post('/students/:id/password', async (req: Request, res: Response) => {
+  try {
+    const student = await myStudent(req, req.params.id);
+    if (!student) return res.status(403).json({ error: 'Forbidden', message: 'Student is not in your classroom' });
+
+    const { newPassword } = req.body;
+    if (!newPassword || typeof newPassword !== 'string') {
+      return res.status(400).json({ error: 'Validation Error', message: 'newPassword is required' });
+    }
+    const validation = validate(passwordSchema, newPassword);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'Validation Error', message: validation.errors?.[0] || 'Invalid password' });
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+    await Models.User.findByIdAndUpdate(student._id, { passwordHash });
+
+    logger.info('Teacher reset student password', { teacherId: req.user!.userId, studentId: String(student._id) });
+    res.json({ message: 'Password reset' });
+  } catch (error) {
+    logger.error('Error resetting student password', { error });
+    res.status(500).json({ error: 'Failed to reset password' });
   }
 });
 
