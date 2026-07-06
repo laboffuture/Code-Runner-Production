@@ -172,6 +172,9 @@ export const api = {
     me: () => apiClient.get('/auth/me'), // Get current authenticated user
     // Exchange an ADMIN-LINK hub SSO token for a normal Coderunner session.
     ssoHub: (hubToken: string) => apiClient.post('/auth/sso/hub', { hub_token: hubToken }),
+    // Change the current user's own password (staff self-service).
+    changePassword: (currentPassword: string, newPassword: string) =>
+      apiClient.put('/auth/password', { currentPassword, newPassword }),
   },
 
   // Users
@@ -332,6 +335,8 @@ export const api = {
     getResetOptions: (id: string) => apiClient.get(`/teacher/students/${id}/reset-options`),
     resetStudent: (id: string, body: { scope: 'full' | 'from-session'; fromSessionId?: number }) =>
       apiClient.post(`/teacher/students/${id}/reset`, body),
+    resetStudentPassword: (id: string, body: { newPassword: string }) =>
+      apiClient.post(`/teacher/students/${id}/password`, body),
   },
 
   // Curriculum / Answer Guide (staff-gated)
