@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, User } from 'lucide-react';
 import { CLOUDINARY_BASE } from '@/lib/cloudinary';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -186,23 +186,25 @@ export default function LoginPage() {
                 <div className="sidebar-content" style={{ opacity: imagesLoaded ? 1 : 0, visibility: imagesLoaded ? 'visible' : 'hidden' }}>
                   <div className="mb-20">
                     <div className="mb-20"><Image src={CDN_IMAGES.transparent} alt="Logo" width={120} height={120} className="h-30 w-auto object-contain logo-burn" unoptimized priority /></div>
-                    <div className="border-l-4 border-blue-600 pl-4"><div className="font-header text-5xl leading-[0.85] text-slate-900 uppercase">CODE<br /><span className="text-blue-600">OPS</span></div></div>
+                    <div className="border-l-[5px] border-slate-900 pl-4"><div className="font-header text-5xl leading-[0.9] text-slate-900 uppercase">CODE<br /><span className="text-blue-600">OPS</span></div></div>
                   </div>
-                  <form className="w-full space-y-4" onSubmit={handleLogin}>
-                    <div className="mb-3 font-mono text-cyan-600 text-xs tracking-widest border-b border-cyan-500/30 pb-2">// LOGIN_TERMINAL</div>
+                  <form className="w-full space-y-5" onSubmit={handleLogin}>
                     {loginError && <div className="text-red-500 text-xs font-mono bg-red-50 border border-red-200 rounded px-3 py-2">{loginError}</div>}
-                    <div className="group">
-                      <label className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1"><span>Identification</span><span className="w-1/2 h-[1px] bg-slate-500 self-center" /></label>
-                      <input className="input-cli pl-3 text-sm py-2" type="text" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
-                    </div>
-                    <div className="group">
-                      <label className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1"><span>Access Key</span><span className="w-1/2 h-[1px] bg-slate-500 self-center" /></label>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Identification</label>
                       <div className="relative">
-                        <input className="input-cli pl-3 pr-10 text-sm py-2" type={showPassword ? "text" : "password"} placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors">{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                        <input className="input-pill pr-11" type="text" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
+                        <User className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
                     </div>
-                    <button className="btn-skew w-full h-11 mt-4" type="submit" disabled={isSubmitting}><span className="font-mono text-base uppercase tracking-widest text-slate-800 font-bold flex items-center justify-center gap-2">{isSubmitting ? 'Authenticating...' : 'Initiate_Session'}</span></button>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Access Key</label>
+                      <div className="relative">
+                        <input className="input-pill pr-11" type={showPassword ? "text" : "password"} placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors">{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                      </div>
+                    </div>
+                    <button className="btn-pill w-full h-12 mt-6" type="submit" disabled={isSubmitting}><span className="font-mono text-sm uppercase tracking-[0.3em] text-white font-bold">{isSubmitting ? 'Authenticating...' : 'Initiate_Session'}</span></button>
                     <div className="mt-4 text-center"><p className="text-xs text-slate-500 font-mono">New Operative?{' '}<Link href="/register" className="text-cyan-600 hover:text-cyan-500 transition underline">Register Here</Link></p></div>
                   </form>
                   <div className="mt-auto pt-20 border-t border-slate-300/40">
@@ -244,12 +246,17 @@ export default function LoginPage() {
         .sidebar-panel > *, .sidebar-panel .sidebar-content { width: 100%; }
         .logo-burn { filter: drop-shadow(0 0 10px rgba(37,99,235,0.8)) drop-shadow(0 0 20px rgba(59,130,246,0.6)) drop-shadow(0 0 30px rgba(96,165,250,0.4)); animation: burn-glow 2s ease-in-out infinite; }
         @keyframes burn-glow { 0%,100% { filter: drop-shadow(0 0 10px rgba(37,99,235,0.8)) drop-shadow(0 0 20px rgba(59,130,246,0.6)) drop-shadow(0 0 30px rgba(96,165,250,0.4)); } 50% { filter: drop-shadow(0 0 20px rgba(37,99,235,1)) drop-shadow(0 0 40px rgba(59,130,246,0.8)) drop-shadow(0 0 60px rgba(96,165,250,0.6)); } }
-        .input-cli { background: transparent; border: none; border-bottom: 2px solid #94a3b8; color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; width: 100%; padding: 0.5rem 0; transition: all 0.3s var(--ease-quart); }
-        .input-cli:focus { outline: none; border-bottom-color: #3b82f6; border-bottom-width: 3px; box-shadow: 0 4px 10px -5px rgba(59,130,246,0.2); }
-        .btn-skew { transform: skewX(-12deg); transition: all 0.1s ease-out; background: white; border: 1px solid #bfdbfe; color: #0f172a; }
-        .btn-skew > span { transform: skewX(12deg); display: block; }
-        .btn-skew:hover:not(:disabled) { background: #06b6d4; border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6,182,212,0.3); }
-        .btn-skew:disabled { opacity: 0.6; cursor: not-allowed; }
+        .input-pill { width: 100%; background: rgba(255,255,255,0.92); border: 1px solid #dbe3ef; border-radius: 9999px; color: #1e293b; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; padding: 0.7rem 1.25rem; box-shadow: 0 2px 10px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9); transition: border-color 0.2s var(--ease-quart), box-shadow 0.2s var(--ease-quart); }
+        .input-pill::placeholder { color: #94a3b8; font-weight: 500; }
+        .input-pill:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 2px 12px rgba(59,130,246,0.15); }
+        .btn-pill { position: relative; overflow: hidden; border-radius: 9999px; border: 1px solid rgba(29,78,216,0.6); background: linear-gradient(180deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%); box-shadow: 0 8px 22px -8px rgba(37,99,235,0.65), inset 0 1px 0 rgba(255,255,255,0.35); transition: transform 0.1s ease-out, box-shadow 0.2s ease, filter 0.2s ease; }
+        .btn-pill::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.35) 45%, transparent 60%); transform: translateX(-120%); transition: transform 0.6s var(--ease-quart); }
+        .btn-pill:hover:not(:disabled) { filter: brightness(1.06); box-shadow: 0 10px 28px -8px rgba(37,99,235,0.8), inset 0 1px 0 rgba(255,255,255,0.4); }
+        .btn-pill:hover:not(:disabled)::after { transform: translateX(120%); }
+        .btn-pill:active:not(:disabled) { transform: translateY(1px); }
+        .btn-pill:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-pill > span { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; }
+        @media (prefers-reduced-motion: reduce) { .btn-pill::after { display: none; } }
         .ticker { white-space: nowrap; animation: marquee 25s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         .sound-button:hover { box-shadow: 0 0 20px rgba(59,130,246,0.4); }
