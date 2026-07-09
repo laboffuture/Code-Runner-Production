@@ -1,0 +1,11 @@
+--- a/Coderunner-Frontend/web/src/app/teacher/classrooms/[id]/page.tsx
++++ b/Coderunner-Frontend/web/src/app/teacher/classrooms/[id]/page.tsx
+@@ interface ClassroomData {
+   classroom: { id: string; name: string; age_group: string; joinCode: string };
+-  roster: StudentRow[];
++  students: StudentRow[];
+   overview: Overview;
+ }
+@@ render
+-  const students = data?.roster || [];
++  const students = data?.students || [];

@@ -77,3 +77,11 @@ tmpclaude*
 # Package locks in subfolders (keep only root locks)
 apps/*/package-lock.json
 packages/*/package-lock.json
+
+# Local-only operational files — NEVER push (student credentials, scratch backups)
+# Credential sheets handed to schools stay on the operator's machine only.
+*-student-logins.csv
+*-student-logins.html
+cmis-student-logins.csv
+cmis-student-logins.html
+scripts/_*-backup/
