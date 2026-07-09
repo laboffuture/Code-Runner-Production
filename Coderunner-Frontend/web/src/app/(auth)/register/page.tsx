@@ -3,7 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Eye, EyeOff, User, Mail, ChevronDown } from 'lucide-react';
+import { CLOUDINARY_BASE } from '@/lib/cloudinary';
 import { useAuth } from '@/contexts/AuthContext';
+import { AuthTopBar, AuthTicker } from '../components/AuthChrome';
+
+const CDN_IMAGES = {
+  env: `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/ui/ENV-2.png`,
+  transparent: `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/ui/transperent.png`,
+  logo: `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/ui/LOF_SVG.svg`,
+  background: `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/ui/background.webp`,
+};
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,17 +30,14 @@ export default function RegisterPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [currentTime, setCurrentTime] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      setCurrentTime(`${hours}:${minutes}:${seconds}`);
-    }, 1000);
-    return () => clearInterval(timer);
+    const urls = [CDN_IMAGES.env, CDN_IMAGES.transparent, CDN_IMAGES.background];
+    let loaded = 0;
+    urls.forEach((url) => { const img = new window.Image(); img.onload = img.onerror = () => { loaded++; if (loaded === urls.length) setImagesLoaded(true); }; img.src = url; });
   }, []);
 
   const validateForm = (): boolean => {
@@ -109,183 +117,116 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated Background Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f12_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f12_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_110%)]"></div>
-
-      {/* Glow Effects */}
-      <div className="absolute top-1/4 -left-48 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px]"></div>
-      <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px]"></div>
-
-      {/* Main Container */}
-      <div className="relative z-10 w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-500/5 mb-6">
-            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse mr-2"></div>
-            <span className="text-cyan-400 text-xs font-mono tracking-wider">
-              REGISTRATION PROTOCOL v2.847.x
-            </span>
-          </div>
-
-          <h1 className="text-4xl font-bold text-white font-orbitron mb-2 tracking-wider">
-            CREATE ACCOUNT
-          </h1>
-          <p className="text-slate-400 font-rajdhani">
-            Initialize neural link protocol
-          </p>
+    <>
+      <div id="app-root" className="w-full h-full overflow-hidden" style={{ position: 'fixed', inset: 0 }}>
+        <div className="absolute inset-0 overflow-hidden bg-slate-200">
+          <Image src={CDN_IMAGES.env} alt="Background" fill className="object-cover" priority sizes="100vw" unoptimized style={{ objectPosition: 'center' }} />
+          <div className="scanlines absolute inset-0 w-full h-full" />
+          <div className="absolute inset-0 bg-white/20" />
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(circle, transparent 60%, rgba(30, 41, 59, 0.2) 100%)' }} />
         </div>
 
-        {/* Registration Form */}
-        <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-8 shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username Field */}
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-cyan-400 mb-2 font-orbitron">
-                USERNAME
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-slate-950/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition font-mono"
-                placeholder="SPECTRE_01"
-                disabled={isLoading}
-              />
-              {errors.username && (
-                <p className="mt-1 text-xs text-red-400 font-rajdhani">{errors.username}</p>
-              )}
-            </div>
+        <div className="relative z-10 w-full h-full flex flex-col justify-between">
+          {/* Top Bar */}
+          <AuthTopBar imagesLoaded={imagesLoaded} />
 
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-cyan-400 mb-2 font-orbitron">
-                EMAIL
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-slate-950/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition font-mono"
-                placeholder="agent@coderunner.io"
-                disabled={isLoading}
-              />
-              {errors.email && (
-                <p className="mt-1 text-xs text-red-400 font-rajdhani">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-cyan-400 mb-2 font-orbitron">
-                PASSWORD
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-slate-950/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition font-mono"
-                placeholder="••••••••"
-                disabled={isLoading}
-              />
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-400 font-rajdhani">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-cyan-400 mb-2 font-orbitron">
-                CONFIRM PASSWORD
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-slate-950/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition font-mono"
-                placeholder="••••••••"
-                disabled={isLoading}
-              />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-400 font-rajdhani">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            {/* Age Group Field */}
-            <div>
-              <label htmlFor="age_group" className="block text-sm font-medium text-cyan-400 mb-2 font-orbitron">
-                AGE GROUP
-              </label>
-              <select
-                id="age_group"
-                name="age_group"
-                value={formData.age_group}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-slate-950/50 border border-slate-700/50 rounded-lg text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition font-mono"
-                disabled={isLoading}
-              >
-                <option value="11-14">11-14 (CADET)</option>
-                <option value="15-18">15-18 (OPERATOR)</option>
-              </select>
-            </div>
-
-            {/* Submit Error */}
-            {errors.submit && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <p className="text-sm text-red-400 font-rajdhani">{errors.submit}</p>
+          {/* Main */}
+          <div className="flex-1 flex overflow-hidden">
+          <div className="w-[30%] h-full relative z-10" style={{ clipPath: 'inset(0)', contain: 'layout paint' }}>
+            <div className="sidebar-panel w-full h-full flex flex-col px-12 py-8 overflow-y-auto sidebar-slide-in">
+              <div className="mb-8">
+                <div className="mb-6"><Image src={CDN_IMAGES.transparent} alt="Logo" width={120} height={120} className="h-24 w-auto object-contain logo-burn" unoptimized priority /></div>
+                <div className="border-l-[5px] border-slate-900 pl-4"><div className="font-header text-5xl leading-[0.9] text-slate-900 uppercase">CODE<br /><span className="text-blue-600">OPS</span></div></div>
               </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-orbitron tracking-wider"
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  INITIALIZING...
-                </span>
-              ) : (
-                'INITIATE PROTOCOL'
-              )}
-            </button>
-          </form>
-
-          {/* Footer Links */}
-          <div className="mt-6 pt-6 border-t border-slate-800/50 text-center">
-            <p className="text-slate-400 text-sm font-rajdhani">
-              Already have clearance?{' '}
-              <Link
-                href="/login"
-                className="text-cyan-400 hover:text-cyan-300 transition font-orbitron"
-              >
-                ACCESS SYSTEM
-              </Link>
-            </p>
+              <form className="w-full space-y-4" onSubmit={handleSubmit}>
+                {errors.submit && <div className="text-red-500 text-xs font-mono bg-red-50 border border-red-200 rounded px-3 py-2">{errors.submit}</div>}
+                <div>
+                  <label htmlFor="username" className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Identification</label>
+                  <div className="relative">
+                    <input className="input-pill pr-11" type="text" id="username" name="username" placeholder="Enter username" value={formData.username} onChange={handleInputChange} autoComplete="username" disabled={isLoading} />
+                    <User className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                  {errors.username && <p className="mt-1.5 text-xs text-red-500 font-mono">{errors.username}</p>}
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Email</label>
+                  <div className="relative">
+                    <input className="input-pill pr-11" type="email" id="email" name="email" placeholder="Enter email" value={formData.email} onChange={handleInputChange} autoComplete="email" disabled={isLoading} />
+                    <Mail className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                  {errors.email && <p className="mt-1.5 text-xs text-red-500 font-mono">{errors.email}</p>}
+                </div>
+                <div>
+                  <label htmlFor="password" className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Access Key</label>
+                  <div className="relative">
+                    <input className="input-pill pr-11" type={showPassword ? 'text' : 'password'} id="password" name="password" placeholder="Enter password" value={formData.password} onChange={handleInputChange} autoComplete="new-password" disabled={isLoading} />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors">{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                  </div>
+                  {errors.password && <p className="mt-1.5 text-xs text-red-500 font-mono">{errors.password}</p>}
+                </div>
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Confirm Access Key</label>
+                  <div className="relative">
+                    <input className="input-pill pr-11" type={showConfirm ? 'text' : 'password'} id="confirmPassword" name="confirmPassword" placeholder="Confirm password" value={formData.confirmPassword} onChange={handleInputChange} autoComplete="new-password" disabled={isLoading} />
+                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors">{showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                  </div>
+                  {errors.confirmPassword && <p className="mt-1.5 text-xs text-red-500 font-mono">{errors.confirmPassword}</p>}
+                </div>
+                <div>
+                  <label htmlFor="age_group" className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Age Group</label>
+                  <div className="relative">
+                    <select className="input-pill pr-11 appearance-none cursor-pointer" id="age_group" name="age_group" value={formData.age_group} onChange={handleInputChange} disabled={isLoading}>
+                      <option value="11-14">11-14 (CADET)</option>
+                      <option value="15-18">15-18 (OPERATOR)</option>
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                </div>
+                <button className="btn-pill w-full h-12 mt-6" type="submit" disabled={isLoading}><span className="font-mono text-sm uppercase tracking-[0.3em] text-white font-bold">{isLoading ? 'Initializing...' : 'Initiate_Protocol'}</span></button>
+                <div className="mt-4 text-center"><p className="text-xs text-slate-500 font-mono">Already have clearance?{' '}<Link href="/login" className="text-cyan-600 hover:text-cyan-500 transition underline">Access System</Link></p></div>
+              </form>
+              <div className="mt-auto pt-10 border-t border-slate-300/40">
+                <div className="flex flex-col items-center gap-0">
+                  <span className="text-base font-mono uppercase tracking-[0.15em] font-bold text-slate-500">Developed by</span>
+                  <div className="w-full flex justify-center -mt-8"><Image src={CDN_IMAGES.logo} alt="LOF Logo" width={140} height={140} className="h-28 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity" unoptimized /></div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* System Time */}
-        <div className="mt-6 text-center">
-          <div className="inline-flex items-center px-4 py-2 rounded-full border border-slate-800/50 bg-slate-900/30">
-            <span className="text-xs text-slate-500 font-mono mr-2">SYSTEM TIME:</span>
-            <span className="text-xs text-cyan-400 font-mono font-bold">{currentTime}</span>
+          <div className="flex-1 h-full relative z-20">
+            <div className="w-full h-full relative overflow-hidden"><Image src={CDN_IMAGES.background} alt="Background" fill unoptimized className="object-cover" priority sizes="70vw" /></div>
           </div>
+          </div>
+
+          {/* Bottom Ticker */}
+          <AuthTicker imagesLoaded={imagesLoaded} />
         </div>
       </div>
-    </div>
+
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap');
+        :root { --ease-quart: cubic-bezier(0.165, 0.84, 0.44, 1); }
+        body { font-family: 'Rajdhani', sans-serif; overflow: hidden; height: 100vh; width: 100vw; margin: 0; padding: 0; }
+        .font-header { font-family: 'Oswald', sans-serif; }
+        .scanlines { background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.02)); background-size: 100% 4px; pointer-events: none; }
+        @keyframes sidebar-slide-in { 0% { transform: translateX(-100%); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+        .sidebar-panel { background: rgba(255, 255, 255, 0.92); border-right: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 6px 0 30px rgba(0, 0, 0, 0.08); width: 100%; }
+        .sidebar-slide-in { animation: sidebar-slide-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .logo-burn { filter: drop-shadow(0 0 10px rgba(37,99,235,0.8)) drop-shadow(0 0 20px rgba(59,130,246,0.6)) drop-shadow(0 0 30px rgba(96,165,250,0.4)); animation: burn-glow 2s ease-in-out infinite; }
+        @keyframes burn-glow { 0%,100% { filter: drop-shadow(0 0 10px rgba(37,99,235,0.8)) drop-shadow(0 0 20px rgba(59,130,246,0.6)) drop-shadow(0 0 30px rgba(96,165,250,0.4)); } 50% { filter: drop-shadow(0 0 20px rgba(37,99,235,1)) drop-shadow(0 0 40px rgba(59,130,246,0.8)) drop-shadow(0 0 60px rgba(96,165,250,0.6)); } }
+        .input-pill { width: 100%; background: rgba(255,255,255,0.92); border: 1px solid #dbe3ef; border-radius: 9999px; color: #1e293b; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; padding: 0.7rem 1.25rem; box-shadow: 0 2px 10px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9); transition: border-color 0.2s var(--ease-quart), box-shadow 0.2s var(--ease-quart); }
+        .input-pill::placeholder { color: #94a3b8; font-weight: 500; }
+        .input-pill:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 2px 12px rgba(59,130,246,0.15); }
+        .input-pill:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-pill { position: relative; overflow: hidden; border-radius: 9999px; border: 1px solid rgba(29,78,216,0.6); background: linear-gradient(180deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%); box-shadow: 0 8px 22px -8px rgba(37,99,235,0.65), inset 0 1px 0 rgba(255,255,255,0.35); transition: transform 0.1s ease-out, box-shadow 0.2s ease, filter 0.2s ease; }
+        .btn-pill::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.35) 45%, transparent 60%); transform: translateX(-120%); transition: transform 0.6s var(--ease-quart); }
+        .btn-pill:hover:not(:disabled) { filter: brightness(1.06); box-shadow: 0 10px 28px -8px rgba(37,99,235,0.8), inset 0 1px 0 rgba(255,255,255,0.4); }
+        .btn-pill:hover:not(:disabled)::after { transform: translateX(120%); }
+        .btn-pill:active:not(:disabled) { transform: translateY(1px); }
+        .btn-pill:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-pill > span { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; }
+        @media (prefers-reduced-motion: reduce) { .btn-pill::after { display: none; } .sidebar-slide-in { animation: none; } }
+      `}</style>
+    </>
   );
 }
