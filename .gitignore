@@ -85,3 +85,7 @@ packages/*/package-lock.json
 cmis-student-logins.csv
 cmis-student-logins.html
 scripts/_*-backup/
+
+# Photoshop source files — too large for GitHub (100MB limit), keep local only
+*.psb
+*.psd
