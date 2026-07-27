@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Eye, EyeOff, User, Mail, ChevronDown } from 'lucide-react';
+import { Eye, EyeOff, User, ChevronDown } from 'lucide-react';
 import { CLOUDINARY_BASE } from '@/lib/cloudinary';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthTopBar, AuthTicker } from '../components/AuthChrome';
@@ -22,7 +22,6 @@ export default function RegisterPage() {
 
   const [formData, setFormData] = useState({
     username: '',
-    email: '',
     password: '',
     confirmPassword: '',
     age_group: '11-14' as '11-14' | '15-18',
@@ -50,13 +49,6 @@ export default function RegisterPage() {
       newErrors.username = 'Username must be at least 3 characters';
     } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
       newErrors.username = 'Username can only contain letters, numbers, hyphens and underscores';
-    }
-
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
     }
 
     // Password validation
@@ -87,9 +79,12 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
+      // The account model still requires a unique email, but we no longer
+      // ask students for one — derive a stable placeholder from the
+      // (already-uniqueness-checked) username instead.
       await register({
         username: formData.username,
-        email: formData.email,
+        email: `${formData.username.trim().toLowerCase()}@coderunner.local`,
         password: formData.password,
         age_group: formData.age_group,
       });
@@ -147,14 +142,6 @@ export default function RegisterPage() {
                     <User className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                   {errors.username && <p className="mt-1.5 text-xs text-red-500 font-mono">{errors.username}</p>}
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Email</label>
-                  <div className="relative">
-                    <input className="input-pill pr-11" type="email" id="email" name="email" placeholder="Enter email" value={formData.email} onChange={handleInputChange} autoComplete="email" disabled={isLoading} />
-                    <Mail className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
-                  {errors.email && <p className="mt-1.5 text-xs text-red-500 font-mono">{errors.email}</p>}
                 </div>
                 <div>
                   <label htmlFor="password" className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Access Key</label>
