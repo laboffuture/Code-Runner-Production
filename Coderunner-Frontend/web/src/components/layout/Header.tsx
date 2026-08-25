@@ -190,6 +190,7 @@ export function Header() {
             { href: '/compiler', label: 'COMPILER' },
             { href: '/rank', label: 'LEADERBOARD' },
             { href: '/contest', label: 'CONTEST' },
+            { href: '/challenge', label: 'CHALLENGE ME' },
             ...(NOVAS.VISIBLE ? [{ href: '/store', label: 'STORE' }] : [])
           ].map((item) => (
             <Link
