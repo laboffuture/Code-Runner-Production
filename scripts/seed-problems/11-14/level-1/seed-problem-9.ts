@@ -40,12 +40,10 @@ Print the sample variable again`,
       case_title: 'Changing Values and Types',
       case_overview: `Variables can change value during the program. Python also lets you reassign a variable to a different type — but be careful with this flexibility!`,
       case_code: `# Variables can be reassigned to new values
-# Python even allows changing the data type!
-# Example 1: Changing values (same type)
+# Example : Changing values (same type)
 countdown = 10
 print(countdown)`,
-      case_explanation: `How Variable Reassignment Works:
-● Use the same syntax as creating a variable: variable_name = new_value
+      case_explanation: `● Use the same syntax as creating a variable: variable_name = new_value
 ● The old value is replaced with the new value
 ● Python allows changing data types (dynamic typing)
 ● This is powerful but requires careful tracking`,

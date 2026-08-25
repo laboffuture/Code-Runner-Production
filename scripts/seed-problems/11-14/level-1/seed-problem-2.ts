@@ -38,8 +38,7 @@ async function seedProblem2() {
 print("Distance:", 100 * 2.5, "km")
 
 # The above prints: Distance: 250.0 km`,
-      case_explanation: `Printing Text and Numbers:
-● Use commas to separate text and numbers: print("text", number, "more text")
+      case_explanation: `● Use commas to separate text and numbers: print("text", number, "more text")
 ● Python automatically adds spaces between comma-separated items
 ● Numbers don't need quotes - only text needs quotes
 

@@ -41,9 +41,7 @@ print("Distance:", 100 * 2.5, "km")
 
 # The above prints: Distance: 250.0 km
 `,
-      case_explanation: `Calculations in Print:
-
-● Python can perform math operations directly inside print()
+      case_explanation: `● Python can perform math operations directly inside print()
 ● Use * for multiplication, + for addition, - for subtraction, / for division
 ● Python calculates the result first, then prints it
 ● Mix calculations with text using commas

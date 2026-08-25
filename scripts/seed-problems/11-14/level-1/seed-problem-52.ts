@@ -86,14 +86,10 @@ print(spaceship_name)
 print(distance)
 print(crew_count)
 print(systems_online)`,
-      case_explanation: `How to Approach This Problem:
-1. Get Spaceship Name (String):
+      case_explanation: `1. Get Spaceship Name (String):
    - Use \`input()\` to read the spaceship name
-2. Get Distance (Float):
    - Use \`input()\` to read the distance
-3. Get Number of Astronauts (Integer):
    - Use \`input()\` to read the crew size
-4. Get Systems Status (Boolean):
    - Use \`input()\` to read "True" or "False"
 5. Print All Values:
    - Print each variable on a separate line`,

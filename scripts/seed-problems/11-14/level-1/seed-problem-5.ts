@@ -42,8 +42,7 @@ Then use an f-string to print: Jupiter has 79 known moons.`,
 
 city = "Paris"
 print(f"Welcome to {city}!")`,
-      case_explanation: `F-Strings (Formatted String Literals):
-● F-strings are the modern way to format text with variables
+      case_explanation: `● F-strings are the modern way to format text with variables
 ● Syntax: print(f"text {variable} text")
 ● Put 'f' before the opening quote
 ● Insert variables inside curly braces {}

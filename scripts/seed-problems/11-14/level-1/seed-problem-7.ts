@@ -60,9 +60,7 @@ print(count)
 print(temperature)
 print(name)
 print(is_active)`,
-      case_explanation: `Python Data Types:
-
-● int (integer): Whole numbers like 30, -5
+      case_explanation: `● int (integer): Whole numbers like 30, -5
 ● float: Decimal numbers like 98.6, 3.14
 ● str (string): Text in quotes like "Explorer-1"
 ● bool (boolean): True or False`,

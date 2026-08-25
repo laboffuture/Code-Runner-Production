@@ -20,8 +20,7 @@ async function seedProblem10() {
       session_id: 2,
       title: 'Getting Input from the User',
       description: 'Learn to use the input() function to collect data from users during program execution.',
-      question: `Use input() to get two values from the user:
-1. Get the user's name and store it in a variable called astronaut_name
+      question: `1. Get the user's name and store it in a variable called astronaut_name
 2. Get the mission time in days and store it in a variable called mission_time
 Then print two lines:
 1. "Welcome, Commander " followed by the astronaut_name
@@ -46,8 +45,7 @@ Then print two lines:
 # You can also provide a prompt message:
 name = input("What is your name? ")
 print("Hello,", name)`,
-      case_explanation: `How input() works:
-● Syntax: variable = input()
+      case_explanation: `● Syntax: variable = input()
 ● The program pauses and waits for the user to type something
 ● The user presses Enter to submit their input
 ● input() always returns a string (text type)`,

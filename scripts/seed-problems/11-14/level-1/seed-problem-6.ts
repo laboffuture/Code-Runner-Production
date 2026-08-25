@@ -39,8 +39,7 @@ Print both variables, each on a new line.`,
       case_number: 1,
       case_title: 'Creating and Assigning Variables',
       case_overview: `Learn to create variables and store different types of values. Variables are the foundation of programming!`,
-      case_code: `# Variables store values that you can use later
-# Examples of creating variables:
+      case_code: `# Examples of creating variables:
 rocket_name = "Apollo"    
 launch_year = 1969                 
 
@@ -51,8 +50,7 @@ print(launch_year)
 # This prints:
 # Apollo
 # 1969`,
-      case_explanation: `Creating Variables:
-● Use the = sign to assign a value: variable_name = value
+      case_explanation: `● Use the = sign to assign a value: variable_name = value
 ● Text (strings) need quotes: "Mars"
 ● Numbers don't need quotes: -63 or 85.5
 ● Variable names should be descriptive (use lowercase with underscores)

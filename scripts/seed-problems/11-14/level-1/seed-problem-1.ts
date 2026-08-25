@@ -39,8 +39,7 @@ async function seedProblem1() {
 print("Hello, World!")
 
 # The above code will print: Hello, World!`,
-      case_explanation: `How print() works:
-● The print() function displays text on the screen
+      case_explanation: `● The print() function displays text on the screen
 ● Text must be wrapped in quotes: "like this"
 ● The message inside the quotes will appear exactly as written`,
 

@@ -41,11 +41,9 @@ Print the result using print(type(gravity))`,
       case_code: `# The type() function tells you the data type of a variable
 # Examples:
 speed = 25000
-print(type(speed))       
-# Syntax: type(variable_name)
-# Use it inside print() to see the result`,
-      case_explanation: `How type() works:
-● The type() function returns the data type of any variable
+print(type(speed))
+# Syntax: type(variable_name)`,
+      case_explanation: `● The type() function returns the data type of any variable
 ● Syntax: type(variable_name)
 ● Always use it inside print() to see the result
 ● Python shows types as: <class 'type_name'>`,

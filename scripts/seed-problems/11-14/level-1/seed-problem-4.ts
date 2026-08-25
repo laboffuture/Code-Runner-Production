@@ -44,11 +44,9 @@ age = 25
 print("My name is", name, "and I am", age, "years old")
 
 # The above prints: My name is Alice and I am 25 years old`,
-      case_explanation: `Variables in Python:
-● Variables store values that you can reuse
+      case_explanation: `● Variables store values that you can reuse
 ● Create a variable: variable_name = value
 ● Text values need quotes: name = "Alice"
-● Numbers don't need quotes: age = 25
 ● Use variables in print() just like any other value`,
 
       created_at: new Date(),
