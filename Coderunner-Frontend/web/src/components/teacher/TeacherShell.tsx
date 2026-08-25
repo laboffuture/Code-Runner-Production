@@ -1,63 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { GraduationCap, LayoutGrid, BookOpen, Inbox, Hash, Settings } from 'lucide-react';
-import { api } from '@/lib/api-client';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import type { NavGroup, DashboardBrand } from '@/components/dashboard/dashboard-nav';
-
-const TEACHER_BRAND: DashboardBrand = {
-  title: 'CLASSROOM',
-  subtitle: 'teacher',
-  icon: GraduationCap,
-  href: '/teacher',
-};
+import { TeacherSidebar } from './TeacherSidebar';
+import { TeacherTopbar } from './TeacherTopbar';
 
 /**
- * Teacher-area chrome. Same shared white DashboardLayout as the developer/admin
- * dashboards (green #76B900 accent), but the nav is dynamic — it lists the
- * teacher's classrooms under a "Classes" group, refreshed on navigation.
+ * Teacher-area chrome — a dedicated cream-toned shell (not the shared
+ * developer/oversight DashboardLayout). Kept separate deliberately: this
+ * palette and layout are specific to the teacher redesign and shouldn't
+ * change how /admin or /oversight look.
  */
 export function TeacherShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [classes, setClasses] = useState<Array<{ id: string; name: string }>>([]);
-
-  useEffect(() => {
-    api.teacher
-      .getClassrooms()
-      .then((d: any) => setClasses((d.classrooms || []).map((c: any) => ({ id: c.id, name: c.name }))))
-      .catch(() => {});
-  }, [pathname]);
-
-  const groups: NavGroup[] = [
-    {
-      items: [
-        // "/teacher" is exact: it's a prefix of every teacher page, so without
-        // this it would stay highlighted on curriculum/inbox/classroom pages.
-        { href: '/teacher', label: 'My Classrooms', icon: LayoutGrid, exact: true },
-        { href: '/teacher/curriculum', label: 'Answer Guide', icon: BookOpen },
-        { href: '/teacher/inbox', label: 'Inbox', icon: Inbox },
-        { href: '/teacher/settings', label: 'Settings', icon: Settings },
-      ],
-    },
-    ...(classes.length > 0
-      ? [
-          {
-            label: 'Classes',
-            items: classes.map((c) => ({
-              href: `/teacher/classrooms/${c.id}`,
-              label: c.name,
-              icon: Hash,
-            })),
-          },
-        ]
-      : []),
-  ];
-
   return (
-    <DashboardLayout brand={TEACHER_BRAND} groups={groups} rootLabel="Classroom">
-      {children}
-    </DashboardLayout>
+    <div className="flex min-h-screen bg-[#F7F3E9]">
+      <TeacherSidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TeacherTopbar />
+        <main className="min-w-0 flex-1">{children}</main>
+      </div>
+    </div>
   );
 }
