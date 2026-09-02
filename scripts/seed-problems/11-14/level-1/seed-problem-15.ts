@@ -48,8 +48,7 @@ missions = int(input())
 hours = float(input())
 total_hours = missions * hours
 print("Pilot", pilot, "will fly for", total_hours, "hours")`,
-      case_explanation: `Multi-Input Program:
-● Collect 3 different inputs
+      case_explanation: `● Collect 3 different inputs
 ● Name: string (no conversion)
 ● Days: integer (use int())
 ● Fuel: float (use float())

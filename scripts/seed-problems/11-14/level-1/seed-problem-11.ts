@@ -42,8 +42,7 @@ Then print "Hello, " followed by the name.`,
       case_code: `# Example: Getting a name
 astronaut = input()
 print("Welcome aboard,", astronaut)`,
-      case_explanation: `How to get user input:
-● Use input() to get data from the user
+      case_explanation: `● Use input() to get data from the user
 ● Store it in a variable: name = input()
 ● Print a greeting with the name`,
 

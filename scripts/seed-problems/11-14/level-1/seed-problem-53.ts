@@ -85,11 +85,8 @@ total_fuel = days * daily_fuel
 print("Cadet", name, "authenticated. Mission fuel required:", total_fuel, "liters")`,
       case_explanation: `How to Approach This Problem:
 1. Get Cadet Name:
-   - Use \`input()\` to read the name
 2. Get Mission Days:
-   - Use \`input()\` to read the days
 3. Get Daily Fuel Consumption:
-   - Use \`input()\` to read consumption
 4. Calculate Total Fuel:
    - Multiply days by consumption
 5. Print Authentication Message:

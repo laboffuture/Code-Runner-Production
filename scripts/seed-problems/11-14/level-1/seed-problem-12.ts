@@ -45,8 +45,7 @@ age_str = input()
 age_num = int(age_str)
 next_age = age_num + 1
 print(next_age)`,
-      case_explanation: `Type Conversion:
-● input() returns a string (text)
+      case_explanation: `● input() returns a string (text)
 ● Use int() to convert string to integer
 ● Then you can perform math operations
 ● Example: age = int(input())`,

@@ -45,10 +45,8 @@ distance_str = input()
 distance_num = float(distance_str)
 meters = distance_num * 1000
 print("Result:", meters)`,
-      case_explanation: `Float Conversion:
-● float() converts string to decimal number
+      case_explanation: `● float() converts string to decimal number
 ● Use when you need decimal precision
-● Example: distance = float(input())
 ● Then you can do math with decimals`,
 
       created_at: new Date(),
