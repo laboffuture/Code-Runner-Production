@@ -228,8 +228,8 @@ export const api = {
   // Code Execution (Queue-based via Express API)
   execution: {
     // Submit code for execution (returns jobId)
-    submit: (code: string, input?: string, images?: File[], userSessionId?: string) =>
-      apiClient.post('/execution/submit', { code, input, images, userSessionId }),
+    submit: (code: string, input?: string, images?: File[]) =>
+      apiClient.post('/execution/submit', { code, input, images }),
 
     // Get execution result by jobId
     getResult: (jobId: string) => apiClient.get(`/execution/result/${jobId}`),
@@ -270,6 +270,16 @@ export const api = {
 
       throw new Error('System is warming up. Please try running your code again in a few seconds.');
     },
+  },
+
+  // File-handling workspace (per-student persistent files)
+  files: {
+    list: () => apiClient.get<{ files: Array<{ name: string; size: number; updatedAt: string }> }>('/files'),
+    read: (name: string) =>
+      apiClient.get<{ name: string; content: string; size: number; updatedAt: string }>(
+        `/files/${encodeURIComponent(name)}`
+      ),
+    remove: (name: string) => apiClient.delete(`/files/${encodeURIComponent(name)}`),
   },
 
   // Progress

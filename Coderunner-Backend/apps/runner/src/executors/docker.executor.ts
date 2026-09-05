@@ -4,7 +4,13 @@ import { writeFile, unlink, mkdir, readdir, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { existsSync } from 'fs';
-import { getLogger } from '@code-runner/shared';
+import mongoose from 'mongoose';
+import {
+  getLogger,
+  Models,
+  STUDENT_FILE_MAX_BYTES,
+  STUDENT_FILE_MAX_PER_SCOPE,
+} from '@code-runner/shared';
 import { ContainerPool } from './container-pool';
 
 const execAsync = promisify(exec);
@@ -12,6 +18,21 @@ const logger = getLogger('docker-executor');
 
 // Platform detection
 const isWindows = process.platform === 'win32';
+
+/**
+ * Optional per-run file-workspace persistence. When present (set only for
+ * file-handling problems run by a logged-in student), the runner injects the
+ * student's saved files into the container before the run and syncs any
+ * created/modified/deleted files back to the durable StudentFile workspace
+ * afterwards.
+ */
+export interface FilePersistOpts {
+  userId?: string;
+  fileScope?: 'file-handling';
+}
+
+// A workspace file must be a plain filename (no path) written to the run's cwd.
+const WORKSPACE_FILE_NAME_RE = /^[A-Za-z0-9._-]+$/;
 
 // Container pool instance (singleton)
 let containerPool: ContainerPool | null = null;
@@ -407,7 +428,8 @@ _pg.event.get = _scripted_get
   static async executeCode(
     code: string,
     input: string = '',
-    mode: 'run' | 'grade' = 'run'
+    mode: 'run' | 'grade' = 'run',
+    persist: FilePersistOpts = {}
   ): Promise<ExecutionResult> {
     const startTime = Date.now();
 
@@ -435,9 +457,9 @@ _pg.event.get = _scripted_get
 
       // Use container pool if enabled
       if (containerPool) {
-        return await this.executeWithPool(processedCode, containerInput, startTime);
+        return await this.executeWithPool(processedCode, containerInput, startTime, persist);
       } else {
-        return await this.executeWithFreshContainer(processedCode, containerInput, startTime);
+        return await this.executeWithFreshContainer(processedCode, containerInput, startTime, persist);
       }
 
     } catch (error) {
@@ -461,7 +483,8 @@ _pg.event.get = _scripted_get
   private static async executeWithPool(
     code: string,
     input: string,
-    startTime: number
+    startTime: number,
+    persist: FilePersistOpts = {}
   ): Promise<ExecutionResult> {
     let containerId: string | null = null;
 
@@ -470,7 +493,7 @@ _pg.event.get = _scripted_get
       containerId = await containerPool!.acquire();
 
       // Execute code in pooled container
-      const result = await this.runCodeInContainer(containerId, code, input);
+      const result = await this.runCodeInContainer(containerId, code, input, persist);
 
       // Release container back to pool (with cleanup)
       await containerPool!.release(containerId, true);
@@ -496,14 +519,15 @@ _pg.event.get = _scripted_get
   private static async executeWithFreshContainer(
     code: string,
     input: string,
-    startTime: number
+    startTime: number,
+    persist: FilePersistOpts = {}
   ): Promise<ExecutionResult> {
     const containerName = `exec-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const containerId = await this.createFreshContainer(containerName);
 
     try {
       // Execute code in container
-      const result = await this.runCodeInContainer(containerId, code, input);
+      const result = await this.runCodeInContainer(containerId, code, input, persist);
 
       return {
         ...result,
@@ -586,7 +610,8 @@ _pg.event.get = _scripted_get
 
   static async executeWithTestCases(
     code: string,
-    testCases: Array<{ input: string; expected_output: string; is_hidden?: boolean }>
+    testCases: Array<{ input: string; expected_output: string; is_hidden?: boolean }>,
+    persist: FilePersistOpts = {}
   ): Promise<{
     results: TestCaseResult[];
     passed: number;
@@ -596,14 +621,23 @@ _pg.event.get = _scripted_get
     const startTime = Date.now();
     const results: TestCaseResult[] = [];
 
-    for (const testCase of testCases) {
+    for (let i = 0; i < testCases.length; i++) {
+      const testCase = testCases[i];
       try {
         // executeCode() owns preprocessing (matplotlib/pygame). Pass the RAW
         // code so it is preprocessed exactly once per run — preprocessing the
         // already-processed code here doubled the pygame capture block.
         // GRADE mode: a pygame problem's test input may carry a __PYGAME_STATE__ /
         // __PYGAME_EVENTS__ directive that swaps the visual capture for a text probe.
-        const execution = await this.executeCode(code, testCase.input, 'grade');
+        // File-handling: persist the workspace from the FIRST (sample) test case
+        // only, so a graded submission surfaces the file the student's code wrote
+        // with the input they can see — without every hidden case clobbering it.
+        const execution = await this.executeCode(
+          code,
+          testCase.input,
+          'grade',
+          i === 0 ? persist : {}
+        );
 
         const actualOutput   = this.normalizeOutput(execution.stdout);
         const expectedOutput = this.normalizeOutput(testCase.expected_output);
@@ -751,10 +785,14 @@ _pg.event.get = _scripted_get
   private static async runCodeInContainer(
     containerId: string,
     code: string,
-    input: string
+    input: string,
+    persist: FilePersistOpts = {}
   ): Promise<Omit<ExecutionResult, 'executionTime'>> {
     const sessionId = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const workDir = `/tmp/${sessionId}_work`;
+    // The runner's own scratch files for this exec — never persisted as workspace files.
+    const reservedNames = new Set([`${sessionId}.py`, `${sessionId}.txt`]);
+    const persistEnabled = !!(persist.fileScope && persist.userId && persist.userId !== 'anonymous');
     const hostCodePath = join(tmpdir(), `${sessionId}.py`);
     const hostInputPath = join(tmpdir(), `${sessionId}.txt`);
 
@@ -783,6 +821,20 @@ _pg.event.get = _scripted_get
           `${catCommand} "${hostInputPath}" | docker exec -i ${containerId} sh -c "cat > ${workDir}/${sessionId}.txt"`,
           { timeout: 5000, maxBuffer: this.MAX_OUTPUT_BUFFER }
         );
+      }
+
+      // Inject the student's saved workspace files so their code can open() files
+      // created in earlier file-handling tasks. Best-effort: a load failure must
+      // not block the run.
+      let injectedNames: Set<string> = new Set();
+      if (persistEnabled) {
+        injectedNames = await this.injectWorkspaceFiles(containerId, workDir, persist).catch((err) => {
+          logger.warn('Workspace file injection failed', {
+            userId: persist.userId,
+            error: err instanceof Error ? err.message : String(err),
+          });
+          return new Set<string>();
+        });
       }
 
       // Execute Python code with timeout (pygame gets more time for setup + frame capture)
@@ -836,6 +888,19 @@ _pg.event.get = _scripted_get
 
       // Filter out [OUTPUT_FILE:...] markers from stdout
       stdout = stdout.replace(/\[OUTPUT_FILE:[^\]]+\]/g, '').trim();
+
+      // Persist workspace changes (files the student's code created/modified/deleted)
+      // back to the durable per-student workspace BEFORE the workDir is wiped.
+      if (persistEnabled) {
+        await this.syncWorkspaceFiles(containerId, workDir, persist, reservedNames, injectedNames).catch(
+          (err) => {
+            logger.warn('Workspace file sync failed', {
+              userId: persist.userId,
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        );
+      }
 
       // Cleanup working directory in container
       await this.execInContainer(containerId, `rm -rf ${workDir}`).catch(() => {});
@@ -895,6 +960,137 @@ _pg.event.get = _scripted_get
   // ==========================================================================
   // File Extraction (Issues #4, #6, #9, #13, #14)
   // ==========================================================================
+
+  /**
+   * Write a single text file into the container workDir using the same
+   * cross-platform stdin-pipe used for the code file (never interpolates the
+   * content into a shell command).
+   */
+  private static async writeFileToContainer(
+    containerId: string,
+    containerPath: string,
+    content: string
+  ): Promise<void> {
+    const hostPath = join(tmpdir(), `wsfile_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`);
+    const catCommand = isWindows ? 'type' : 'cat';
+    try {
+      await writeFile(hostPath, content, 'utf8');
+      await execAsync(
+        `${catCommand} "${hostPath}" | docker exec -i ${containerId} sh -c "cat > '${containerPath}'"`,
+        { timeout: 5000, maxBuffer: this.MAX_OUTPUT_BUFFER }
+      );
+    } finally {
+      await unlink(hostPath).catch(() => {});
+    }
+  }
+
+  /**
+   * Load the student's saved workspace files into the run's workDir so their
+   * code can open() files created in earlier file-handling tasks. Returns the
+   * set of filenames injected (used later to detect code-driven deletions).
+   */
+  private static async injectWorkspaceFiles(
+    containerId: string,
+    workDir: string,
+    persist: FilePersistOpts
+  ): Promise<Set<string>> {
+    const injected = new Set<string>();
+    if (!persist.userId || !mongoose.Types.ObjectId.isValid(persist.userId)) return injected;
+
+    const docs = await Models.StudentFile.find({
+      userId: new mongoose.Types.ObjectId(persist.userId),
+      scope: persist.fileScope,
+    }).lean<Array<{ fileName: string; content: string }>>();
+
+    for (const doc of docs) {
+      if (!WORKSPACE_FILE_NAME_RE.test(doc.fileName)) continue;
+      await this.writeFileToContainer(containerId, `${workDir}/${doc.fileName}`, doc.content ?? '');
+      injected.add(doc.fileName);
+    }
+    return injected;
+  }
+
+  /**
+   * After a run, mirror the workDir's text files back to the durable per-student
+   * workspace: upsert created/modified files, and delete files that were
+   * injected but the student's code removed (os.remove). Reserved runner scratch
+   * files and non-text/binary files are skipped. Caps guard against abuse.
+   */
+  private static async syncWorkspaceFiles(
+    containerId: string,
+    workDir: string,
+    persist: FilePersistOpts,
+    reservedNames: Set<string>,
+    injectedNames: Set<string>
+  ): Promise<void> {
+    if (!persist.userId || !mongoose.Types.ObjectId.isValid(persist.userId)) return;
+    const userId = new mongoose.Types.ObjectId(persist.userId);
+    const scope = persist.fileScope;
+
+    // List top-level files currently in the workDir.
+    let listing = '';
+    try {
+      const { stdout } = await execAsync(
+        `docker exec ${containerId} sh -c "find ${workDir} -maxdepth 1 -type f 2>/dev/null || true"`,
+        { timeout: 3000, maxBuffer: this.MAX_OUTPUT_BUFFER }
+      );
+      listing = stdout.trim();
+    } catch {
+      return; // can't list — leave the workspace untouched
+    }
+
+    const present = new Set<string>();
+    for (const line of listing.split('\n').map((l) => l.trim()).filter(Boolean)) {
+      const name = line.split('/').pop() || '';
+      if (name && !reservedNames.has(name) && WORKSPACE_FILE_NAME_RE.test(name)) {
+        present.add(name);
+      }
+    }
+
+    // How many files the student already has, to enforce the per-workspace cap
+    // for NEW files (existing files can always be updated).
+    const existingNames = new Set<string>(
+      (
+        await Models.StudentFile.find({ userId, scope }).select('fileName').lean<Array<{ fileName: string }>>()
+      ).map((d) => d.fileName)
+    );
+    let count = existingNames.size;
+
+    for (const name of present) {
+      const isNew = !existingNames.has(name);
+      if (isNew && count >= STUDENT_FILE_MAX_PER_SCOPE) continue;
+
+      let content = '';
+      try {
+        const { stdout } = await execAsync(
+          `docker exec ${containerId} sh -c "cat '${workDir}/${name}'"`,
+          { timeout: 5000, maxBuffer: STUDENT_FILE_MAX_BYTES + 1024 }
+        );
+        content = stdout;
+      } catch {
+        continue; // unreadable (e.g. too large) — skip
+      }
+
+      // Text-only workspace: skip binary and oversized files.
+      if (content.includes('\0')) continue;
+      const size = Buffer.byteLength(content, 'utf8');
+      if (size > STUDENT_FILE_MAX_BYTES) continue;
+
+      await Models.StudentFile.updateOne(
+        { userId, scope, fileName: name },
+        { $set: { content, size } },
+        { upsert: true }
+      );
+      if (isNew) count += 1;
+    }
+
+    // Files the student's code deleted this run (injected but no longer present).
+    for (const name of injectedNames) {
+      if (!present.has(name)) {
+        await Models.StudentFile.deleteOne({ userId, scope, fileName: name });
+      }
+    }
+  }
 
   /**
    * Extract generated files from container before cleanup

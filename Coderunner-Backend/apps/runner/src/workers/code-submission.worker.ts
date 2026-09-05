@@ -47,10 +47,13 @@ export class CodeSubmissionWorker {
         { status: 'processing' }
       );
 
-      // Execute code against all test cases
+      // Execute code against all test cases. For file-handling problems, persist
+      // the student's file workspace from the first (sample) test case so a graded
+      // submission also surfaces the file their code created.
       const testResults = await DockerExecutor.executeWithTestCases(
         job.data.code,
-        job.data.testCases
+        job.data.testCases,
+        { userId: job.data.userId, fileScope: job.data.persistFileScope }
       );
 
       // Calculate pass rate

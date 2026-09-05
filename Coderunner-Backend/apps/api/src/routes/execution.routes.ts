@@ -53,6 +53,19 @@ router.post('/submit', optionalAuthMiddleware, executionLimiter, dailyExecutionL
     // Get user ID (or use 'anonymous')
     const userId = req.user?.userId || 'anonymous';
 
+    // File-handling persistence: for a logged-in student running a File Handling
+    // problem (session_id 37-41), tag the job so the runner injects/saves the
+    // student's durable file workspace. Anonymous runs get no persistence.
+    let persistFileScope: 'file-handling' | undefined;
+    if (userId !== 'anonymous' && typeof problemId === 'number') {
+      const problem = await Models.Problem.findOne({ problem_id: problemId })
+        .select('session_id')
+        .lean<{ session_id?: number } | null>();
+      if (problem && typeof problem.session_id === 'number' && problem.session_id >= 37 && problem.session_id <= 41) {
+        persistFileScope = 'file-handling';
+      }
+    }
+
     // Create job data
     const jobData: CodeExecutionJobData = {
       jobId,
@@ -62,6 +75,7 @@ router.post('/submit', optionalAuthMiddleware, executionLimiter, dailyExecutionL
       language: 'python',
       problemId,
       userSessionId,
+      ...(persistFileScope ? { persistFileScope } : {}),
       timestamp: Date.now(),
     };
 
@@ -252,6 +266,13 @@ router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLim
     const jobId = uuidv4();
     const userId = req.user!.userId; // guaranteed by authMiddleware above
 
+    // File-handling persistence: a graded submission on a File Handling problem
+    // (session_id 37-41) should also surface the file the student's code wrote.
+    const persistFileScope: 'file-handling' | undefined =
+      typeof problem.session_id === 'number' && problem.session_id >= 37 && problem.session_id <= 41
+        ? 'file-handling'
+        : undefined;
+
     // Create submission job data
     const jobData: SubmissionJobData = {
       jobId,
@@ -264,6 +285,7 @@ router.post('/submit/grade', authMiddleware, executionLimiter, dailyExecutionLim
         is_hidden: tc.is_hidden,
       })),
       timestamp: Date.now(),
+      ...(persistFileScope ? { persistFileScope } : {}),
       ...(contestId && typeof contestId === 'string' ? { contestId } : {}),
       ...(metrics && typeof metrics === 'object' ? { metrics } : {}),
     };

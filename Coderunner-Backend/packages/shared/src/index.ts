@@ -19,6 +19,13 @@ export type {
 } from './database/models/Ticket.model';
 export type { ITeacherActivity } from './database/models/TeacherActivity.model';
 
+// Student file workspace caps (shared by the runner sync and the API routes).
+export {
+  STUDENT_FILE_MAX_BYTES,
+  STUDENT_FILE_MAX_PER_SCOPE,
+} from './database/models/StudentFile.model';
+export type { StudentFileScope } from './database/models/StudentFile.model';
+
 // Export utilities
 export * from './utils';
 

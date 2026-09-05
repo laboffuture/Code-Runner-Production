@@ -41,10 +41,14 @@ export class CodeExecutionWorker {
         { status: 'processing' }
       );
 
-      // Execute code using Docker (with user input if provided)
+      // Execute code using Docker (with user input if provided).
+      // For file-handling runs by a logged-in student, pass the persistence
+      // opts so the runner injects/saves the student's file workspace.
       const result = await DockerExecutor.executeCode(
         job.data.code,
-        job.data.input || '' // Pass user input for stdin
+        job.data.input || '', // Pass user input for stdin
+        'run',
+        { userId: job.data.userId, fileScope: job.data.persistFileScope }
       );
 
       // Save result to database (including files if any)

@@ -38,7 +38,6 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<{ name: string; content: string } | null>(null);
   const [isFileViewerOpen, setIsFileViewerOpen] = useState(false);
-  const [userSessionId, setUserSessionId] = useState<string>('');
   const [editorStatus, setEditorStatus] = useState<'Ready' | 'EXECUTING...' | 'SUCCESS' | 'ERROR'>('Ready');
   const [sidebarOpen] = useState(false);
 
@@ -116,43 +115,19 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   // Check if this is a file handling session (Level 4, Sessions 4-8: session_ids 37-41)
   const isFileHandlingSession = problem.session_id >= 37 && problem.session_id <= 41;
 
-  // ===== INITIALIZATION =====
-  // Initialize or retrieve user session ID from localStorage
-  useEffect(() => {
-    const getOrCreateSessionId = () => {
-      let sessionId = localStorage.getItem('user_file_session_id');
-      if (!sessionId) {
-        sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('user_file_session_id', sessionId);
-      }
-      return sessionId;
-    };
-
-    setUserSessionId(getOrCreateSessionId());
-  }, []);
-
   // ===== FILE HANDLING =====
-  // Load persistent files for file handling sessions
+  // Load the student's persistent workspace files (file-handling sessions only).
+  // Files are keyed to the authenticated student on the API — no client session id.
   const loadPersistentFiles = useCallback(async () => {
-    if (!isFileHandlingSession || !userSessionId) return;
+    if (!isFileHandlingSession) return;
 
     try {
-      const response = await fetch('/api/files/list', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userSessionId }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.files && data.files.length > 0) {
-          setResult(prev => ({ ...prev, files: data.files }));
-        }
-      }
+      const data = await api.files.list();
+      setResult(prev => ({ ...prev, files: (data.files || []) as any }));
     } catch (error) {
       console.error('Failed to load persistent files:', error);
     }
-  }, [isFileHandlingSession, userSessionId]);
+  }, [isFileHandlingSession]);
 
   // Load persistent files on mount
   useEffect(() => {
@@ -167,109 +142,58 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   }, [isFileHandlingSession, result.files]);
 
   // Handle file click to view contents
-  const handleFileClick = async (fileName: string, _filePath: string) => {
+  const handleFileClick = async (fileName: string, _filePath?: string) => {
     try {
-      const response = await fetch('/api/files', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userSessionId, fileName }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSelectedFile({ name: fileName, content: data.content });
-        setIsFileViewerOpen(true);
-      } else {
-        toast({
-          title: 'Error',
-          description: data.error || 'Failed to load file',
-          variant: 'destructive',
-        });
-      }
+      const data = await api.files.read(fileName);
+      setSelectedFile({ name: fileName, content: data.content });
+      setIsFileViewerOpen(true);
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to load file content',
+        description: error instanceof Error ? error.message : 'Failed to load file content',
         variant: 'destructive',
       });
     }
   };
 
   // Handle file download
-  const handleFileDownload = async (fileName: string, _filePath: string) => {
+  const handleFileDownload = async (fileName: string, _filePath?: string) => {
     try {
-      const response = await fetch('/api/files', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userSessionId, fileName }),
-      });
+      const data = await api.files.read(fileName);
+      const blob = new Blob([data.content], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        const blob = new Blob([data.content], { type: 'text/plain' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-
-        toast({
-          title: 'Success',
-          description: `Downloaded ${fileName}`,
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: data.error || 'Failed to download file',
-          variant: 'destructive',
-        });
-      }
+      toast({ title: 'Success', description: `Downloaded ${fileName}` });
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to download file',
+        description: error instanceof Error ? error.message : 'Failed to download file',
         variant: 'destructive',
       });
     }
   };
 
   // Handle file deletion
-  const handleFileDelete = async (fileName: string, _filePath: string) => {
+  const handleFileDelete = async (fileName: string, _filePath?: string) => {
     if (!confirm(`Are you sure you want to delete "${fileName}"? This cannot be undone.`)) {
       return;
     }
 
     try {
-      const response = await fetch('/api/files/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userSessionId, fileName }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        await loadPersistentFiles();
-        toast({
-          title: 'Success',
-          description: `Deleted ${fileName}`,
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: data.error || 'Failed to delete file',
-          variant: 'destructive',
-        });
-      }
+      await api.files.remove(fileName);
+      await loadPersistentFiles();
+      toast({ title: 'Success', description: `Deleted ${fileName}` });
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to delete file',
+        description: error instanceof Error ? error.message : 'Failed to delete file',
         variant: 'destructive',
       });
     }
@@ -342,8 +266,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
       const submission = await api.execution.submit(
         code,
         customInput,
-        images as any,
-        isFileHandlingSession ? userSessionId : undefined
+        images as any
       ) as { jobId: string };
 
       setResult({ stdout: '', stderr: '', status: 'Queued...', executionTime: null });
@@ -361,6 +284,12 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
 
       if (data.pygameBundle && data.stdout) {
         setPygameConsoleOutput(data.stdout.trim().split('\n'));
+      }
+
+      // Refresh the workspace so files the student's code just created/changed
+      // appear in the FILES tab (persisted server-side by the runner).
+      if (isFileHandlingSession) {
+        await loadPersistentFiles();
       }
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : 'Execution failed';
@@ -427,6 +356,11 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
         const executionResult = resultData.result;
         if (executionResult?.pygameBundle && executionResult?.stdout) {
           setPygameConsoleOutput(executionResult.stdout.trim().split('\n'));
+        }
+
+        // Surface any file the graded run created/changed in the FILES tab.
+        if (isFileHandlingSession) {
+          await loadPersistentFiles();
         }
       } else {
         throw new Error('No submission result received');

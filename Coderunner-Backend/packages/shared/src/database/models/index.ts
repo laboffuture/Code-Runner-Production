@@ -9,6 +9,7 @@ export { Contest } from './Contest.model';
 export { ContestEntry } from './ContestEntry.model';
 export { Classroom } from './Classroom.model';
 export { StudentAttempt } from './StudentAttempt.model';
+export { StudentFile } from './StudentFile.model';
 export { ResetLog } from './ResetLog.model';
 export { CoinTransaction } from './CoinTransaction.model';
 export { StoreItem } from './StoreItem.model';

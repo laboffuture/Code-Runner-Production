@@ -52,6 +52,7 @@ import problemsRoutes from './routes/problems.routes';
 import levelsRoutes from './routes/levels.routes';
 import sessionsRoutes from './routes/sessions.routes';
 import executionRoutes from './routes/execution.routes';
+import filesRoutes from './routes/files.routes';
 import progressRoutes from './routes/progress.routes';
 import authRoutes from './routes/auth.routes';
 import usersRoutes from './routes/users.routes';
@@ -260,6 +261,7 @@ app.use('/problems', problemsRoutes);
 app.use('/levels', levelsRoutes);
 app.use('/sessions', sessionsRoutes);
 app.use('/execution', executionRoutes); // New queue-based execution
+app.use('/files', filesRoutes); // Per-student file-handling workspace
 app.use('/progress', progressRoutes);
 app.use('/cheatsheets', cheatsheetsRoutes);
 app.use('/admin', adminRoutes);
