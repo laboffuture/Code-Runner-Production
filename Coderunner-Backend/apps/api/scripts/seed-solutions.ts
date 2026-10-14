@@ -161,15 +161,15 @@ const GUIDES = [
   // ── Session 1: case 6 challenge ──
   {
     problem_id: 51, level_number: 1, session_id: 1, case_number: 6,
-    solution_code: 'name = input()\nprint(f"Welcome, Cadet {name}! Preparing your mission log...")\ndays = 15\nhours = days * 24\nprint(f"Mission Duration: {hours} hours. Good luck, {name}!")',
+    solution_code: '# Get user input\nname = input()\n# Calculate mission duration\nduration = 15 * 24\n# Display welcome message\nprint(f"Welcome, Cadet {name}! Preparing your mission log...")\n# Display mission duration\nprint(f"Mission Duration: {duration} hours. Good luck, {name}!")',
     walkthrough: [
-      { label: 'Greet the cadet by name', code_snippet: 'name = input()\nprint(f"Welcome, Cadet {name}! Preparing your mission log...")',
-        explanation: 'Read the name once, then drop it into the welcome line with an f-string.' },
-      { label: 'Work out the hours and sign off', code_snippet: 'days = 15\nhours = days * 24\nprint(f"Mission Duration: {hours} hours. Good luck, {name}!")',
-        explanation: 'A 15-day mission is 15 * 24 = 360 hours. The same name is reused in the final line.' },
+      { label: 'Read the input and work out the duration', code_snippet: '# Get user input\nname = input()\n# Calculate mission duration\nduration = 15 * 24',
+        explanation: "Read the cadet's name, then calculate the mission duration up front: 15 days times 24 hours = 360 hours, stored in one variable." },
+      { label: 'Print the welcome and duration messages', code_snippet: '# Display welcome message\nprint(f"Welcome, Cadet {name}! Preparing your mission log...")\n# Display mission duration\nprint(f"Mission Duration: {duration} hours. Good luck, {name}!")',
+        explanation: 'Both print statements reuse the name variable, and the second one reports the duration calculated above.' },
     ],
-    student_explanation: "This challenge brings input and f-strings together: ask once for the name, use it in two different sentences, and let Python do the 15 * 24 maths so the hours are always right.",
-    worked_example: 'days = 2  then  print(2 * 24)  shows: 48',
+    student_explanation: "This challenge brings input and f-strings together: ask once for the name, use it in two different sentences, and let Python do the 15 * 24 maths so the duration is always right.",
+    worked_example: 'duration = 2 * 24  then  print(duration)  shows: 48',
     key_concepts: ['input()', 'f-strings', 'reusing a variable'],
     common_mistakes: ['Typing 360 by hand instead of calculating 15 * 24', 'Forgetting the f before a quote, so {name} prints literally'],
   },

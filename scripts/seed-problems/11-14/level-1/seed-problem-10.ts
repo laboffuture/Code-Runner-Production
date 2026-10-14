@@ -40,9 +40,7 @@ Then print two lines:
       case_number: 5,
       case_title: 'Getting Input from the User',
       case_overview: `Variables become even more useful when we get values from the user. Python's input() function lets you type something during the program's run — perfect for interactive missions, games, or data collection.`,
-      case_code: `# The input() function gets data from the user
-# It always returns a string (text)
-# You can also provide a prompt message:
+      case_code: `# You can also provide a prompt message:
 name = input("What is your name? ")
 print("Hello,", name)`,
       case_explanation: `● Syntax: variable = input()
