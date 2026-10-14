@@ -238,9 +238,13 @@ export function Header() {
                 }}
               >
                 {/* Selected character's emblem; falls back to the User icon
-                    until that character's profile art is uploaded. */}
+                    until that character's profile art is uploaded. Header is
+                    rendered fresh on every page (not a shared layout), so this
+                    remounts on every navigation — delayMs keeps the fallback
+                    icon from flashing in first while the (browser-cached, same
+                    URL every time) real image finishes its own reload. */}
                 <AvatarImage data-ai-hint="character emblem" src={getCharacterEmblem(theme.id) ?? undefined} alt={theme.name} />
-                <AvatarFallback className="bg-slate-800 font-space" style={{
+                <AvatarFallback delayMs={600} className="bg-slate-800 font-space" style={{
                   color: accentColor
                 }}>
                   <User className="w-5 h-5" />
