@@ -1,84 +1,33 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { resolveApiUrl } from '@/lib/api-client';
 
 interface PygameCanvasProps {
-  bundle: {
-    html: string;
-    wasm: string;
-    data: string;
-    js: string;
-  };
-  onConsoleOutput?: (message: string) => void;
+  /** Relative path from the execution result, e.g. "/pygame-builds/<id>/index.html". */
+  url: string;
 }
 
-export function PygameCanvas({ bundle, onConsoleOutput }: PygameCanvasProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  // Listen for print messages from iframe
-  useEffect(() => {
-    const handler = (e: MessageEvent) => {
-      if (e.data?.type === 'pygame-console' && onConsoleOutput) {
-        const msg = e.data.message.replace(/\x1b\[[0-9;]*m/g, '').trim();
-
-        // Filter system messages
-        const systemKeywords = ['Pygbag', 'Loading', '__call__', 'coroutine',
-                               'object at 0x', '.call', 'fire_event', 'patch_'];
-        const isSystemMsg = systemKeywords.some(kw => msg.includes(kw));
-
-        // Filter short/numeric messages
-        const isGarbage = msg.length <= 2 || /^\d+$/.test(msg);
-
-        if (msg && !isSystemMsg && !isGarbage) {
-          onConsoleOutput(msg);
-        }
-      }
-    };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, [onConsoleOutput]);
-
-  useEffect(() => {
-    if (!iframeRef.current) return;
-
-    try {
-      // Decode base64 encoded files
-      const decodedHTML = atob(bundle.html);
-      const apkBinary = Uint8Array.from(atob(bundle.wasm), c => c.charCodeAt(0));
-
-      // Create a separate blob URL for the APK file
-      const apkBlob = new Blob([apkBinary], { type: 'application/octet-stream' });
-      const apkUrl = URL.createObjectURL(apkBlob);
-
-      // Replace game.apk reference with the blob URL
-      let modifiedHTML = decodedHTML
-        .replace(/["']game\.apk["']/g, `"${apkUrl}"`);
-
-      // Create blob URL for the HTML
-      const htmlBlob = new Blob([modifiedHTML], { type: 'text/html' });
-      const htmlUrl = URL.createObjectURL(htmlBlob);
-
-      iframeRef.current.src = htmlUrl;
-
-      // Cleanup blob URLs when component unmounts
-      return () => {
-        URL.revokeObjectURL(htmlUrl);
-        URL.revokeObjectURL(apkUrl);
-      };
-    } catch (error) {
-      console.error('[PygameCanvas] Failed to load Pygame bundle:', error);
-    }
-  }, [bundle]);
+/**
+ * Real interactive pygame window: the API serves the Pygbag/WASM build
+ * (docker.executor.ts's buildPygameInteractive) as static files, and this
+ * just iframes it directly — the build's own index.html loads the browser
+ * Python runtime and the packaged game itself, entirely client-side.
+ *
+ * Must be a real absolute URL (not a blob: URL) — the build's index.html
+ * does a relative fetch for its own data archive and loads an external
+ * runtime script, neither of which works from a blob-URL document.
+ */
+export function PygameCanvas({ url }: PygameCanvasProps) {
+  const src = `${resolveApiUrl()}${url}`;
 
   return (
     <div className="relative w-full bg-black rounded-lg border border-neon-purple/30">
       <iframe
-        ref={iframeRef}
-        className="w-full h-[500px]"
-        sandbox="allow-scripts allow-same-origin allow-modals"
+        src={src}
+        className="w-full h-[600px]"
+        sandbox="allow-scripts allow-same-origin allow-modals allow-pointer-lock"
         allow="cross-origin-isolated"
         title="Pygame Interactive Canvas"
-        onError={(e) => console.error('[PygameCanvas] Iframe error:', e)}
       />
     </div>
   );

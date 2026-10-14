@@ -27,6 +27,8 @@ export interface IExecutionResult extends Document {
     exitCode?: number;
     // Generated files (images, CSVs, etc.)
     files?: IExecutionFile[];
+    // RUN-mode pygame only: URL to a real interactive Pygbag/WASM build
+    pygameUrl?: string;
     // Legacy fields
     plots?: string[];
   };

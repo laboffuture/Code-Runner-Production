@@ -107,13 +107,9 @@ export interface ExecutionResult {
   plots?: string[];
   executionDir?: string;
 
-  // Pygame interactive bundle (for web export)
-  pygameBundle?: {
-    html: string;
-    wasm: string;
-    data: string;
-    js: string;
-  };
+  // RUN-mode pygame only: URL to a real interactive Pygbag/WASM build,
+  // served by the API. See docker.executor.ts buildPygameInteractive.
+  pygameUrl?: string;
 }
 
 export interface SubmissionResult {

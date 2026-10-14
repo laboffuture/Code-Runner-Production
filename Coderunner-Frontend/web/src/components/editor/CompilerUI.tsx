@@ -34,6 +34,7 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
   });
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
   const [pygameConsoleOutput, setPygameConsoleOutput] = useState<string[]>([]);
+  const [pygameCanvasOpen, setPygameCanvasOpen] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<{ name: string; content: string } | null>(null);
@@ -216,16 +217,6 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
     setUploadedImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
-  // ===== PYGAME HANDLING =====
-  const handleConsoleOutput = useCallback((message: string) => {
-    setPygameConsoleOutput(prev => {
-      if (prev.includes(message)) {
-        return prev;
-      }
-      return [...prev, message];
-    });
-  }, []);
-
   // ===== LOAD TEST CASES =====
   useEffect(() => {
     async function loadTestCases() {
@@ -282,8 +273,9 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
       setResult(data);
       setEditorStatus(data.status === 'Success' ? 'SUCCESS' : 'ERROR');
 
-      if (data.pygameBundle && data.stdout) {
-        setPygameConsoleOutput(data.stdout.trim().split('\n'));
+      if (data.pygameUrl) {
+        setPygameCanvasOpen(true);
+        if (data.stdout) setPygameConsoleOutput(data.stdout.trim().split('\n'));
       }
 
       // Refresh the workspace so files the student's code just created/changed
@@ -354,8 +346,11 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
         });
 
         const executionResult = resultData.result;
-        if (executionResult?.pygameBundle && executionResult?.stdout) {
-          setPygameConsoleOutput(executionResult.stdout.trim().split('\n'));
+        // Submissions grade (never build the interactive window — see
+        // docker.executor.ts), but keep this in sync in case that changes.
+        if (executionResult?.pygameUrl) {
+          setPygameCanvasOpen(true);
+          if (executionResult.stdout) setPygameConsoleOutput(executionResult.stdout.trim().split('\n'));
         }
 
         // Surface any file the graded run created/changed in the FILES tab.
@@ -530,13 +525,16 @@ export function CompilerUI({ problem, contestId }: CompilerUIProps) {
       </div>
 
       {/* Pygame Canvas (if applicable) */}
-      {result.pygameBundle && (
+      {result.pygameUrl && pygameCanvasOpen && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl">
-            <PygameCanvas
-              bundle={result.pygameBundle}
-              onConsoleOutput={handleConsoleOutput}
-            />
+          <div className="w-full max-w-4xl relative">
+            <button
+              onClick={() => setPygameCanvasOpen(false)}
+              className="absolute -top-10 right-0 flex items-center gap-1 text-sm text-white/70 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" /> Close
+            </button>
+            <PygameCanvas url={result.pygameUrl} />
             {pygameConsoleOutput.length > 0 && (
               <div className="mt-4 bg-slate-900 rounded-lg p-4 max-h-40 overflow-y-auto custom-scrollbar">
                 <div className="text-xs font-mono text-emerald-400 space-y-1">

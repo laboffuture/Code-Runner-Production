@@ -33,6 +33,16 @@ if (!envLoaded) {
 // Load .env as fallback
 dotenv.config();
 
+// Pin Node's own DNS resolver to reliable public servers before anything does
+// a lookup. The mongodb+srv:// URI needs a DNS SRV query to find the Atlas
+// cluster; some networks' configured DNS server handles ordinary A/AAAA
+// lookups fine but intermittently fails (ESERVFAIL) on the less-common SRV
+// record type, even though the OS's own resolver succeeds via its own
+// fallback/retry logic that Node's resolver doesn't replicate. This only
+// affects this Node process's own lookups, not the OS/system DNS config.
+import dns from 'dns';
+dns.setServers(['8.8.8.8', '1.1.1.1', ...dns.getServers()]);
+
 import express, { Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -252,6 +262,13 @@ app.get('/health/metrics', authMiddleware, developerMiddleware, async (req, res)
     });
   }
 });
+
+// Interactive pygame builds (Pygbag/WASM output) — written by the runner,
+// served here since it's the public-facing process. Shared filesystem path;
+// both processes run on the same host today (local dev and the production
+// VPS alike), see PYGAME_BUILD_DIR in docker.executor.ts.
+const pygameBuildDir = process.env.PYGAME_BUILD_DIR || path.resolve(__dirname, '../../../.pygame-builds');
+app.use('/pygame-builds', express.static(pygameBuildDir));
 
 // API Routes
 app.use('/auth', authRoutes);

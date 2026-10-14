@@ -59,6 +59,11 @@ yarn-error.log*
 *.pem
 .cache/
 
+# Interactive pygame builds (Pygbag/WASM output + runtime cache) — generated,
+# never committed. See docker.executor.ts buildPygameInteractive.
+.pygame-builds/
+.pygbag-cache/
+
 # Claude temporary files
 tmpclaude*
 **/tmpclaude*

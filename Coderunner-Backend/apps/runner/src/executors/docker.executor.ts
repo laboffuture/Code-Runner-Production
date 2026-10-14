@@ -1,10 +1,11 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { writeFile, unlink, mkdir, readdir, rm } from 'fs/promises';
+import { writeFile, unlink, mkdir, mkdtemp, cp, rm, readdir } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { existsSync } from 'fs';
 import mongoose from 'mongoose';
+import { randomUUID } from 'crypto';
 import {
   getLogger,
   Models,
@@ -55,6 +56,11 @@ export interface ExecutionResult {
   executionTime: number;
   files?: ExecutionFile[];
   exitCode?: number;
+  // RUN-mode pygame only: URL to a real interactive Pygbag/WASM build of the
+  // student's code (relative path, served statically by the API). Absent
+  // when the code isn't pygame, mode is 'grade', or the build failed —
+  // failure here never affects the rest of the result (see buildPygameInteractive).
+  pygameUrl?: string;
 }
 
 export interface TestCaseResult {
@@ -85,6 +91,16 @@ export class DockerExecutor {
   private static readonly CONTAINER_CREATION_TIMEOUT = 30000; // 30 seconds for container creation
   private static readonly MAX_OUTPUT_BUFFER = 10 * 1024 * 1024; // 10MB max output
   private static readonly IMAGE_NAME = 'python-code-runner';
+  // Interactive pygame build (Pygbag/WASM) — Phase 1 (local dev): runs on the
+  // HOST via plain `python -m pygbag`, not inside the Docker sandbox (pygbag
+  // isn't installed there yet — that's later production-hardening work).
+  // Output is shared with the API process over the filesystem; both run on
+  // the same host today (local dev and the production VPS alike).
+  private static readonly PYGAME_BUILD_TIMEOUT = 45000; // 45s — WASM packaging is slow
+  private static readonly PYGAME_BUILD_DIR =
+    process.env.PYGAME_BUILD_DIR || join(__dirname, '..', '..', '..', '..', '.pygame-builds');
+  private static readonly PYGBAG_CACHE_DIR =
+    process.env.PYGBAG_CACHE_DIR || join(__dirname, '..', '..', '..', '..', '.pygbag-cache');
   private static initialized = false;
   private static dockerAvailable = false;
 
@@ -418,6 +434,86 @@ _pg.event.get = _scripted_get
 `;
   }
 
+  /**
+   * Rewrite student code into the async-cooperative style Pygbag requires:
+   * everything wrapped in one async function, run via asyncio.run(), with
+   * `await asyncio.sleep(0)` injected as the first line of any recognized
+   * game loop so the browser's event loop gets a chance to breathe each frame.
+   *
+   * Same regex-based, best-effort approach as the existing loop-cap transform
+   * above (not a full parser) — recognizes the same loop-header patterns
+   * (`while True/running/not done/game_running/is_running:`). A loop written
+   * differently won't get a yield injected and may hang the browser tab;
+   * that's a known limitation of this pass, not a silent failure.
+   */
+  private static transformForPygbag(code: string): string {
+    const loopHeader = /^(\s*)while\s+(True|running|not\s+done|game_running|is_running)\s*:\s*$/;
+    const withYields: string[] = [];
+    for (const line of code.split('\n')) {
+      withYields.push(line);
+      const m = line.match(loopHeader);
+      if (m) {
+        withYields.push(`${m[1]}    await asyncio.sleep(0)`);
+      }
+    }
+    const indented = withYields.map((l) => (l.trim() ? '    ' + l : l)).join('\n');
+    return `import asyncio\n\nasync def _pygbag_main():\n${indented}\n\nasyncio.run(_pygbag_main())\n`;
+  }
+
+  /**
+   * Build a real, playable Pygbag/WASM window from the student's own RUN-mode
+   * code — the actual interactive replacement for the static frame captures
+   * below. Pygbag only ever PACKAGES the code (zips it alongside a fixed,
+   * pre-cached browser-side Python runtime); it never executes the student's
+   * code itself, so this step carries none of the untrusted-code-execution
+   * risk that running it does — see the design discussion for why that's safe
+   * to do outside the Docker sandbox.
+   *
+   * Phase 1 (local dev): shells out to `python -m pygbag` directly on the
+   * host. Best-effort and fully additive — any failure (pygbag not installed,
+   * timeout, bad build) is caught, logged, and simply omits pygameUrl from
+   * the result; it must never break the existing execution/grading path.
+   */
+  private static async buildPygameInteractive(code: string): Promise<string | null> {
+    const buildId = randomUUID();
+    let projectDir: string | null = null;
+
+    try {
+      projectDir = await mkdtemp(join(tmpdir(), 'pygbag-src-'));
+      const mainPy = this.transformForPygbag(code);
+      await writeFile(join(projectDir, 'main.py'), mainPy, 'utf8');
+
+      await mkdir(this.PYGBAG_CACHE_DIR, { recursive: true });
+
+      await execAsync(
+        `python -m pygbag --build --cache "${this.PYGBAG_CACHE_DIR}" "${projectDir}"`,
+        { timeout: this.PYGAME_BUILD_TIMEOUT, maxBuffer: this.MAX_OUTPUT_BUFFER }
+      );
+
+      const builtDir = join(projectDir, 'build', 'web');
+      if (!existsSync(builtDir)) {
+        logger.warn('Pygbag reported success but build/web is missing', { buildId });
+        return null;
+      }
+
+      const destDir = join(this.PYGAME_BUILD_DIR, buildId);
+      await mkdir(destDir, { recursive: true });
+      await cp(builtDir, destDir, { recursive: true });
+
+      return `/pygame-builds/${buildId}/index.html`;
+    } catch (error) {
+      logger.warn('Pygame interactive build failed (non-fatal, falling back to frame capture)', {
+        buildId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    } finally {
+      if (projectDir) {
+        await rm(projectDir, { recursive: true, force: true }).catch(() => {});
+      }
+    }
+  }
+
   // ==========================================================================
   // Main Execution Methods
   // ==========================================================================
@@ -456,11 +552,17 @@ _pg.event.get = _scripted_get
       const processedCode = this.preprocessCode(code, mode, gradeDirective);
 
       // Use container pool if enabled
-      if (containerPool) {
-        return await this.executeWithPool(processedCode, containerInput, startTime, persist);
-      } else {
-        return await this.executeWithFreshContainer(processedCode, containerInput, startTime, persist);
+      const result = containerPool
+        ? await this.executeWithPool(processedCode, containerInput, startTime, persist)
+        : await this.executeWithFreshContainer(processedCode, containerInput, startTime, persist);
+
+      // RUN mode + pygame: also build the real interactive window. GRADE mode
+      // never does this — a 10-45s build per test case would be far too slow.
+      if (mode === 'run' && this.usesPygame(code)) {
+        result.pygameUrl = (await this.buildPygameInteractive(code)) ?? undefined;
       }
+
+      return result;
 
     } catch (error) {
       logger.error('Docker execution error', {

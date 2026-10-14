@@ -15,7 +15,7 @@
  * Solution: if the configured URL points to localhost (or none is set), derive
  * the API host from window.location.hostname so the correct IP is always used.
  */
-function resolveApiUrl(): string {
+export function resolveApiUrl(): string {
   const configured = process.env.NEXT_PUBLIC_API_URL || '';
 
   // SSR / non-browser — fall back to the env var or localhost

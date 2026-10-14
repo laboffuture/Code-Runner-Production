@@ -64,6 +64,8 @@ export class CodeExecutionWorker {
             exitCode: result.exitCode,
             // Include generated files (images, etc.)
             files: result.files,
+            // Interactive pygame window (RUN mode only), see docker.executor.ts
+            pygameUrl: result.pygameUrl,
           },
           completedAt: new Date(),
         }

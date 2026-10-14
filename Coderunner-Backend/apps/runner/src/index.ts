@@ -14,6 +14,16 @@ if (result.error) {
 }
 dotenv.config(); // Load .env as fallback
 
+// Pin Node's own DNS resolver to reliable public servers before anything does
+// a lookup. The mongodb+srv:// URI needs a DNS SRV query to find the Atlas
+// cluster; some networks' configured DNS server handles ordinary A/AAAA
+// lookups fine but intermittently fails (ESERVFAIL) on the less-common SRV
+// record type, even though the OS's own resolver succeeds via its own
+// fallback/retry logic that Node's resolver doesn't replicate. This only
+// affects this Node process's own lookups, not the OS/system DNS config.
+import dns from 'dns';
+dns.setServers(['8.8.8.8', '1.1.1.1', ...dns.getServers()]);
+
 import Redis from 'ioredis';
 import { connectToDatabase, getLogger } from '@code-runner/shared';
 import { DockerExecutor } from './executors/docker.executor';
