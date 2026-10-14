@@ -171,12 +171,22 @@ router.get('/:age_group', optionalAuthMiddleware, async (req: Request, res: Resp
       const levelTitle = levelTitles[level.age_group]?.[level.level_number] ||
                         `Mission ${level.level_number}: Code Convergence`;
 
+      // Hand-authored mission briefing for specific levels; falls back to the
+      // generic computed sentence for any level without one.
+      const levelBriefings: { [key: string]: { [levelNum: number]: string } } = {
+        '11-14': {
+          1: 'Master Python fundamentals through 61 challenges across 11 sessions, building skills in variables, conditions, lists, loops, and operators to achieve Code Convergence.',
+        },
+      };
+      const levelDescription = levelBriefings[level.age_group]?.[level.level_number] ||
+                        `Complete ${level.problems.length} challenges across ${sessions.length} sessions`;
+
       return {
         level_id: level.level_number,
         level_number: level.level_number,
         title: levelTitle,
         age_group: level.age_group,
-        description: `Complete ${level.problems.length} challenges across ${sessions.length} sessions`,
+        description: levelDescription,
         sessions,
       };
     });

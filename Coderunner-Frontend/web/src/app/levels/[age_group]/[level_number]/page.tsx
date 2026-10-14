@@ -218,7 +218,7 @@ export default function LevelDetailPage({ params }: LevelDetailPageProps) {
                                 MISSION {levelData.level_number}
                             </h1>
                             <p className="text-xl font-space opacity-90" style={{ color: accentColor }}>
-                                {levelData.title}
+                                {levelData.title.replace(/^Mission\s*\d+\s*:\s*/i, '')}
                             </p>
                         </div>
                     </div>
@@ -306,7 +306,7 @@ export default function LevelDetailPage({ params }: LevelDetailPageProps) {
                                             <Database className="h-5 w-5" style={{ color: accentColor }} />
                                             <span className="font-space text-sm font-bold" style={{ color: accentColor }}>MISSION BRIEFING</span>
                                         </div>
-                                        <p className="text-lg font-medium leading-relaxed" style={{ color: '#f3ede9', opacity: 0.8 }}>
+                                        <p className="text-lg font-medium leading-relaxed whitespace-pre-line" style={{ color: '#f3ede9', opacity: 0.8 }}>
                                             {levelData.description}
                                         </p>
                                     </div>
