@@ -12,7 +12,7 @@ import { AuthTopBar, AuthTicker } from '../components/AuthChrome';
 const CDN_IMAGES = {
   env: `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/ui/ENV-2.png`,
   transparent: `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/ui/transperent.png`,
-  logo: `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/ui/LOF_SVG.svg`,
+  logo: `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/ui/LOFFF.png`,
   background: `${CLOUDINARY_BASE}/image/upload/f_auto,q_auto/code-runner/ui/background.webp`,
 };
 
@@ -102,33 +102,34 @@ export default function LoginPage() {
             <div className="w-[30%] h-full relative z-10" style={{ clipPath: 'inset(0)', contain: 'layout paint' }}>
               <div className={`sidebar-panel w-full h-full flex flex-col px-12 py-10 ${imagesLoaded ? 'sidebar-slide-in' : 'sidebar-hidden'}`}>
                 <div className="sidebar-content" style={{ opacity: imagesLoaded ? 1 : 0, visibility: imagesLoaded ? 'visible' : 'hidden' }}>
-                  <div className="mb-20">
-                    <div className="mb-20"><Image src={CDN_IMAGES.transparent} alt="Logo" width={120} height={120} className="h-30 w-auto object-contain logo-burn" unoptimized priority /></div>
-                    <div className="border-l-[5px] border-slate-900 pl-4"><div className="font-header text-5xl leading-[0.9] text-slate-900 uppercase">CODE<br /><span className="text-blue-600">OPS</span></div></div>
+                  <div className="flex-1 flex flex-col justify-center">
+                    <div className="mb-10">
+                      <div className="border-l-[5px] border-slate-900 pl-4"><div className="font-header text-6xl leading-[0.9] text-slate-900 uppercase">CODE<br /><span className="text-blue-600">OPS</span></div></div>
+                    </div>
+                    <form className="w-full space-y-5" onSubmit={handleLogin}>
+                      {loginError && <div className="text-red-500 text-xs font-mono bg-red-50 border border-red-200 rounded px-3 py-2">{loginError}</div>}
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Identification</label>
+                        <div className="relative">
+                          <input className="input-pill pr-11" type="text" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
+                          <User className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Access Key</label>
+                        <div className="relative">
+                          <input className="input-pill pr-11" type={showPassword ? "text" : "password"} placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors">{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                        </div>
+                      </div>
+                      <button className="btn-pill w-full h-14 mt-6" type="submit" disabled={isSubmitting}><span className="font-mono text-base uppercase tracking-[0.3em] text-white font-bold">{isSubmitting ? 'Authenticating...' : 'Initiate_Session'}</span></button>
+                      <div className="mt-4 text-center"><p className="text-xs text-slate-500 font-mono">New Operative?{' '}<Link href="/register" className="text-cyan-600 hover:text-cyan-500 transition underline">Register Here</Link></p></div>
+                    </form>
                   </div>
-                  <form className="w-full space-y-5" onSubmit={handleLogin}>
-                    {loginError && <div className="text-red-500 text-xs font-mono bg-red-50 border border-red-200 rounded px-3 py-2">{loginError}</div>}
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Identification</label>
-                      <div className="relative">
-                        <input className="input-pill pr-11" type="text" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
-                        <User className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Access Key</label>
-                      <div className="relative">
-                        <input className="input-pill pr-11" type={showPassword ? "text" : "password"} placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors">{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
-                      </div>
-                    </div>
-                    <button className="btn-pill w-full h-12 mt-6" type="submit" disabled={isSubmitting}><span className="font-mono text-sm uppercase tracking-[0.3em] text-white font-bold">{isSubmitting ? 'Authenticating...' : 'Initiate_Session'}</span></button>
-                    <div className="mt-4 text-center"><p className="text-xs text-slate-500 font-mono">New Operative?{' '}<Link href="/register" className="text-cyan-600 hover:text-cyan-500 transition underline">Register Here</Link></p></div>
-                  </form>
-                  <div className="mt-auto pt-20 border-t border-slate-300/40">
-                    <div className="flex flex-col items-center gap-0">
-                      <span className="text-base font-mono uppercase tracking-[0.15em] font-bold text-slate-500">Developed by</span>
-                      <div className="w-full flex justify-center -mt-8"><Image src={CDN_IMAGES.logo} alt="LOF Logo" width={140} height={140} className="h-28 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity" unoptimized /></div>
+                  <div className="pt-10 border-t border-slate-300/40">
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-xs font-mono uppercase tracking-[0.15em] font-bold text-slate-500">Developed by</span>
+                      <div className="w-full flex justify-center"><Image src={CDN_IMAGES.logo} alt="LOF Logo" width={512} height={128} className="h-10 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity" unoptimized /></div>
                     </div>
                   </div>
                 </div>
@@ -156,11 +157,11 @@ export default function LoginPage() {
         .sidebar-hidden { opacity: 0 !important; visibility: hidden !important; transform: translateX(-100%) !important; pointer-events: none !important; }
         .sidebar-hidden .sidebar-content { display: none !important; }
         .sidebar-slide-in { animation: sidebar-slide-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-        .sidebar-slide-in .sidebar-content { display: flex !important; flex-direction: column !important; }
+        .sidebar-slide-in .sidebar-content { display: flex !important; flex-direction: column !important; height: 100% !important; }
         .sidebar-panel > *, .sidebar-panel .sidebar-content { width: 100%; }
         .logo-burn { filter: drop-shadow(0 0 10px rgba(37,99,235,0.8)) drop-shadow(0 0 20px rgba(59,130,246,0.6)) drop-shadow(0 0 30px rgba(96,165,250,0.4)); animation: burn-glow 2s ease-in-out infinite; }
         @keyframes burn-glow { 0%,100% { filter: drop-shadow(0 0 10px rgba(37,99,235,0.8)) drop-shadow(0 0 20px rgba(59,130,246,0.6)) drop-shadow(0 0 30px rgba(96,165,250,0.4)); } 50% { filter: drop-shadow(0 0 20px rgba(37,99,235,1)) drop-shadow(0 0 40px rgba(59,130,246,0.8)) drop-shadow(0 0 60px rgba(96,165,250,0.6)); } }
-        .input-pill { width: 100%; background: rgba(255,255,255,0.92); border: 1px solid #dbe3ef; border-radius: 9999px; color: #1e293b; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; padding: 0.7rem 1.25rem; box-shadow: 0 2px 10px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9); transition: border-color 0.2s var(--ease-quart), box-shadow 0.2s var(--ease-quart); }
+        .input-pill { width: 100%; background: rgba(255,255,255,0.92); border: 1px solid #dbe3ef; border-radius: 9999px; color: #1e293b; font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 600; padding: 0.85rem 1.25rem; box-shadow: 0 2px 10px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9); transition: border-color 0.2s var(--ease-quart), box-shadow 0.2s var(--ease-quart); }
         .input-pill::placeholder { color: #94a3b8; font-weight: 500; }
         .input-pill:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 2px 12px rgba(59,130,246,0.15); }
         .btn-pill { position: relative; overflow: hidden; border-radius: 9999px; border: 1px solid rgba(29,78,216,0.6); background: linear-gradient(180deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%); box-shadow: 0 8px 22px -8px rgba(37,99,235,0.65), inset 0 1px 0 rgba(255,255,255,0.35); transition: transform 0.1s ease-out, box-shadow 0.2s ease, filter 0.2s ease; }

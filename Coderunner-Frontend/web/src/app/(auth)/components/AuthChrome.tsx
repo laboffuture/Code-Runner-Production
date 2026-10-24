@@ -121,7 +121,7 @@ export function AuthTicker({ imagesLoaded }: { imagesLoaded: boolean }) {
 
   return (
     <div className="h-12 w-full bg-slate-900 border-t border-slate-700 flex items-center z-50" style={{ opacity: imagesLoaded ? 1 : 0, visibility: imagesLoaded ? 'visible' : 'hidden', transform: imagesLoaded ? 'translateY(0)' : 'translateY(20px)', transition: 'all 0.2s ease', transitionDelay: '0.3s' }}>
-      <div className="flex items-center gap-3 px-6 h-full border-r border-slate-700 bg-slate-800"><div className="flex items-center gap-1 bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider"><div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />LIVE</div><div className="font-mono text-[10px] text-slate-400">NEWS FEED: ORBITAL_CHANNEL</div></div>
+      <div className="flex items-center gap-3 px-6 h-full border-r border-slate-700 bg-slate-800"><div className="flex items-center gap-1 bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider"><div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />LIVE</div><div className="font-mono text-[10px] text-slate-400">NEWS FEED :</div></div>
       <div className="flex-1 overflow-hidden relative flex items-center bg-slate-950"><div className="ticker font-mono text-xs text-slate-400" dangerouslySetInnerHTML={{ __html: newsFeed }} /></div>
       <div className="px-6 flex gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider"><span>MATCHMAKING: <span className="text-slate-300">IDLE</span></span><span>VOICE_COMMS: <span className="text-green-500">SECURE</span></span><span>ANTI-CHEAT: <span className="text-blue-500">ONLINE</span></span></div>
 
