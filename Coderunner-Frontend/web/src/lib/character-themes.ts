@@ -54,7 +54,7 @@ export const CHARACTER_THEMES: Record<CharacterId, CharacterTheme> = {
       glow: 'rgba(34,197,94,0.3)',
     },
     wallpaper: '/nila-home-bg.png',
-    avatar: '/assets/characters/nila (2).png',
+    avatar: '/assets/characters/Nila.png',
     class: 'theme-nila',
   },
   kenji: {
@@ -70,7 +70,7 @@ export const CHARACTER_THEMES: Record<CharacterId, CharacterTheme> = {
       glow: 'rgba(249,115,22,0.3)',
     },
     wallpaper: '/kenji-home-bg.png',
-    avatar: '/assets/characters/Kenji_2.png',
+    avatar: '/assets/characters/Kenji.png',
     class: 'theme-kenji',
   },
   leo: {
