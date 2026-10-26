@@ -13,8 +13,7 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { useTheme } from '@/contexts/ThemeContext';
 import FloatingParticles from '@/components/ui/FloatingParticles';
-
-const CDN_SETTLEMENT_BG = 'https://res.cloudinary.com/dwqzqxeuk/image/upload/f_auto,q_auto/code-runner/ui/technological-exploration-settlement.jpg';
+import { getLevelsBackdrop } from '@/lib/view-backgrounds';
 
 interface LevelDetailPageProps {
     params: {
@@ -162,7 +161,7 @@ export default function LevelDetailPage({ params }: LevelDetailPageProps) {
             <div
                 className="fixed inset-0 z-0"
                 style={{
-                    backgroundImage: `url("${CDN_SETTLEMENT_BG}")`,
+                    backgroundImage: `url("${getLevelsBackdrop(theme.id)}")`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat'
@@ -217,7 +216,7 @@ export default function LevelDetailPage({ params }: LevelDetailPageProps) {
                             <h1 className="text-3xl md:text-4xl font-space font-bold text-primary glow-text">
                                 MISSION {levelData.level_number}
                             </h1>
-                            <p className="text-xl font-space opacity-90" style={{ color: accentColor }}>
+                            <p className="text-lg font-space font-bold uppercase opacity-90" style={{ color: accentColor }}>
                                 {levelData.title.replace(/^Mission\s*\d+\s*:\s*/i, '')}
                             </p>
                         </div>
@@ -225,61 +224,6 @@ export default function LevelDetailPage({ params }: LevelDetailPageProps) {
                     
                     {/* Mission Briefing */}
                     <div className="max-w-4xl mx-auto relative">
-                        {/* SVG Filter for Electric Border */}
-                        <svg className="absolute" style={{ width: 0, height: 0 }}>
-                            <defs>
-                                <filter
-                                    id="mission-briefing-turbulent-displace"
-                                    colorInterpolationFilters="sRGB"
-                                    x="-20%"
-                                    y="-20%"
-                                    width="140%"
-                                    height="140%"
-                                >
-                                    <feTurbulence
-                                        type="turbulence"
-                                        baseFrequency="0.02"
-                                        numOctaves="10"
-                                        result="noise1"
-                                        seed="1"
-                                    />
-                                    <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-                                        <animate
-                                            attributeName="dy"
-                                            values="700; 0"
-                                            dur="6s"
-                                            repeatCount="indefinite"
-                                            calcMode="linear"
-                                        />
-                                    </feOffset>
-                                    <feTurbulence
-                                        type="turbulence"
-                                        baseFrequency="0.02"
-                                        numOctaves="10"
-                                        result="noise2"
-                                        seed="1"
-                                    />
-                                    <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-                                        <animate
-                                            attributeName="dy"
-                                            values="0; -700"
-                                            dur="6s"
-                                            repeatCount="indefinite"
-                                            calcMode="linear"
-                                        />
-                                    </feOffset>
-                                    <feComposite in="offsetNoise1" in2="offsetNoise2" result="combinedNoise" />
-                                    <feDisplacementMap
-                                        in="SourceGraphic"
-                                        in2="combinedNoise"
-                                        scale="15"
-                                        xChannelSelector="R"
-                                        yChannelSelector="B"
-                                    />
-                                </filter>
-                            </defs>
-                        </svg>
-
                         {/* Electric Border Container */}
                         <div
                             className="relative p-0.5 rounded-2xl"
@@ -299,7 +243,7 @@ export default function LevelDetailPage({ params }: LevelDetailPageProps) {
                                         className="w-full rounded-2xl border-2 -mt-1 -ml-1 relative overflow-hidden p-6"
                                         style={{
                                             borderColor: accentColor,
-                                            background: 'rgba(10, 14, 23, 0.95)'
+                                            background: 'transparent'
                                         }}
                                     >
                                         <div className="flex items-center gap-3 mb-4">
@@ -311,50 +255,7 @@ export default function LevelDetailPage({ params }: LevelDetailPageProps) {
                                         </p>
                                     </div>
                                 </div>
-
-                                {/* Glow Layers */}
-                                <div
-                                    className="absolute inset-0 w-full h-full border-2 rounded-2xl pointer-events-none"
-                                    style={{
-                                        borderColor: hexToRgba(accentColor, 0.6),
-                                        filter: 'blur(1px) url(#mission-briefing-turbulent-displace)'
-                                    }}
-                                ></div>
-                                <div
-                                    className="absolute inset-0 w-full h-full border-2 rounded-2xl pointer-events-none"
-                                    style={{
-                                        borderColor: accentColor,
-                                        filter: 'blur(4px) url(#mission-briefing-turbulent-displace)'
-                                    }}
-                                ></div>
                             </div>
-
-                            {/* Overlay Effects */}
-                            <div
-                                className="absolute inset-0 w-full h-full rounded-2xl opacity-100 scale-110 pointer-events-none"
-                                style={{
-                                    mixBlendMode: 'overlay',
-                                    filter: 'blur(16px)',
-                                    background: 'linear-gradient(-30deg, white, transparent 30%, transparent 70%, white)'
-                                }}
-                            ></div>
-                            <div
-                                className="absolute inset-0 w-full h-full rounded-2xl opacity-50 scale-110 pointer-events-none"
-                                style={{
-                                    mixBlendMode: 'overlay',
-                                    filter: 'blur(16px)',
-                                    background: 'linear-gradient(-30deg, white, transparent 30%, transparent 70%, white)'
-                                }}
-                            ></div>
-
-                            {/* Background Glow */}
-                            <div
-                                className="absolute inset-0 w-full h-full rounded-2xl -z-10 scale-110 opacity-30"
-                                style={{
-                                    filter: 'blur(32px)',
-                                    background: `linear-gradient(-30deg, ${accentColor}, transparent, ${accentColor})`
-                                }}
-                            ></div>
                         </div>
                     </div>
 

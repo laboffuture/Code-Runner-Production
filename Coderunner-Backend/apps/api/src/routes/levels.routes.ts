@@ -176,6 +176,9 @@ router.get('/:age_group', optionalAuthMiddleware, async (req: Request, res: Resp
       const levelBriefings: { [key: string]: { [levelNum: number]: string } } = {
         '11-14': {
           1: 'Master Python fundamentals through 61 challenges across 11 sessions, building skills in variables, conditions, lists, loops, and operators to achieve Code Convergence.',
+          2: 'Master Python data structures and functions through 61 challenges across 11 sessions, building skills in lists, tuples, dictionaries, sets, loops, and reusable functions to achieve Code Convergence.',
+          3: 'Master Python object-oriented programming through 61 challenges across 11 sessions, building skills in classes, objects, inheritance, encapsulation, and polymorphism to achieve Code Convergence.',
+          4: 'Master error handling and file operations through 61 challenges across 11 sessions, building skills in exception handling, file management, and reliable code to achieve Code Convergence.',
         },
       };
       const levelDescription = levelBriefings[level.age_group]?.[level.level_number] ||

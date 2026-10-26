@@ -17,8 +17,18 @@ export function LevelList({ levels }: LevelListProps) {
   const progress = useProgress();
   const [mounted, setMounted] = useState(false);
   const [, forceSync] = useState(0);
+  const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
   const { playProjectTextSound, playCardHover } = useGlobalAudio();
   const { accentColor } = useTheme();
+
+  const toggleFlip = (levelId: number) => {
+    setFlippedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(levelId)) next.delete(levelId);
+      else next.add(levelId);
+      return next;
+    });
+  };
 
   const hexToRgba = (hex: string, opacity: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -39,7 +49,7 @@ export function LevelList({ levels }: LevelListProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {levels.map((level) => (
-          <div key={level.level_id} className="h-96 bg-space-gray/20 rounded animate-pulse"></div>
+          <div key={level.level_id} className="h-80 bg-space-gray/20 rounded animate-pulse"></div>
         ))}
       </div>
     );
@@ -62,8 +72,7 @@ export function LevelList({ levels }: LevelListProps) {
         statusColor: '',
         badgeClass: '',
         buttonText: 'REVIEW',
-        buttonIcon: <Target className="mr-2 h-4 w-4" />,
-        glowColor: accentColor
+        buttonIcon: <Target className="mr-2 h-4 w-4" />
       };
     }
 
@@ -75,8 +84,7 @@ export function LevelList({ levels }: LevelListProps) {
         statusColor: '',
         badgeClass: '',
         buttonText: 'INITIALIZE',
-        buttonIcon: <Zap className="mr-2 h-4 w-4" />,
-        glowColor: accentColor
+        buttonIcon: <Zap className="mr-2 h-4 w-4" />
       };
     }
 
@@ -87,14 +95,13 @@ export function LevelList({ levels }: LevelListProps) {
       statusColor: 'text-muted-foreground',
       badgeClass: 'bg-muted/20 text-muted-foreground border-muted/40',
       buttonText: 'LOCKED',
-      buttonIcon: null,
-      glowColor: '#666666'
+      buttonIcon: null
     };
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-      {levels.map((level, index) => {
+      {levels.map((level) => {
         const statusInfo = getStatusInfo(level);
         const isLocked = statusInfo.status === 'locked';
         const isCompleted = statusInfo.status === 'completed';
@@ -105,61 +112,6 @@ export function LevelList({ levels }: LevelListProps) {
             className="relative transition-all duration-500 hover:scale-105"
             onMouseEnter={() => !isLocked && playCardHover()}
           >
-            {/* SVG Filter Definition */}
-            <svg className="absolute" style={{ width: 0, height: 0 }}>
-              <defs>
-                <filter
-                  id={`turbulent-displace-${index}`}
-                  colorInterpolationFilters="sRGB"
-                  x="-20%"
-                  y="-20%"
-                  width="140%"
-                  height="140%"
-                >
-                  <feTurbulence
-                    type="turbulence"
-                    baseFrequency="0.02"
-                    numOctaves="10"
-                    result="noise1"
-                    seed="1"
-                  />
-                  <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-                    <animate
-                      attributeName="dy"
-                      values="700; 0"
-                      dur="6s"
-                      repeatCount="indefinite"
-                      calcMode="linear"
-                    />
-                  </feOffset>
-                  <feTurbulence
-                    type="turbulence"
-                    baseFrequency="0.02"
-                    numOctaves="10"
-                    result="noise2"
-                    seed="1"
-                  />
-                  <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-                    <animate
-                      attributeName="dy"
-                      values="0; -700"
-                      dur="6s"
-                      repeatCount="indefinite"
-                      calcMode="linear"
-                    />
-                  </feOffset>
-                  <feComposite in="offsetNoise1" in2="offsetNoise2" result="combinedNoise" />
-                  <feDisplacementMap
-                    in="SourceGraphic"
-                    in2="combinedNoise"
-                    scale="15"
-                    xChannelSelector="R"
-                    yChannelSelector="B"
-                  />
-                </filter>
-              </defs>
-            </svg>
-
             {/* Card Container with Electric Border */}
             <div
               className="relative p-0.5 rounded-3xl"
@@ -174,24 +126,64 @@ export function LevelList({ levels }: LevelListProps) {
                   className="border-2 rounded-3xl pr-1 pb-1"
                   style={{ borderColor: isLocked ? 'rgba(100, 100, 100, 0.5)' : hexToRgba(accentColor, 0.5) }}
                 >
-                  {/* Main Card */}
+                  {/* Main Card - flips as one rigid unit, border and all */}
                   <div
-                    className="w-full h-96 rounded-3xl border-2 -mt-1 -ml-1 relative overflow-hidden"
-                    style={{
-                      borderColor: isLocked ? '#666666' : accentColor,
-                      background: 'rgba(10, 14, 23, 0.95)'
-                    }}
+                    className="w-full h-80 -mt-1 -ml-1 relative"
+                    style={{ perspective: '1500px' }}
                   >
-                    {/* Content Container */}
-                    <div className="absolute inset-0 w-full h-full flex flex-col">
-                      {/* Content Top */}
-                      <div className="flex flex-col p-6 pb-4 h-full">
-                        {/* Mission Number and Status Badge */}
-                        <div className="flex items-center justify-between mb-4">
+                    <div
+                      className="relative w-full h-full transition-transform duration-700 ease-in-out"
+                      style={{
+                        transformStyle: 'preserve-3d',
+                        transform: flippedCards.has(level.level_id) ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                      }}
+                    >
+                      {/* Front Face: Mission Badge + Title */}
+                      <div
+                        className="absolute inset-0 w-full h-full rounded-3xl border-2 overflow-hidden flex flex-col items-center justify-center text-center gap-4 p-6 cursor-pointer"
+                        style={{
+                          borderColor: isLocked ? '#666666' : accentColor,
+                          background: 'transparent',
+                          backfaceVisibility: 'hidden'
+                        }}
+                        onClick={() => toggleFlip(level.level_id)}
+                      >
+                        <div
+                          className="flex items-center gap-2 px-3 py-1 rounded-lg"
+                          style={{
+                            background: 'transparent',
+                            border: `1px solid ${isLocked ? 'rgba(100, 100, 100, 0.3)' : hexToRgba(accentColor, 0.3)}`
+                          }}
+                        >
+                          <Target className="w-4 h-4" style={{ color: isLocked ? '#666666' : accentColor }} />
+                          <span className="text-xs font-space font-bold" style={{ color: isLocked ? '#666666' : accentColor }}>
+                            MISSION {level.level_number}
+                          </span>
+                        </div>
+                        <h3 className="text-2xl font-space font-bold uppercase" style={{ color: '#f3ede9' }}>
+                          {level.title.replace(/^Mission \d+:\s*/i, '')}
+                        </h3>
+                        <p className="text-[10px] font-mono font-bold uppercase tracking-[0.2em]" style={{ color: isLocked ? '#666666' : accentColor, opacity: 0.6 }}>
+                          Tap for briefing
+                        </p>
+                      </div>
+
+                      {/* Back Face: Description + Action */}
+                      <div
+                        className="absolute inset-0 w-full h-full rounded-3xl border-2 overflow-hidden flex flex-col cursor-pointer"
+                        style={{
+                          borderColor: isLocked ? '#666666' : accentColor,
+                          background: 'transparent',
+                          backfaceVisibility: 'hidden',
+                          transform: 'rotateY(180deg)'
+                        }}
+                        onClick={() => toggleFlip(level.level_id)}
+                      >
+                        <div className="flex items-center justify-center pt-6">
                           <div
                             className="flex items-center gap-2 px-3 py-1 rounded-lg"
                             style={{
-                              background: isLocked ? 'rgba(100, 100, 100, 0.2)' : hexToRgba(accentColor, 0.2),
+                              background: 'transparent',
                               border: `1px solid ${isLocked ? 'rgba(100, 100, 100, 0.3)' : hexToRgba(accentColor, 0.3)}`
                             }}
                           >
@@ -200,32 +192,14 @@ export function LevelList({ levels }: LevelListProps) {
                               MISSION {level.level_number}
                             </span>
                           </div>
-                          <div
-                            className="px-2 py-1 rounded-full text-xs font-space font-bold flex items-center gap-1"
-                            style={{
-                              background: 'radial-gradient(47.2% 50% at 50.39% 88.37%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.04)',
-                              border: '1px solid rgba(255, 255, 255, 0.2)',
-                              color: isLocked ? '#666666' : accentColor
-                            }}
-                          >
-                            {statusInfo.statusIcon}
-                            <span>{statusInfo.statusText}</span>
-                          </div>
                         </div>
-
-                        {/* Title */}
-                        <h3 className="text-xl font-space font-bold mb-3" style={{ color: '#f3ede9' }}>
-                          {level.title}
-                        </h3>
-
-                        {/* Description */}
-                        <p className="text-sm leading-relaxed mb-4" style={{ color: '#f3ede9', opacity: isLocked ? 0.5 : 0.7 }}>
-                          {level.description}
-                        </p>
-
-                        {/* Divider */}
+                        <div className="flex-1 flex items-center justify-center text-center p-6 pb-2">
+                          <p className="text-sm leading-relaxed" style={{ color: '#f3ede9', opacity: isLocked ? 0.5 : 0.7 }}>
+                            {level.description}
+                          </p>
+                        </div>
                         <hr
-                          className="mt-auto mb-4 border-none h-px opacity-20"
+                          className="mx-6 mb-4 border-none h-px opacity-20"
                           style={{
                             background: 'currentColor',
                             WebkitMaskImage: 'linear-gradient(to right, transparent, black, transparent)',
@@ -233,114 +207,52 @@ export function LevelList({ levels }: LevelListProps) {
                           }}
                         />
 
-                        {/* Protocol Status */}
-                        <div className="flex items-center gap-2 mb-4">
-                          <Zap className="w-4 h-4" style={{ color: isLocked ? '#666666' : accentColor }} />
-                          <span className="text-xs font-space font-semibold" style={{ color: isLocked ? '#666666' : accentColor }}>
-                            {statusInfo.status === 'completed' ? 'MISSION COMPLETE' : 'NEURAL PROTOCOL'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Content Bottom */}
-                      <div className="flex flex-col p-6 pt-0">
-                        {isLocked ? (
-                          <div className="flex flex-col gap-2">
-                            <div
-                              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-space font-semibold text-sm cursor-not-allowed"
-                              style={{
-                                background: 'rgba(100, 100, 100, 0.2)',
-                                border: '1px solid rgba(100, 100, 100, 0.3)',
-                                color: '#666666'
-                              }}
-                            >
-                              <Lock className="w-4 h-4" />
-                              <span>LOCKED</span>
-                            </div>
-                            <p className="text-xs text-center font-mono" style={{ color: '#666666', opacity: 0.7 }}>
-                              Complete Mission {level.level_number - 1} first
-                            </p>
-                          </div>
-                        ) : (
-                          <Link
-                            href={`/levels/${level.age_group}/${level.level_number}`}
-                            onClick={() => playProjectTextSound()}
-                            className="w-full"
-                          >
-                            <div
-                              className="w-full py-3 px-4 rounded-lg flex items-center justify-between font-space font-semibold text-sm transition-all hover:scale-105"
-                              style={{
-                                background: hexToRgba(accentColor, 0.2),
-                                border: `1px solid ${hexToRgba(accentColor, 0.4)}`,
-                                color: accentColor
-                              }}
-                            >
-                              <div className="flex items-center gap-2">
-                                {statusInfo.buttonIcon}
-                                <span>{statusInfo.buttonText}</span>
+                        <div className="flex flex-col p-6 pt-0" onClick={(e) => e.stopPropagation()}>
+                          {isLocked ? (
+                            <div className="flex flex-col gap-2">
+                              <div
+                                className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-space font-semibold text-sm cursor-not-allowed"
+                                style={{
+                                  background: 'rgba(100, 100, 100, 0.2)',
+                                  border: '1px solid rgba(100, 100, 100, 0.3)',
+                                  color: '#666666'
+                                }}
+                              >
+                                <Lock className="w-4 h-4" />
+                                <span>LOCKED</span>
                               </div>
-                              <ArrowRight className="w-5 h-5" />
+                              <p className="text-xs text-center font-mono" style={{ color: '#666666', opacity: 0.7 }}>
+                                Complete Mission {level.level_number - 1} first
+                              </p>
                             </div>
-                          </Link>
-                        )}
+                          ) : (
+                            <Link
+                              href={`/levels/${level.age_group}/${level.level_number}`}
+                              onClick={() => playProjectTextSound()}
+                              className="w-full"
+                            >
+                              <div
+                                className="w-full py-3 px-4 rounded-lg flex items-center justify-between font-space font-semibold text-sm transition-all hover:scale-105"
+                                style={{
+                                  background: hexToRgba(accentColor, 0.2),
+                                  border: `1px solid ${hexToRgba(accentColor, 0.4)}`,
+                                  color: accentColor
+                                }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {statusInfo.buttonIcon}
+                                  <span>{statusInfo.buttonText}</span>
+                                </div>
+                                <ArrowRight className="w-5 h-5" />
+                              </div>
+                            </Link>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Glow Layers - Only if not locked */}
-                {!isLocked && (
-                  <>
-                    <div
-                      className="absolute inset-0 w-full h-full border-2 rounded-3xl pointer-events-none"
-                      style={{
-                        borderColor: hexToRgba(accentColor, 0.6),
-                        filter: `blur(1px) url(#turbulent-displace-${index})`
-                      }}
-                    ></div>
-                    <div
-                      className="absolute inset-0 w-full h-full border-2 rounded-3xl pointer-events-none"
-                      style={{
-                        borderColor: accentColor,
-                        filter: `blur(4px) url(#turbulent-displace-${index})`
-                      }}
-                    ></div>
-                  </>
-                )}
               </div>
-
-              {/* Overlay Effects - Only if not locked */}
-              {!isLocked && (
-                <>
-                  <div
-                    className="absolute inset-0 w-full h-full rounded-3xl opacity-100 scale-110 pointer-events-none"
-                    style={{
-                      mixBlendMode: 'overlay',
-                      filter: 'blur(16px)',
-                      background: 'linear-gradient(-30deg, white, transparent 30%, transparent 70%, white)'
-                    }}
-                  ></div>
-                  <div
-                    className="absolute inset-0 w-full h-full rounded-3xl opacity-50 scale-110 pointer-events-none"
-                    style={{
-                      mixBlendMode: 'overlay',
-                      filter: 'blur(16px)',
-                      background: 'linear-gradient(-30deg, white, transparent 30%, transparent 70%, white)'
-                    }}
-                  ></div>
-                </>
-              )}
-
-              {/* Background Glow - Only if not locked */}
-              {!isLocked && (
-                <div
-                  className="absolute inset-0 w-full h-full rounded-3xl -z-10 scale-110 opacity-30"
-                  style={{
-                    filter: 'blur(32px)',
-                    background: `linear-gradient(-30deg, ${statusInfo.glowColor}, transparent, ${statusInfo.glowColor})`
-                  }}
-                ></div>
-              )}
             </div>
           </div>
         );

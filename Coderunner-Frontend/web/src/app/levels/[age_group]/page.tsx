@@ -104,7 +104,6 @@ export default function LevelPage({ params }: LevelPageProps) {
       </div>
     );
   }
-  const formattedAgeGroup = ageGroup.replace("-", "–");
   return (
     <div
       className="flex flex-col min-h-screen relative overflow-hidden"
@@ -161,14 +160,8 @@ export default function LevelPage({ params }: LevelPageProps) {
             </div>
             <div className="text-left">
               <h1 className="text-3xl md:text-4xl font-space font-bold text-primary glow-text">
-                OPERATIVE TRAINING
+                NOVICE OPERATIVE
               </h1>
-              <p
-                className="text-lg font-mono opacity-80"
-                style={{ color: accentColor }}
-              >
-                Ages {formattedAgeGroup} | Advanced Protocols
-              </p>
             </div>
           </div>
           {/* Mission Briefing */}

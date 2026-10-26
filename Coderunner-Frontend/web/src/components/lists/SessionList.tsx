@@ -93,61 +93,6 @@ export function SessionList({ sessions, level }: SessionListProps) {
           const locked = !unlockAll && index > 0 && !isSessionComplete(filteredSessions[index - 1]);
           return (
           <div key={session.session_id} id={`session-${session.session_id}`} className={`relative ${locked ? 'opacity-70' : ''}`}>
-            {/* SVG Filter Definition */}
-            <svg className="absolute" style={{ width: 0, height: 0 }}>
-              <defs>
-                <filter
-                  id={`session-turbulent-displace-${index}`}
-                  colorInterpolationFilters="sRGB"
-                  x="-20%"
-                  y="-20%"
-                  width="140%"
-                  height="140%"
-                >
-                  <feTurbulence
-                    type="turbulence"
-                    baseFrequency="0.02"
-                    numOctaves="10"
-                    result="noise1"
-                    seed="1"
-                  />
-                  <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-                    <animate
-                      attributeName="dy"
-                      values="700; 0"
-                      dur="6s"
-                      repeatCount="indefinite"
-                      calcMode="linear"
-                    />
-                  </feOffset>
-                  <feTurbulence
-                    type="turbulence"
-                    baseFrequency="0.02"
-                    numOctaves="10"
-                    result="noise2"
-                    seed="1"
-                  />
-                  <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-                    <animate
-                      attributeName="dy"
-                      values="0; -700"
-                      dur="6s"
-                      repeatCount="indefinite"
-                      calcMode="linear"
-                    />
-                  </feOffset>
-                  <feComposite in="offsetNoise1" in2="offsetNoise2" result="combinedNoise" />
-                  <feDisplacementMap
-                    in="SourceGraphic"
-                    in2="combinedNoise"
-                    scale="15"
-                    xChannelSelector="R"
-                    yChannelSelector="B"
-                  />
-                </filter>
-              </defs>
-            </svg>
-
             {/* Electric Border Container */}
             <div
               className="relative p-0.5 rounded-2xl"
@@ -167,7 +112,7 @@ export function SessionList({ sessions, level }: SessionListProps) {
                     className="w-full rounded-2xl border-2 -mt-1 -ml-1 relative overflow-hidden"
                     style={{
                       borderColor: accentColor,
-                      background: 'rgba(10, 14, 23, 0.95)'
+                      background: 'transparent'
                     }}
                   >
                     <Accordion type="single" collapsible value={openSession} onValueChange={setOpenSession}>
@@ -240,50 +185,7 @@ export function SessionList({ sessions, level }: SessionListProps) {
                     </Accordion>
                   </div>
                 </div>
-
-                {/* Glow Layers */}
-                <div
-                  className="absolute inset-0 w-full h-full border-2 rounded-2xl pointer-events-none"
-                  style={{
-                    borderColor: hexToRgba(accentColor, 0.6),
-                    filter: `blur(1px) url(#session-turbulent-displace-${index})`
-                  }}
-                ></div>
-                <div
-                  className="absolute inset-0 w-full h-full border-2 rounded-2xl pointer-events-none"
-                  style={{
-                    borderColor: accentColor,
-                    filter: `blur(4px) url(#session-turbulent-displace-${index})`
-                  }}
-                ></div>
               </div>
-
-              {/* Overlay Effects */}
-              <div
-                className="absolute inset-0 w-full h-full rounded-2xl opacity-100 scale-110 pointer-events-none"
-                style={{
-                  mixBlendMode: 'overlay',
-                  filter: 'blur(16px)',
-                  background: 'linear-gradient(-30deg, white, transparent 30%, transparent 70%, white)'
-                }}
-              ></div>
-              <div
-                className="absolute inset-0 w-full h-full rounded-2xl opacity-50 scale-110 pointer-events-none"
-                style={{
-                  mixBlendMode: 'overlay',
-                  filter: 'blur(16px)',
-                  background: 'linear-gradient(-30deg, white, transparent 30%, transparent 70%, white)'
-                }}
-              ></div>
-
-              {/* Background Glow */}
-              <div
-                className="absolute inset-0 w-full h-full rounded-2xl -z-10 scale-110 opacity-30"
-                style={{
-                  filter: 'blur(32px)',
-                  background: `linear-gradient(-30deg, ${accentColor}, transparent, ${accentColor})`
-                }}
-              ></div>
             </div>
           </div>
           );
@@ -291,61 +193,6 @@ export function SessionList({ sessions, level }: SessionListProps) {
 
         {/* Code Convergence Section */}
         <div id="code-convergence" className={`relative ${!allSessionsComplete ? 'opacity-70' : ''}`}>
-          {/* SVG Filter Definition */}
-          <svg className="absolute" style={{ width: 0, height: 0 }}>
-            <defs>
-              <filter
-                id="code-convergence-turbulent-displace"
-                colorInterpolationFilters="sRGB"
-                x="-20%"
-                y="-20%"
-                width="140%"
-                height="140%"
-              >
-                <feTurbulence
-                  type="turbulence"
-                  baseFrequency="0.02"
-                  numOctaves="10"
-                  result="noise1"
-                  seed="1"
-                />
-                <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-                  <animate
-                    attributeName="dy"
-                    values="700; 0"
-                    dur="6s"
-                    repeatCount="indefinite"
-                    calcMode="linear"
-                  />
-                </feOffset>
-                <feTurbulence
-                  type="turbulence"
-                  baseFrequency="0.02"
-                  numOctaves="10"
-                  result="noise2"
-                  seed="1"
-                />
-                <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-                  <animate
-                    attributeName="dy"
-                    values="0; -700"
-                    dur="6s"
-                    repeatCount="indefinite"
-                    calcMode="linear"
-                  />
-                </feOffset>
-                <feComposite in="offsetNoise1" in2="offsetNoise2" result="combinedNoise" />
-                <feDisplacementMap
-                  in="SourceGraphic"
-                  in2="combinedNoise"
-                  scale="15"
-                  xChannelSelector="R"
-                  yChannelSelector="B"
-                />
-              </filter>
-            </defs>
-          </svg>
-
           {/* Electric Border Container */}
           <div
             className="relative p-0.5 rounded-2xl"
@@ -365,7 +212,7 @@ export function SessionList({ sessions, level }: SessionListProps) {
                   className="w-full rounded-2xl border-2 -mt-1 -ml-1 relative overflow-hidden"
                   style={{
                     borderColor: accentColor,
-                    background: 'rgba(10, 14, 23, 0.95)'
+                    background: 'transparent'
                   }}
                 >
                   <Accordion type="single" collapsible value={openSession} onValueChange={(value) => {
@@ -441,49 +288,7 @@ export function SessionList({ sessions, level }: SessionListProps) {
                 </div>
               </div>
 
-              {/* Glow Layers */}
-              <div
-                className="absolute inset-0 w-full h-full border-2 rounded-2xl pointer-events-none"
-                style={{
-                  borderColor: hexToRgba(accentColor, 0.6),
-                  filter: 'blur(1px) url(#code-convergence-turbulent-displace)'
-                }}
-              ></div>
-              <div
-                className="absolute inset-0 w-full h-full border-2 rounded-2xl pointer-events-none"
-                style={{
-                  borderColor: accentColor,
-                  filter: 'blur(4px) url(#code-convergence-turbulent-displace)'
-                }}
-              ></div>
             </div>
-
-            {/* Overlay Effects */}
-            <div
-              className="absolute inset-0 w-full h-full rounded-2xl opacity-100 scale-110 pointer-events-none"
-              style={{
-                mixBlendMode: 'overlay',
-                filter: 'blur(16px)',
-                background: 'linear-gradient(-30deg, white, transparent 30%, transparent 70%, white)'
-              }}
-            ></div>
-            <div
-              className="absolute inset-0 w-full h-full rounded-2xl opacity-50 scale-110 pointer-events-none"
-              style={{
-                mixBlendMode: 'overlay',
-                filter: 'blur(16px)',
-                background: 'linear-gradient(-30deg, white, transparent 30%, transparent 70%, white)'
-              }}
-            ></div>
-
-            {/* Background Glow */}
-            <div
-              className="absolute inset-0 w-full h-full rounded-2xl -z-10 scale-110 opacity-30"
-              style={{
-                filter: 'blur(32px)',
-                background: `linear-gradient(-30deg, ${accentColor}, transparent, ${accentColor})`
-              }}
-            ></div>
           </div>
         </div>
       </div>
